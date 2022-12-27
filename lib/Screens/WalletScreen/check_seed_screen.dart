@@ -201,9 +201,6 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                           text: 'CONTINUE',
                           press: () async {
                             if (_formKey.currentState!.validate()) {
-                              print(mnemonicPhrase);
-                              print('USERRRER');
-                              print(userMnemonicPhrase);
                               if (userMnemonicPhrase == mnemonicPhrase!) {
                                 if (validateMnemonic(mnemonicPhrase!)) {
                                   final seed = mnemonicToSeed(mnemonicPhrase!);
@@ -250,11 +247,11 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                                         EthPrivateKey.fromHex(privateKey),
                                         widget.password,
                                         Random());
-                                    print(wallet.toJson());
                                     if (widget.isWelcomeScreen) {
                                       Navigator.pop(context);
+                                      Navigator.pop(context);
                                     }
-                                    Navigator.pop(context);
+
                                     Navigator.pop(context);
                                     Navigator.pop(context);
                                   } else {
@@ -279,6 +276,9 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                           color: secondaryColor,
                           textColor: darkPrimaryColor,
                         ),
+                      ),
+                      const SizedBox(
+                        height: 100,
                       ),
                     ],
                   ),

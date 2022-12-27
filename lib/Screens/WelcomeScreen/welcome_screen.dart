@@ -3,6 +3,7 @@ import 'package:ozodwallet/Models/LanguageData.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intro_slider/intro_slider.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
+import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
 import 'package:ozodwallet/Services/languages/languages.dart';
 import 'package:ozodwallet/Services/languages/locale_constant.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
@@ -149,7 +150,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                           Navigator.push(
                             context,
                             SlideRightRoute(
-                              page: CreateWalletScreen(),
+                              page: ImportWalletScreen(),
                             ),
                           );
                           setState(() {

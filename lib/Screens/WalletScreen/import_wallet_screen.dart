@@ -1,42 +1,45 @@
+import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart';
+import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hex/hex.dart';
 import 'package:ozodwallet/Screens/WalletScreen/check_seed_screen.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
 import 'package:ozodwallet/constants.dart';
+import 'package:web3dart/credentials.dart';
 
 // ignore: must_be_immutable
-class CreateWalletScreen extends StatefulWidget {
+class ImportWalletScreen extends StatefulWidget {
   String error;
   bool isWelcomeScreen;
-  CreateWalletScreen({
+  ImportWalletScreen({
     Key? key,
     this.error = 'Something Went Wrong',
     this.isWelcomeScreen = true,
   }) : super(key: key);
 
   @override
-  State<CreateWalletScreen> createState() => _CreateWalletScreenState();
+  State<ImportWalletScreen> createState() => _ImportWalletScreenState();
 }
 
-class _CreateWalletScreenState extends State<CreateWalletScreen> {
+class _ImportWalletScreenState extends State<ImportWalletScreen> {
   bool loading = true;
-  String? mnemonicPhrase;
-  Uint8List? seed;
+  String error = '';
+
+  String? userMnemonicPhrase;
   String? password;
   String name = "Wallet1";
-  bool showSeed = false;
   final _formKey = GlobalKey<FormState>();
 
   void prepare() {
     setState(() {
-      mnemonicPhrase = generateMnemonic();
-      seed = mnemonicToSeed(mnemonicPhrase!);
       loading = false;
     });
   }
@@ -67,7 +70,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                         height: size.height * 0.1,
                       ),
                       Text(
-                        "Your seed phrase",
+                        "Seed phrase",
                         overflow: TextOverflow.ellipsis,
                         maxLines: 3,
                         textAlign: TextAlign.start,
@@ -83,7 +86,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                         height: 20,
                       ),
                       Text(
-                        "This is your secret phrase to access your wallet. Save this phrase in a safe physical place. DO NOT SHARE OR LOSE THESE PHRASES. Ozod Wallet does not save these phrases, so if you lose this phrase you will your wallet.",
+                        "Enter 12 words phrase of your wallet",
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1000,
                         textAlign: TextAlign.start,
@@ -99,65 +102,79 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                         height: 50,
                       ),
                       Center(
-                        child: CupertinoButton(
-                          child: showSeed
-                              ? Container(
-                                  width: size.width * 0.8,
-                                  padding: const EdgeInsets.all(20),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    gradient: const LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Color.fromARGB(255, 255, 190, 99),
-                                        Color.fromARGB(255, 255, 81, 83)
-                                      ],
-                                    ),
-                                  ),
-                                  child: Text(
-                                    mnemonicPhrase!,
-                                    maxLines: 1000,
-                                    overflow: TextOverflow.ellipsis,
-                                    textAlign: TextAlign.start,
-                                    style: GoogleFonts.montserrat(
-                                      textStyle: const TextStyle(
-                                        color: whiteColor,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                )
-                              : Container(
-                                  padding: const EdgeInsets.all(20),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    gradient: const LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: [
-                                        Color.fromARGB(255, 255, 190, 99),
-                                        Color.fromARGB(255, 255, 81, 83)
-                                      ],
-                                    ),
-                                  ),
-                                  child: Center(
-                                      child: Icon(
-                                    CupertinoIcons.eye_fill,
-                                    color: whiteColor,
-                                  )),
-                                ),
-                          onPressed: () {
-                            setState(() {
-                              showSeed = !showSeed;
-                            });
-                          },
+                        child: Container(
+                          width: size.width * 0.8,
+                          height: 200,
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20.0),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                lightPrimaryColor,
+                                lightPrimaryColor,
+                              ],
+                            ),
+                          ),
+                          child: TextFormField(
+                            style: const TextStyle(color: darkPrimaryColor),
+                            validator: (val) {
+                              if (val!.isEmpty) {
+                                return 'Enter your seed phrase';
+                              } else {
+                                return null;
+                              }
+                            },
+                            keyboardType: TextInputType.multiline,
+                            maxLines: 1000,
+                            onChanged: (val) {
+                              setState(() {
+                                userMnemonicPhrase = val;
+                              });
+                            },
+                            decoration: InputDecoration(
+                              errorBorder: const OutlineInputBorder(
+                                borderSide:
+                                    BorderSide(color: Colors.red, width: 1.0),
+                              ),
+                              focusedBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: darkPrimaryColor, width: 1.0),
+                              ),
+                              enabledBorder: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: darkPrimaryColor, width: 1.0),
+                              ),
+                              hintStyle: TextStyle(
+                                  color: darkPrimaryColor.withOpacity(0.7)),
+                              hintText: 'Seed phrase',
+                              border: const OutlineInputBorder(
+                                borderSide: BorderSide(
+                                    color: darkPrimaryColor, width: 1.0),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Text(
+                          error,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 40),
                       Text(
-                        "Your password",
+                        "Password",
                         overflow: TextOverflow.ellipsis,
                         maxLines: 3,
                         textAlign: TextAlign.start,
@@ -173,7 +190,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                         height: 20,
                       ),
                       Text(
-                        "This is your password for wallet. Save this password in a safe physical place. DO NOT SHARE OR LOSE THIS PASSWORD. Ozod Wallet does not save this password, so if you lose this password you will your wallet.",
+                        "Enter password for your wallet",
                         overflow: TextOverflow.ellipsis,
                         maxLines: 1000,
                         textAlign: TextAlign.start,
@@ -300,22 +317,71 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                         child: RoundedButton(
                           pw: 250,
                           ph: 45,
-                          text: 'DONE',
-                          press: () {
+                          text: 'IMPORT',
+                          press: () async {
                             if (_formKey.currentState!.validate() &&
                                 password != null &&
                                 password!.isNotEmpty) {
-                              Navigator.push(
-                                context,
-                                SlideRightRoute(
-                                  page: CheckSeedScreen(
-                                    name: name,
-                                    password: password!,
-                                    mnemonicPhrase: mnemonicPhrase!,
-                                    isWelcomeScreen: widget.isWelcomeScreen,
-                                  ),
-                                ),
-                              );
+                              if (validateMnemonic(userMnemonicPhrase!)) {
+                                final seed =
+                                    mnemonicToSeed(userMnemonicPhrase!);
+                                final master = await ED25519_HD_KEY
+                                    .getMasterKeyFromSeed(seed);
+                                final privateKey = HEX.encode(master.key);
+                                final publicKey =
+                                    EthPrivateKey.fromHex(privateKey).address;
+
+                                AndroidOptions _getAndroidOptions() =>
+                                    const AndroidOptions(
+                                      encryptedSharedPreferences: true,
+                                    );
+                                final storage = FlutterSecureStorage(
+                                    aOptions: _getAndroidOptions());
+                                String? lastWalletIndex;
+                                if (!widget.isWelcomeScreen) {
+                                  lastWalletIndex = await storage.read(
+                                      key: "lastWalletIndex");
+                                } else {
+                                  lastWalletIndex = "1";
+                                }
+
+                                if (lastWalletIndex != null) {
+                                  await storage.write(
+                                      key: "privateKey${lastWalletIndex}",
+                                      value: privateKey);
+                                  await storage.write(
+                                      key: "publicKey${lastWalletIndex}",
+                                      value: publicKey.toString());
+                                  await storage.write(
+                                      key: "password${lastWalletIndex}",
+                                      value: password.toString());
+                                  await storage.write(
+                                      key: "Wallet${lastWalletIndex}",
+                                      value: name);
+                                  await storage.write(
+                                      key: "walletExists", value: 'true');
+                                  await storage.write(
+                                      key: "lastWalletIndex",
+                                      value: (int.parse(lastWalletIndex) + 1)
+                                          .toString());
+                                }
+                                if (widget.isWelcomeScreen) {
+                                  Navigator.pop(context);
+                                  Navigator.pop(context);
+                                }
+
+                                Navigator.pop(context);
+                              } else {
+                                setState(() {
+                                  loading = false;
+                                  error = 'Incorrect credentials';
+                                });
+                              }
+                            } else {
+                              setState(() {
+                                loading = false;
+                                error = 'Incorrect seed phrase';
+                              });
                             }
                           },
                           color: secondaryColor,
