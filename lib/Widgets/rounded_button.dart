@@ -50,6 +50,7 @@ class RoundedButton extends StatelessWidget {
             style: GoogleFonts.montserrat(
               textStyle: TextStyle(
                 color: textColor,
+                fontWeight: FontWeight.w700
               ),
             ),
           ),

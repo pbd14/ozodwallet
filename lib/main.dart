@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:ntp/ntp.dart';
+import 'package:ozodwallet/Screens/MainScreen/main_screen.dart';
 import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
 import 'package:ozodwallet/Services/languages/applocalizationsdelegate.dart';
 import 'package:ozodwallet/constants.dart';
@@ -84,7 +85,7 @@ class _MyAppState extends State<MyApp> {
         locale: _locale,
         theme: ThemeData(
             primaryColor: primaryColor, scaffoldBackgroundColor: whiteColor),
-        home: WelcomeScreen(),
+        home: MainScreen(),
         supportedLocales: const [
           Locale('en', ''),
           Locale('ru', ''),

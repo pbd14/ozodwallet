@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:crypto/crypto.dart';
 import 'package:bip39/bip39.dart';
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
@@ -6,23 +8,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hex/hex.dart';
+import 'package:ozodwallet/Screens/MainScreen/main_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
 import 'package:ozodwallet/constants.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web3dart/credentials.dart';
 
 // ignore: must_be_immutable
 class CheckSeedScreen extends StatefulWidget {
   String error;
   String mnemonicPhrase;
-  CheckSeedScreen(
-      {Key? key,
-      this.error = 'Something Went Wrong',
-      required this.mnemonicPhrase})
-      : super(key: key);
+  String password;
+  String name;
+  bool isWelcomeScreen;
+  CheckSeedScreen({
+    Key? key,
+    this.error = 'Something Went Wrong',
+    required this.mnemonicPhrase,
+    required this.password,
+    required this.name,
+    this.isWelcomeScreen = true,
+  }) : super(key: key);
 
   @override
   State<CheckSeedScreen> createState() => _CheckSeedScreenState();
@@ -141,7 +151,7 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                             maxLines: 1000,
                             onChanged: (val) {
                               setState(() {
-                                mnemonicPhrase = val;
+                                userMnemonicPhrase = val;
                               });
                             },
                             decoration: InputDecoration(
@@ -191,6 +201,9 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                           text: 'CONTINUE',
                           press: () async {
                             if (_formKey.currentState!.validate()) {
+                              print(mnemonicPhrase);
+                              print('USERRRER');
+                              print(userMnemonicPhrase);
                               if (userMnemonicPhrase == mnemonicPhrase!) {
                                 if (validateMnemonic(mnemonicPhrase!)) {
                                   final seed = mnemonicToSeed(mnemonicPhrase!);
@@ -203,18 +216,52 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                                       const AndroidOptions(
                                         encryptedSharedPreferences: true,
                                       );
+
                                   final storage = FlutterSecureStorage(
                                       aOptions: _getAndroidOptions());
-                                  await storage.write(
-                                      key: "privateKey", value: privateKey);
-                                  await storage.write(
-                                      key: "publicKey", value: publicKey.toString());
-                                  Navigator.push(
-                                    context,
-                                    SlideRightRoute(
-                                      page: WelcomeScreen(),
-                                    ),
-                                  );
+                                  String? lastWalletIndex;
+                                  if (!widget.isWelcomeScreen) {
+                                    lastWalletIndex = await storage.read(
+                                        key: "lastWalletIndex");
+                                  } else {
+                                    lastWalletIndex = "1";
+                                  }
+
+                                  if (lastWalletIndex != null) {
+                                    await storage.write(
+                                        key: "privateKey${lastWalletIndex}",
+                                        value: privateKey);
+                                    await storage.write(
+                                        key: "publicKey${lastWalletIndex}",
+                                        value: publicKey.toString());
+                                    await storage.write(
+                                        key: "password${lastWalletIndex}",
+                                        value: widget.password.toString());
+                                    await storage.write(
+                                        key: "Wallet${lastWalletIndex}",
+                                        value: widget.name);
+                                    await storage.write(
+                                        key: "walletExists", value: 'true');
+                                    await storage.write(
+                                        key: "lastWalletIndex",
+                                        value: (int.parse(lastWalletIndex) + 1)
+                                            .toString());
+                                    Wallet wallet = Wallet.createNew(
+                                        EthPrivateKey.fromHex(privateKey),
+                                        widget.password,
+                                        Random());
+                                    print(wallet.toJson());
+                                    if (widget.isWelcomeScreen) {
+                                      Navigator.pop(context);
+                                    }
+                                    Navigator.pop(context);
+                                    Navigator.pop(context);
+                                    Navigator.pop(context);
+                                  } else {
+                                    setState(() {
+                                      loading = false;
+                                    });
+                                  }
                                 } else {
                                   setState(() {
                                     loading = false;

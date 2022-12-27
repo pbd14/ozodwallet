@@ -1,6 +1,19 @@
+import 'dart:async';
+import 'dart:convert';
+import 'dart:math';
+import 'package:intl/intl.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:overlay_support/overlay_support.dart';
+import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
+import 'package:ozodwallet/constants.dart';
+import 'package:http/http.dart';
+import 'package:web3dart/web3dart.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // ignore: must_be_immutable
 class WalletScreen extends StatefulWidget {
@@ -14,16 +27,69 @@ class WalletScreen extends StatefulWidget {
 
 class _WalletScreenState extends State<WalletScreen> {
   bool loading = true;
+  ScrollController _scrollController = ScrollController();
+
   String publicKey = 'Loading';
+  String privateKey = 'Loading';
+  String selectedWalletIndex = "1";
+  String selectedWalletName = "Wallet1";
+  String selectedWalletBalance = "0 ETH";
+  List selectedWalletTxs = [];
+  Client httpClient = Client();
+  late Web3Client web3client;
+
+  Future<void> _refresh() async {
+    setState(() {
+      loading = true;
+    });
+    publicKey = 'Loading';
+    privateKey = 'Loading';
+    selectedWalletIndex = "1";
+    selectedWalletName = "Wallet1";
+    selectedWalletBalance = "0 ETH";
+    selectedWalletTxs = [];
+    prepare();
+    Completer<void> completer = Completer<void>();
+    completer.complete();
+    return completer.future;
+  }
 
   Future<void> prepare() async {
+    await dotenv.load(fileName: ".env");
     AndroidOptions _getAndroidOptions() => const AndroidOptions(
           encryptedSharedPreferences: true,
         );
     final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
-    String? value = await storage.read(key: 'publicKey');
+    web3client = Web3Client(dotenv.env['WEB3_INFURA_GOERLI_URL']!, httpClient);
+    String? valuePublicKey =
+        await storage.read(key: 'publicKey${selectedWalletIndex}');
+    String? valuePrivateKey =
+        await storage.read(key: 'privateKey${selectedWalletIndex}');
+    String? valueName = await storage.read(key: 'Wallet${selectedWalletIndex}');
+    EthereumAddress valueAddress =
+        EthPrivateKey.fromHex(valuePrivateKey!).address;
+    EtherAmount valueBalance = await web3client.getBalance(valueAddress);
+    final response = await httpClient.get(Uri.parse(
+        "https://api-goerli.etherscan.io//api?module=account&action=txlist&address=${valueAddress}&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=${dotenv.env['ETHERSCAN_API']!}"));
+    
+    dynamic jsonBody = jsonDecode(response.body);
+    
+    List valueTxs = jsonBody['result'];
+
     setState(() {
-      value != null ? publicKey = value : publicKey = 'Error';
+      valuePublicKey != null ? publicKey = valuePublicKey : publicKey = 'Error';
+      valuePrivateKey != null
+          ? privateKey = valuePrivateKey
+          : privateKey = 'Error';
+      valueName != null
+          ? selectedWalletName = valueName
+          : selectedWalletName = 'Error';
+      valueBalance != null
+          ? selectedWalletBalance =
+              '${valueBalance.getValueInUnit(EtherUnit.ether)} ETH'
+          : selectedWalletBalance = 'Error';
+      valueTxs != null ? selectedWalletTxs = valueTxs.reversed.toList() : selectedWalletTxs = [];
+
       loading = false;
     });
   }
@@ -41,8 +107,391 @@ class _WalletScreenState extends State<WalletScreen> {
     return loading
         ? const LoadingScreen()
         : Scaffold(
-            body: Center(
-              child: Text(publicKey,),
+            backgroundColor: primaryColor,
+            body: RefreshIndicator(
+              backgroundColor: darkPrimaryColor,
+              color: secondaryColor,
+              onRefresh: _refresh,
+              child: Container(
+                // padding: const EdgeInsets.all(10),
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  slivers: [
+                    SliverList(
+                      delegate: SliverChildListDelegate(
+                        [
+                          Center(
+                            child: Column(
+                              children: [
+                                SizedBox(height: size.height * 0.1),
+                                Container(
+                                  width: size.width * 0.8,
+                                  height: 200,
+                                  padding: const EdgeInsets.all(15),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Colors.blue,
+                                        Colors.green,
+                                      ],
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        selectedWalletName,
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.start,
+                                        style: GoogleFonts.montserrat(
+                                          textStyle: const TextStyle(
+                                            color: whiteColor,
+                                            fontSize: 25,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        selectedWalletBalance,
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 2,
+                                        textAlign: TextAlign.start,
+                                        style: GoogleFonts.montserrat(
+                                          textStyle: const TextStyle(
+                                            color: whiteColor,
+                                            fontSize: 30,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                      Spacer(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          Container(
+                                            width: size.width * 0.6 - 30,
+                                            child: Text(
+                                              publicKey,
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.start,
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  color: whiteColor,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(width: 10),
+                                          Container(
+                                            width: size.width * 0.15 - 30,
+                                            child: IconButton(
+                                                padding: EdgeInsets.zero,
+                                                onPressed: () async {
+                                                  await Clipboard.setData(
+                                                      ClipboardData(
+                                                          text: publicKey));
+                                                  PushNotificationMessage
+                                                      notification =
+                                                      PushNotificationMessage(
+                                                    title: 'Copied',
+                                                    body: 'Public key copied',
+                                                  );
+                                                  showSimpleNotification(
+                                                    Text(notification.body),
+                                                    position:
+                                                        NotificationPosition
+                                                            .top,
+                                                    background: greenColor,
+                                                  );
+                                                },
+                                                icon: Icon(
+                                                  CupertinoIcons.doc,
+                                                  color: whiteColor,
+                                                )),
+                                          )
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 30),
+                                // Txs
+                                selectedWalletTxs.length != 0
+                                    ? Container(
+                                        width: size.width * 0.8,
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                          gradient: const LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              whiteColor,
+                                              Color.fromARGB(
+                                                  255, 220, 225, 234),
+                                              Color.fromRGBO(134, 147, 171, 1.0)
+                                            ],
+                                          ),
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                "Activity",
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: darkDarkColor,
+                                                    fontSize: 30,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 30,
+                                            ),
+                                            for (dynamic tx
+                                                in selectedWalletTxs.take(5))
+                                              Container(
+                                                margin:
+                                                    EdgeInsets.only(bottom: 30),
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
+                                                  children: [
+                                                    // Icons + Date
+                                                    Container(
+                                                      width: size.width * 0.1,
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          tx['from'] ==
+                                                                  publicKey
+                                                              ? Icon(
+                                                                  CupertinoIcons
+                                                                      .arrow_up_circle_fill,
+                                                                  color:
+                                                                      darkDarkColor,
+                                                                )
+                                                              : Icon(
+                                                                  CupertinoIcons
+                                                                      .arrow_down_circle_fill,
+                                                                  color: Colors
+                                                                      .green,
+                                                                ),
+                                                          Text(
+                                                            "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp'])))}",
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            textAlign:
+                                                                TextAlign.start,
+                                                            style: GoogleFonts
+                                                                .montserrat(
+                                                              textStyle:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    darkDarkColor,
+                                                                fontSize: 10,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width: size.width * 0.4,
+                                                      child: Expanded(
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            tx['from'] ==
+                                                                    publicKey
+                                                                ? Text(
+                                                                    "Sent",
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .start,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            darkDarkColor,
+                                                                        fontSize:
+                                                                            25,
+                                                                        fontWeight:
+                                                                            FontWeight.w700,
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                : Text(
+                                                                    "Received",
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .start,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            darkDarkColor,
+                                                                        fontSize:
+                                                                            25,
+                                                                        fontWeight:
+                                                                            FontWeight.w700,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                            tx['from'] ==
+                                                                    publicKey
+                                                                ? Text(
+                                                                    "To ${tx['to']}",
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .start,
+                                                                    maxLines: 2,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            darkDarkColor,
+                                                                        fontSize:
+                                                                            10,
+                                                                        fontWeight:
+                                                                            FontWeight.w400,
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                : Text(
+                                                                    "From ${tx['from']}",
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    maxLines: 2,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .start,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            darkDarkColor,
+                                                                        fontSize:
+                                                                            10,
+                                                                        fontWeight:
+                                                                            FontWeight.w400,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width: size.width * 0.2,
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Text(
+                                                            (int.parse(tx[
+                                                                        'value']) /
+                                                                    pow(10, 18))
+                                                                .toString(),
+                                                            maxLines: 2,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            textAlign:
+                                                                TextAlign.start,
+                                                            style: GoogleFonts
+                                                                .montserrat(
+                                                              textStyle:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    darkDarkColor,
+                                                                fontSize: 15,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            "ETH",
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            textAlign:
+                                                                TextAlign.start,
+                                                            style: GoogleFonts
+                                                                .montserrat(
+                                                              textStyle:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    darkDarkColor,
+                                                                fontSize: 20,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w400,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      )
+                                    : Container(),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
           );
   }
