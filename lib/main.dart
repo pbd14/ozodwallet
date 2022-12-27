@@ -2,8 +2,8 @@
 import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:ntp/ntp.dart';
+import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
 import 'package:ozodwallet/Services/languages/applocalizationsdelegate.dart';
-import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -33,7 +33,6 @@ void main() async {
     systemNavigationBarColor: primaryColor,
     systemNavigationBarDividerColor: primaryColor,
   ));
-  await NotificationService().init();
 
   
   runApp(MyApp(
@@ -85,7 +84,7 @@ class _MyAppState extends State<MyApp> {
         locale: _locale,
         theme: ThemeData(
             primaryColor: primaryColor, scaffoldBackgroundColor: whiteColor),
-        home: ,
+        home: WelcomeScreen(),
         supportedLocales: const [
           Locale('en', ''),
           Locale('ru', ''),

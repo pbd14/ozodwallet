@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:ozodwallet/Models/LanguageData.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intro_slider/intro_slider.dart';
+import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Services/languages/languages.dart';
 import 'package:ozodwallet/Services/languages/locale_constant.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
@@ -37,8 +38,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             child: Scaffold(
               backgroundColor: darkPrimaryColor,
               body: SingleChildScrollView(
-                child: Container(
-                  margin: const EdgeInsets.all(20),
+                child: Center(
                   child: Column(
                     children: [
                       SizedBox(
@@ -124,20 +124,13 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         pw: 250,
                         ph: 45,
                         text: 'Create wallet',
-                        press: () async {
-                          setState(() {
-                            loading = true;
-                          });
+                        press: () {
                           Navigator.push(
                             context,
                             SlideRightRoute(
-                              page: const EmailLoginScreen(),
+                              page: CreateWalletScreen(),
                             ),
                           );
-
-                          setState(() {
-                            loading = false;
-                          });
                         },
                         color: secondaryColor,
                         textColor: darkPrimaryColor,
@@ -149,14 +142,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         pw: 250,
                         ph: 45,
                         text: 'Existing wallet',
-                        press: () async {
+                        press: () {
                           setState(() {
                             loading = true;
                           });
                           Navigator.push(
                             context,
                             SlideRightRoute(
-                              page: const EmailSignUpScreen(),
+                              page: CreateWalletScreen(),
                             ),
                           );
                           setState(() {
