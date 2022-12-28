@@ -14,6 +14,7 @@ import 'package:hex/hex.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Screens/WalletScreen/check_seed_screen.dart';
+import 'package:ozodwallet/Services/exchanges/mercury_api_service.dart';
 import 'package:ozodwallet/Services/exchanges/simpleswap_api_service.dart';
 import 'package:ozodwallet/Services/exchanges/swapzone_api_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
@@ -63,6 +64,12 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
       'exchange_link':
           'https://simpleswap.io/?cur_from=btc&cur_to=eth&amount=0.1&ref=a8e65f24b017',
     },
+    'mercuryo': {
+      'name': 'Mercuryo',
+      'image':
+          'https://raw.githubusercontent.com/mercuryoio/iOS-SDK/main/images/logo.png',
+      'exchange_link': 'https://exchange.mercuryo.io/'
+    },
     'swapzone': {
       'name': 'Swapzone',
       'image':
@@ -79,11 +86,38 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
   EtherAmount? balance;
 
   void getPossibleExchanges() {
+    possibleExchanges.clear();
+    selectedExchange = {};
+    // Mercuryo
+    if (MercuryoApiService().checkCoinForFiat(selectedCoin['symbol'])) {
+      if (mounted) {
+        setState(() {
+          possibleExchanges.add('mercuryo');
+          selectedExchange = exchanges['mercuryo']!;
+          exchanges['mercuryo']!['exchange_link'] =
+              'https://exchange.mercuryo.io/?currency=${selectedCoin['symbol']}&fiat_currency=USD';
+          webUrl = exchanges['mercuryo']!['exchange_link'];
+        });
+      } else {
+        possibleExchanges.add('mercuryo');
+        selectedExchange = exchanges['mercuryo']!;
+        webUrl = exchanges['mercuryo']!['exchange_link'];
+      }
+    }
+
     // SimpleSwap
     if (SimpleswapApiService().checkCoinForFiat(selectedCoin['symbol'])) {
-      possibleExchanges.add('simpleswap');
-      selectedExchange = exchanges['simpleswap']!;
-      webUrl = exchanges['simpleswap']!['exchange_link'];
+      if (mounted) {
+        setState(() {
+          possibleExchanges.add('simpleswap');
+          selectedExchange = exchanges['simpleswap']!;
+          webUrl = exchanges['simpleswap']!['exchange_link'];
+        });
+      } else {
+        possibleExchanges.add('simpleswap');
+        selectedExchange = exchanges['simpleswap']!;
+        webUrl = exchanges['simpleswap']!['exchange_link'];
+      }
     }
   }
 
@@ -247,10 +281,13 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                 setState(() {
                                   loading = true;
                                 });
+
+                                setState(() {
+                                  selectedCoin = coins[coinId!];
+                                });
                                 possibleExchanges = [];
                                 getPossibleExchanges();
                                 setState(() {
-                                  selectedCoin = coins[coinId!];
                                   loading = false;
                                 });
                               },
@@ -484,20 +521,24 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                 mainAxisAlignment:
                                     MainAxisAlignment.spaceEvenly,
                                 children: [
-                                  Image.network(
-                                    selectedExchange['image'],
-                                    width: 30,
-                                  ),
+                                  if (selectedExchange.isNotEmpty)
+                                    Image.network(
+                                      selectedExchange['image'],
+                                      width: 30,
+                                    ),
                                   SizedBox(
                                     width: 10,
                                   ),
                                   Container(
                                     width: size.width * 0.6 - 20,
                                     child: Text(
-                                      selectedExchange['name']
-                                              .substring(0, 1)
-                                              .toUpperCase() +
-                                          selectedExchange['name'].substring(1),
+                                      selectedExchange.isNotEmpty
+                                          ? selectedExchange['name']
+                                                  .substring(0, 1)
+                                                  .toUpperCase() +
+                                              selectedExchange['name']
+                                                  .substring(1)
+                                          : 'N/A',
                                       overflow: TextOverflow.ellipsis,
                                       textAlign: TextAlign.start,
                                       style: GoogleFonts.montserrat(
@@ -620,7 +661,6 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                       showWeb
                           ? Container(
                               height: size.height * 1.1,
-                              padding: const EdgeInsets.all(15),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20.0),
                                 gradient: const LinearGradient(
@@ -649,7 +689,8 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                   setState(() {
                                     loading = true;
                                   });
-                                  if (_formKey.currentState!.validate()) {
+                                  if (_formKey.currentState!.validate() &&
+                                      possibleExchanges.isNotEmpty) {
                                     webViewController = WebViewController()
                                       ..setJavaScriptMode(
                                           JavaScriptMode.unrestricted)
@@ -660,8 +701,7 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                           onProgress: (int progress) {
                                             // Update loading bar.
                                           },
-                                          onPageStarted: (String url) {
-                                          },
+                                          onPageStarted: (String url) {},
                                           onPageFinished: (String url) {},
                                           onWebResourceError:
                                               (WebResourceError error) {},
