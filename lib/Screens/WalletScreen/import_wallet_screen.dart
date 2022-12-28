@@ -9,6 +9,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hex/hex.dart';
 import 'package:ozodwallet/Screens/WalletScreen/check_seed_screen.dart';
+import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
@@ -346,24 +347,12 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                 }
 
                                 if (lastWalletIndex != null) {
-                                  await storage.write(
-                                      key: "privateKey${lastWalletIndex}",
-                                      value: privateKey);
-                                  await storage.write(
-                                      key: "publicKey${lastWalletIndex}",
-                                      value: publicKey.toString());
-                                  await storage.write(
-                                      key: "password${lastWalletIndex}",
-                                      value: password.toString());
-                                  await storage.write(
-                                      key: "Wallet${lastWalletIndex}",
-                                      value: name);
-                                  await storage.write(
-                                      key: "walletExists", value: 'true');
-                                  await storage.write(
-                                      key: "lastWalletIndex",
-                                      value: (int.parse(lastWalletIndex) + 1)
-                                          .toString());
+                                  await SafeStorageService().addNewWallet(
+                                      lastWalletIndex,
+                                      privateKey,
+                                      publicKey.toString(),
+                                      password!,
+                                      name);
                                 }
                                 if (widget.isWelcomeScreen) {
                                   Navigator.pop(context);

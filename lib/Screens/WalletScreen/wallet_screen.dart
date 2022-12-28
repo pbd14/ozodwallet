@@ -5,17 +5,20 @@ import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
+import 'package:ozodwallet/Screens/TransactionScreen/send_tx_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
+import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
 import 'package:ozodwallet/constants.dart';
 import 'package:http/http.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
@@ -37,9 +40,15 @@ class _WalletScreenState extends State<WalletScreen> {
   String privateKey = 'Loading';
   String selectedWalletIndex = "1";
   String selectedWalletName = "Wallet1";
-  String selectedWalletBalance = "0 ETH";
+  EtherAmount selectedWalletBalance = EtherAmount.zero();
   List selectedWalletTxs = [];
   List wallets = [];
+  Map<EtherUnit, String> cryptoUnits = {
+    EtherUnit.ether: 'ETH',
+    EtherUnit.wei: 'WEI',
+    EtherUnit.gwei: 'GWEI',
+  };
+  EtherUnit selectedEtherUnit = EtherUnit.ether;
 
   Client httpClient = Client();
   late Web3Client web3client;
@@ -51,7 +60,7 @@ class _WalletScreenState extends State<WalletScreen> {
     publicKey = 'Loading';
     privateKey = 'Loading';
     selectedWalletName = "Wallet1";
-    selectedWalletBalance = "0 ETH";
+    selectedWalletBalance = EtherAmount.zero();
     selectedWalletTxs = [];
     wallets = [];
 
@@ -61,54 +70,32 @@ class _WalletScreenState extends State<WalletScreen> {
     return completer.future;
   }
 
-  Future<void> getWallets() async {
-    AndroidOptions _getAndroidOptions() => const AndroidOptions(
-          encryptedSharedPreferences: true,
-        );
-    final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
-    String? lastWalletIndex = await storage.read(key: 'lastWalletIndex');
-    for (int i = 1; i <= int.parse(lastWalletIndex!) - 1; i++) {
-      String? valuePublicKey =
-          await storage.read(key: 'publicKey${i}');
-      String? valueName =
-          await storage.read(key: 'Wallet${i}');
-      wallets.add({i: valueName});
-    }
-  }
-
   Future<void> prepare() async {
     await dotenv.load(fileName: ".env");
-    await getWallets();
-    AndroidOptions _getAndroidOptions() => const AndroidOptions(
-          encryptedSharedPreferences: true,
-        );
-    final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
+    wallets = await SafeStorageService().getAllWallets();
     web3client = Web3Client(dotenv.env['WEB3_INFURA_GOERLI_URL']!, httpClient);
-    String? valuePublicKey =
-        await storage.read(key: 'publicKey${selectedWalletIndex}');
-    String? valuePrivateKey =
-        await storage.read(key: 'privateKey${selectedWalletIndex}');
-    String? valueName = await storage.read(key: 'Wallet${selectedWalletIndex}');
-    EthereumAddress valueAddress =
-        EthPrivateKey.fromHex(valuePrivateKey!).address;
-    EtherAmount valueBalance = await web3client.getBalance(valueAddress);
+    Map walletData =
+        await SafeStorageService().getWalletData(selectedWalletIndex);
+    EtherAmount valueBalance =
+        await web3client.getBalance(walletData['address']);
     final response = await httpClient.get(Uri.parse(
-        "https://api-goerli.etherscan.io//api?module=account&action=txlist&address=${valueAddress}&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=${dotenv.env['ETHERSCAN_API']!}"));
+        "https://api-goerli.etherscan.io//api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=${dotenv.env['ETHERSCAN_API']!}"));
     dynamic jsonBody = jsonDecode(response.body);
     List valueTxs = jsonBody['result'];
 
     setState(() {
-      valuePublicKey != null ? publicKey = valuePublicKey : publicKey = 'Error';
-      valuePrivateKey != null
-          ? privateKey = valuePrivateKey
+      walletData['publicKey'] != null
+          ? publicKey = walletData['publicKey']
+          : publicKey = 'Error';
+      walletData['privateKey'] != null
+          ? privateKey = walletData['privateKey']
           : privateKey = 'Error';
-      valueName != null
-          ? selectedWalletName = valueName
+      walletData['name'] != null
+          ? selectedWalletName = walletData['name']
           : selectedWalletName = 'Error';
       valueBalance != null
-          ? selectedWalletBalance =
-              '${valueBalance.getValueInUnit(EtherUnit.ether)} ETH'
-          : selectedWalletBalance = 'Error';
+          ? selectedWalletBalance = valueBalance
+          : selectedWalletBalance = EtherAmount.zero();
       valueTxs != null
           ? selectedWalletTxs = valueTxs.reversed.toList()
           : selectedWalletTxs = [];
@@ -207,8 +194,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                   ),
                                 ),
                                 child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.start,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Container(
                                       width: size.width * 0.8 - 20,
@@ -244,15 +230,13 @@ class _WalletScreenState extends State<WalletScreen> {
                                             for (Map wallet in wallets)
                                               DropdownMenuItem<int>(
                                                 value:
-                                                    wallets.indexOf(wallet) +
-                                                        1,
+                                                    wallets.indexOf(wallet) + 1,
                                                 child: Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment.start,
                                                   children: <Widget>[
                                                     Text(
-                                                      (wallets.indexOf(
-                                                                      wallet) +
+                                                      (wallets.indexOf(wallet) +
                                                                   1)
                                                               .toString() +
                                                           "   " +
@@ -260,13 +244,13 @@ class _WalletScreenState extends State<WalletScreen> {
                                                               wallets.indexOf(
                                                                       wallet) +
                                                                   1],
-                                                      overflow: TextOverflow
-                                                          .ellipsis,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                       style: GoogleFonts
                                                           .montserrat(
                                                         textStyle:
                                                             const TextStyle(
-                                                          color: whiteColor,
+                                                          color: secondaryColor,
                                                           fontSize: 25,
                                                           fontWeight:
                                                               FontWeight.w700,
@@ -280,28 +264,112 @@ class _WalletScreenState extends State<WalletScreen> {
                                         ),
                                       ),
                                     ),
-                                    Text(
-                                      selectedWalletBalance,
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 2,
-                                      textAlign: TextAlign.start,
-                                      style: GoogleFonts.montserrat(
-                                        textStyle: const TextStyle(
-                                          color: whiteColor,
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.w700,
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            selectedWalletBalance
+                                                .getValueInUnit(
+                                                    selectedEtherUnit)
+                                                .toString(),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 2,
+                                            textAlign: TextAlign.start,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: whiteColor,
+                                                fontSize: 30,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                      ),
+                                        Container(
+                                          width: 100,
+                                          child: DropdownButtonHideUnderline(
+                                            child: Align(
+                                              alignment: Alignment.centerRight,
+                                              child: DropdownButton<EtherUnit>(
+                                                borderRadius:
+                                                    BorderRadius.circular(20.0),
+                                                dropdownColor: darkPrimaryColor,
+                                                focusColor: whiteColor,
+                                                iconEnabledColor: whiteColor,
+                                                alignment: Alignment.centerLeft,
+                                                onChanged: (unit) {
+                                                  setState(() {
+                                                    selectedEtherUnit = unit!;
+                                                  });
+                                                },
+                                                hint: Text(
+                                                  cryptoUnits[
+                                                      selectedEtherUnit]!,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 2,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: const TextStyle(
+                                                      color: whiteColor,
+                                                      fontSize: 25,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ),
+                                                items: [
+                                                  for (EtherUnit unit
+                                                      in cryptoUnits.keys)
+                                                    DropdownMenuItem<EtherUnit>(
+                                                      value: unit,
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .start,
+                                                        children: <Widget>[
+                                                          Text(
+                                                            cryptoUnits[unit]!,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            style: GoogleFonts
+                                                                .montserrat(
+                                                              textStyle:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    secondaryColor,
+                                                                fontSize: 20,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                     Spacer(),
                                     Row(
                                       mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Container(
                                           width: size.width * 0.6 - 30,
                                           child: Text(
                                             publicKey,
+                                            maxLines: 2,
                                             overflow: TextOverflow.ellipsis,
                                             textAlign: TextAlign.start,
                                             style: GoogleFonts.montserrat(
@@ -313,41 +381,273 @@ class _WalletScreenState extends State<WalletScreen> {
                                             ),
                                           ),
                                         ),
-                                        SizedBox(width: 10),
                                         Container(
-                                          width: size.width * 0.15 - 30,
+                                          width: 30,
                                           child: IconButton(
-                                              padding: EdgeInsets.zero,
-                                              onPressed: () async {
-                                                await Clipboard.setData(
-                                                    ClipboardData(
-                                                        text: publicKey));
-                                                PushNotificationMessage
-                                                    notification =
-                                                    PushNotificationMessage(
-                                                  title: 'Copied',
-                                                  body: 'Public key copied',
-                                                );
-                                                showSimpleNotification(
-                                                  Text(notification.body),
-                                                  position:
-                                                      NotificationPosition
-                                                          .top,
-                                                  background: greenColor,
-                                                );
-                                              },
-                                              icon: Icon(
-                                                CupertinoIcons.doc,
-                                                color: whiteColor,
-                                              )),
-                                        )
+                                            padding: EdgeInsets.zero,
+                                            onPressed: () async {
+                                              await Clipboard.setData(
+                                                  ClipboardData(
+                                                      text: publicKey));
+                                              PushNotificationMessage
+                                                  notification =
+                                                  PushNotificationMessage(
+                                                title: 'Copied',
+                                                body: 'Public key copied',
+                                              );
+                                              showSimpleNotification(
+                                                Text(notification.body),
+                                                position:
+                                                    NotificationPosition.top,
+                                                background: greenColor,
+                                              );
+                                            },
+                                            icon: Icon(
+                                              CupertinoIcons.doc,
+                                              color: whiteColor,
+                                            ),
+                                          ),
+                                        ),
+                                        Container(
+                                          width: 30,
+                                          child: IconButton(
+                                            padding: EdgeInsets.zero,
+                                            onPressed: () async {
+                                              showDialog(
+                                                  barrierDismissible: false,
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return StatefulBuilder(
+                                                      builder: (context,
+                                                          StateSetter
+                                                              setState) {
+                                                        return AlertDialog(
+                                                          backgroundColor:
+                                                              darkPrimaryColor,
+                                                          shape:
+                                                              RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20.0),
+                                                          ),
+                                                          title: const Text(
+                                                            'QR Code',
+                                                            style: TextStyle(
+                                                                color:
+                                                                    secondaryColor),
+                                                          ),
+                                                          content:
+                                                              SingleChildScrollView(
+                                                            child: Container(
+                                                              margin: EdgeInsets
+                                                                  .all(10),
+                                                              child: Column(
+                                                                children: [
+                                                                  Container(
+                                                                    padding:
+                                                                        const EdgeInsets.all(
+                                                                            20),
+                                                                    decoration:
+                                                                        BoxDecoration(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              20.0),
+                                                                      gradient:
+                                                                          const LinearGradient(
+                                                                        begin: Alignment
+                                                                            .topLeft,
+                                                                        end: Alignment
+                                                                            .bottomRight,
+                                                                        colors: [
+                                                                          darkPrimaryColor,
+                                                                          primaryColor
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                    child:
+                                                                        QrImage(
+                                                                      data: EthereumAddress.fromHex(
+                                                                              publicKey)
+                                                                          .addressBytes
+                                                                          .toString(),
+                                                                      foregroundColor:
+                                                                          secondaryColor,
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(
+                                                                    height: 10,
+                                                                  ),
+                                                                  Text(
+                                                                    publicKey,
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    maxLines:
+                                                                        10,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .start,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        fontSize:
+                                                                            15,
+                                                                        fontWeight:
+                                                                            FontWeight.w500,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(
+                                                                    height: 20,
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          actions: <Widget>[
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop(
+                                                                          false),
+                                                              child: const Text(
+                                                                'Ok',
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        secondaryColor),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    );
+                                                  });
+                                            },
+                                            icon: Icon(
+                                              CupertinoIcons.qrcode,
+                                              color: whiteColor,
+                                            ),
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ],
                                 ),
                               ),
-                              
+                              SizedBox(height: 20),
+                              Container(
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    RawMaterialButton(
+                                      constraints: const BoxConstraints(
+                                          minWidth: 120, minHeight: 66),
+                                      fillColor: secondaryColor,
+                                      shape: CircleBorder(),
+                                      onPressed: () {
+                                        Navigator.push(
+                                          context,
+                                          SlideRightRoute(
+                                            page: SendTxScreen(
+                                              web3client: web3client,
+                                              walletIndex: selectedWalletIndex,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons.arrow_up,
+                                            color: darkPrimaryColor,
+                                          ),
+                                          Text(
+                                            "Send",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: darkPrimaryColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    RawMaterialButton(
+                                      constraints: const BoxConstraints(
+                                          minWidth: 120, minHeight: 66),
+                                      fillColor: secondaryColor,
+                                      shape: CircleBorder(),
+                                      onPressed: () {},
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons.arrow_down,
+                                            color: darkPrimaryColor,
+                                          ),
+                                          Text(
+                                            "Receive",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: darkPrimaryColor,
+                                                fontSize: 13,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                    RawMaterialButton(
+                                      constraints: const BoxConstraints(
+                                          minWidth: 120, minHeight: 66),
+                                      fillColor: secondaryColor,
+                                      shape: CircleBorder(),
+                                      onPressed: () {},
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Icon(
+                                            CupertinoIcons.money_dollar,
+                                            color: darkPrimaryColor,
+                                          ),
+                                          Text(
+                                            "Buy",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: darkPrimaryColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                               const SizedBox(height: 30),
+
                               // Txs
                               selectedWalletTxs.length != 0
                                   ? Container(
@@ -361,8 +661,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                           end: Alignment.bottomRight,
                                           colors: [
                                             whiteColor,
-                                            Color.fromARGB(
-                                                255, 220, 225, 234),
+                                            Color.fromARGB(255, 220, 225, 234),
                                             Color.fromRGBO(134, 147, 171, 1.0)
                                           ],
                                         ),
@@ -405,8 +704,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                           MainAxisAlignment
                                                               .center,
                                                       children: [
-                                                        tx['from'] ==
-                                                                publicKey
+                                                        tx['from'] == publicKey
                                                             ? Icon(
                                                                 CupertinoIcons
                                                                     .arrow_up_circle_fill,
@@ -421,9 +719,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                               ),
                                                         Text(
                                                           "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp'])))}",
-                                                          overflow:
-                                                              TextOverflow
-                                                                  .ellipsis,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
                                                           textAlign:
                                                               TextAlign.start,
                                                           style: GoogleFonts
@@ -452,8 +749,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                           CrossAxisAlignment
                                                               .start,
                                                       children: [
-                                                        tx['from'] ==
-                                                                publicKey
+                                                        tx['from'] == publicKey
                                                             ? Text(
                                                                 "Sent",
                                                                 overflow:
@@ -471,7 +767,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     fontSize:
                                                                         25,
                                                                     fontWeight:
-                                                                        FontWeight.w700,
+                                                                        FontWeight
+                                                                            .w700,
                                                                   ),
                                                                 ),
                                                               )
@@ -492,12 +789,12 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     fontSize:
                                                                         25,
                                                                     fontWeight:
-                                                                        FontWeight.w700,
+                                                                        FontWeight
+                                                                            .w700,
                                                                   ),
                                                                 ),
                                                               ),
-                                                        tx['from'] ==
-                                                                publicKey
+                                                        tx['from'] == publicKey
                                                             ? Text(
                                                                 "To ${tx['to']}",
                                                                 overflow:
@@ -516,7 +813,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     fontSize:
                                                                         10,
                                                                     fontWeight:
-                                                                        FontWeight.w400,
+                                                                        FontWeight
+                                                                            .w400,
                                                                   ),
                                                                 ),
                                                               )
@@ -538,7 +836,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     fontSize:
                                                                         10,
                                                                     fontWeight:
-                                                                        FontWeight.w400,
+                                                                        FontWeight
+                                                                            .w400,
                                                                   ),
                                                                 ),
                                                               ),
@@ -553,14 +852,13 @@ class _WalletScreenState extends State<WalletScreen> {
                                                               .center,
                                                       children: [
                                                         Text(
-                                                          (int.parse(tx[
+                                                          (double.parse(tx[
                                                                       'value']) /
                                                                   pow(10, 18))
                                                               .toString(),
                                                           maxLines: 2,
-                                                          overflow:
-                                                              TextOverflow
-                                                                  .ellipsis,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
                                                           textAlign:
                                                               TextAlign.start,
                                                           style: GoogleFonts
@@ -578,9 +876,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                         ),
                                                         Text(
                                                           "ETH",
-                                                          overflow:
-                                                              TextOverflow
-                                                                  .ellipsis,
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
                                                           textAlign:
                                                               TextAlign.start,
                                                           style: GoogleFonts
@@ -606,9 +903,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                       ),
                                     )
                                   : Container(),
-                                  SizedBox(
-                                            height: 100,
-                                          ),
+                              SizedBox(
+                                height: 100,
+                              ),
                             ],
                           ),
                         ),

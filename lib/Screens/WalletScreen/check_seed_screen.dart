@@ -11,6 +11,7 @@ import 'package:hex/hex.dart';
 import 'package:ozodwallet/Screens/MainScreen/main_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
+import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
@@ -193,7 +194,7 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 100),
+                      const SizedBox(height: 50),
                       Center(
                         child: RoundedButton(
                           pw: 250,
@@ -225,24 +226,13 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                                   }
 
                                   if (lastWalletIndex != null) {
-                                    await storage.write(
-                                        key: "privateKey${lastWalletIndex}",
-                                        value: privateKey);
-                                    await storage.write(
-                                        key: "publicKey${lastWalletIndex}",
-                                        value: publicKey.toString());
-                                    await storage.write(
-                                        key: "password${lastWalletIndex}",
-                                        value: widget.password.toString());
-                                    await storage.write(
-                                        key: "Wallet${lastWalletIndex}",
-                                        value: widget.name);
-                                    await storage.write(
-                                        key: "walletExists", value: 'true');
-                                    await storage.write(
-                                        key: "lastWalletIndex",
-                                        value: (int.parse(lastWalletIndex) + 1)
-                                            .toString());
+                                    await SafeStorageService().addNewWallet(
+                                        lastWalletIndex,
+                                        privateKey,
+                                        publicKey.toString(),
+                                        widget.password,
+                                        widget.name);
+
                                     Wallet wallet = Wallet.createNew(
                                         EthPrivateKey.fromHex(privateKey),
                                         widget.password,
