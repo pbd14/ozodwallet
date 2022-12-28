@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
+import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_tx_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
@@ -73,11 +74,14 @@ class _WalletScreenState extends State<WalletScreen> {
   Future<void> prepare() async {
     await dotenv.load(fileName: ".env");
     wallets = await SafeStorageService().getAllWallets();
-    web3client = Web3Client(dotenv.env['WEB3_INFURA_GOERLI_URL']!, httpClient);
+    web3client =
+        Web3Client(dotenv.env['WEB3_QUICKNODE_GOERLI_URL']!, httpClient);
     Map walletData =
         await SafeStorageService().getWalletData(selectedWalletIndex);
     EtherAmount valueBalance =
         await web3client.getBalance(walletData['address']);
+
+    // get txs
     final response = await httpClient.get(Uri.parse(
         "https://api-goerli.etherscan.io//api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=${dotenv.env['ETHERSCAN_API']!}"));
     dynamic jsonBody = jsonDecode(response.body);
@@ -231,33 +235,27 @@ class _WalletScreenState extends State<WalletScreen> {
                                               DropdownMenuItem<int>(
                                                 value:
                                                     wallets.indexOf(wallet) + 1,
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  children: <Widget>[
-                                                    Text(
-                                                      (wallets.indexOf(wallet) +
-                                                                  1)
-                                                              .toString() +
-                                                          "   " +
-                                                          wallet[
-                                                              wallets.indexOf(
-                                                                      wallet) +
-                                                                  1],
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: GoogleFonts
-                                                          .montserrat(
-                                                        textStyle:
-                                                            const TextStyle(
-                                                          color: secondaryColor,
-                                                          fontSize: 25,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                        ),
-                                                      ),
+                                                child: Text(
+                                                  (wallets.indexOf(wallet) +
+                                                              1)
+                                                          .toString() +
+                                                      "   " +
+                                                      wallet[
+                                                          wallets.indexOf(
+                                                                  wallet) +
+                                                              1],
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: GoogleFonts
+                                                      .montserrat(
+                                                    textStyle:
+                                                        const TextStyle(
+                                                      color: secondaryColor,
+                                                      fontSize: 25,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                     ),
-                                                  ],
+                                                  ),
                                                 ),
                                               ),
                                           ],
@@ -365,8 +363,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Container(
-                                          width: size.width * 0.6 - 30,
+                                        Expanded(
                                           child: Text(
                                             publicKey,
                                             maxLines: 2,
@@ -412,125 +409,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                           width: 30,
                                           child: IconButton(
                                             padding: EdgeInsets.zero,
-                                            onPressed: () async {
-                                              showDialog(
-                                                  barrierDismissible: false,
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) {
-                                                    return StatefulBuilder(
-                                                      builder: (context,
-                                                          StateSetter
-                                                              setState) {
-                                                        return AlertDialog(
-                                                          backgroundColor:
-                                                              darkPrimaryColor,
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        20.0),
-                                                          ),
-                                                          title: const Text(
-                                                            'QR Code',
-                                                            style: TextStyle(
-                                                                color:
-                                                                    secondaryColor),
-                                                          ),
-                                                          content:
-                                                              SingleChildScrollView(
-                                                            child: Container(
-                                                              margin: EdgeInsets
-                                                                  .all(10),
-                                                              child: Column(
-                                                                children: [
-                                                                  Container(
-                                                                    padding:
-                                                                        const EdgeInsets.all(
-                                                                            20),
-                                                                    decoration:
-                                                                        BoxDecoration(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              20.0),
-                                                                      gradient:
-                                                                          const LinearGradient(
-                                                                        begin: Alignment
-                                                                            .topLeft,
-                                                                        end: Alignment
-                                                                            .bottomRight,
-                                                                        colors: [
-                                                                          darkPrimaryColor,
-                                                                          primaryColor
-                                                                        ],
-                                                                      ),
-                                                                    ),
-                                                                    child:
-                                                                        QrImage(
-                                                                      data: EthereumAddress.fromHex(
-                                                                              publicKey)
-                                                                          .addressBytes
-                                                                          .toString(),
-                                                                      foregroundColor:
-                                                                          secondaryColor,
-                                                                    ),
-                                                                  ),
-                                                                  SizedBox(
-                                                                    height: 10,
-                                                                  ),
-                                                                  Text(
-                                                                    publicKey,
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    maxLines:
-                                                                        10,
-                                                                    textAlign:
-                                                                        TextAlign
-                                                                            .start,
-                                                                    style: GoogleFonts
-                                                                        .montserrat(
-                                                                      textStyle:
-                                                                          const TextStyle(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        fontSize:
-                                                                            15,
-                                                                        fontWeight:
-                                                                            FontWeight.w500,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                  SizedBox(
-                                                                    height: 20,
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          actions: <Widget>[
-                                                            TextButton(
-                                                              onPressed: () =>
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pop(
-                                                                          false),
-                                                              child: const Text(
-                                                                'Ok',
-                                                                style: TextStyle(
-                                                                    color:
-                                                                        secondaryColor),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        );
-                                                      },
-                                                    );
-                                                  });
-                                            },
+                                            onPressed: () async {},
                                             icon: Icon(
-                                              CupertinoIcons.qrcode,
+                                              CupertinoIcons.settings,
                                               color: whiteColor,
                                             ),
                                           ),
@@ -541,112 +422,296 @@ class _WalletScreenState extends State<WalletScreen> {
                                 ),
                               ),
                               SizedBox(height: 20),
+
+                              // Buttons
                               Container(
+                                width: size.width * 0.8,
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceEvenly,
                                   children: [
-                                    RawMaterialButton(
-                                      constraints: const BoxConstraints(
-                                          minWidth: 120, minHeight: 66),
-                                      fillColor: secondaryColor,
-                                      shape: CircleBorder(),
-                                      onPressed: () {
-                                        Navigator.push(
-                                          context,
-                                          SlideRightRoute(
-                                            page: SendTxScreen(
-                                              web3client: web3client,
-                                              walletIndex: selectedWalletIndex,
-                                            ),
-                                          ),
-                                        );
-                                      },
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        RawMaterialButton(
+                                          constraints: const BoxConstraints(
+                                              minWidth: 70, minHeight: 60),
+                                          fillColor: secondaryColor,
+                                          shape: CircleBorder(),
+                                          onPressed: () {
+                                            setState(() {
+                                              loading = true;
+                                            });
+                                            Navigator.push(
+                                              context,
+                                              SlideRightRoute(
+                                                page: SendTxScreen(
+                                                  web3client: web3client,
+                                                  walletIndex:
+                                                      selectedWalletIndex,
+                                                ),
+                                              ),
+                                            );
+                                            setState(() {
+                                              loading = false;
+                                            });
+                                          },
+                                          child: Icon(
                                             CupertinoIcons.arrow_up,
                                             color: darkPrimaryColor,
                                           ),
-                                          Text(
-                                            "Send",
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: darkPrimaryColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                              ),
+                                        ),
+                                        Text(
+                                          "Send",
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.start,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: secondaryColor,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
                                             ),
-                                          )
-                                        ],
-                                      ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    RawMaterialButton(
-                                      constraints: const BoxConstraints(
-                                          minWidth: 120, minHeight: 66),
-                                      fillColor: secondaryColor,
-                                      shape: CircleBorder(),
-                                      onPressed: () {},
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        RawMaterialButton(
+                                          constraints: const BoxConstraints(
+                                              minWidth: 70, minHeight: 60),
+                                          fillColor: secondaryColor,
+                                          shape: CircleBorder(),
+                                          onPressed: () {
+                                            showDialog(
+                                                barrierDismissible: false,
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return StatefulBuilder(
+                                                    builder: (context,
+                                                        StateSetter setState) {
+                                                      return AlertDialog(
+                                                        backgroundColor:
+                                                            darkPrimaryColor,
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      20.0),
+                                                        ),
+                                                        title: const Text(
+                                                          'QR Code',
+                                                          style: TextStyle(
+                                                              color:
+                                                                  secondaryColor),
+                                                        ),
+                                                        content:
+                                                            SingleChildScrollView(
+                                                          child: Container(
+                                                            margin:
+                                                                EdgeInsets.all(
+                                                                    10),
+                                                            child: Column(
+                                                              children: [
+                                                                Container(
+                                                                  padding:
+                                                                      const EdgeInsets
+                                                                          .all(20),
+                                                                  decoration:
+                                                                      BoxDecoration(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            20.0),
+                                                                    gradient:
+                                                                        const LinearGradient(
+                                                                      begin: Alignment
+                                                                          .topLeft,
+                                                                      end: Alignment
+                                                                          .bottomRight,
+                                                                      colors: [
+                                                                        darkPrimaryColor,
+                                                                        primaryColor
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                  child:
+                                                                      QrImage(
+                                                                    data: EthereumAddress.fromHex(
+                                                                            publicKey)
+                                                                        .addressBytes
+                                                                        .toString(),
+                                                                    foregroundColor:
+                                                                        secondaryColor,
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                  height: 10,
+                                                                ),
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceBetween,
+                                                                  children: [
+                                                                    Expanded(
+                                                                      child: Text(
+                                                                          publicKey,
+                                                                          overflow:
+                                                                        TextOverflow.ellipsis,
+                                                                          maxLines:
+                                                                        10,
+                                                                          textAlign:
+                                                                        TextAlign.start,
+                                                                          style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        fontSize:
+                                                                            15,
+                                                                        fontWeight:
+                                                                            FontWeight.w500,
+                                                                      ),
+                                                                          ),
+                                                                        ),
+                                                                    ),
+                                                                    Container(
+                                                                      width: 30,
+                                                                      child:
+                                                                          IconButton(
+                                                                        padding:
+                                                                            EdgeInsets.zero,
+                                                                        onPressed:
+                                                                            () async {
+                                                                          await Clipboard.setData(
+                                                                              ClipboardData(text: publicKey));
+                                                                          PushNotificationMessage
+                                                                              notification =
+                                                                              PushNotificationMessage(
+                                                                            title:
+                                                                                'Copied',
+                                                                            body:
+                                                                                'Public key copied',
+                                                                          );
+                                                                          showSimpleNotification(
+                                                                            Text(notification.body),
+                                                                            position:
+                                                                                NotificationPosition.top,
+                                                                            background:
+                                                                                greenColor,
+                                                                          );
+                                                                        },
+                                                                        icon:
+                                                                            Icon(
+                                                                          CupertinoIcons
+                                                                              .doc,
+                                                                          color:
+                                                                              secondaryColor,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                SizedBox(
+                                                                  height: 20,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        actions: <Widget>[
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop(false),
+                                                            child: const Text(
+                                                              'Ok',
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      secondaryColor),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                });
+                                          },
+                                          child: Icon(
                                             CupertinoIcons.arrow_down,
                                             color: darkPrimaryColor,
                                           ),
-                                          Text(
-                                            "Receive",
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: darkPrimaryColor,
-                                                fontSize: 13,
-                                                fontWeight: FontWeight.w700,
-                                              ),
+                                        ),
+                                        Text(
+                                          "Receive",
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.start,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: secondaryColor,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
                                             ),
-                                          )
-                                        ],
-                                      ),
+                                          ),
+                                        )
+                                      ],
                                     ),
-                                    RawMaterialButton(
-                                      constraints: const BoxConstraints(
-                                          minWidth: 120, minHeight: 66),
-                                      fillColor: secondaryColor,
-                                      shape: CircleBorder(),
-                                      onPressed: () {},
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Icon(
+                                    Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        RawMaterialButton(
+                                          constraints: const BoxConstraints(
+                                              minWidth: 70, minHeight: 60),
+                                          fillColor: secondaryColor,
+                                          shape: CircleBorder(),
+                                          onPressed: () {
+                                            setState(() {
+                                              loading = true;
+                                            });
+                                            Navigator.push(
+                                              context,
+                                              SlideRightRoute(
+                                                page: BuyCryptoScreen(
+                                                  web3client: web3client,
+                                                  walletIndex:
+                                                      selectedWalletIndex,
+                                                ),
+                                              ),
+                                            );
+                                            setState(() {
+                                              loading = false;
+                                            });
+                                          },
+                                          child: Icon(
                                             CupertinoIcons.money_dollar,
                                             color: darkPrimaryColor,
                                           ),
-                                          Text(
-                                            "Buy",
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: darkPrimaryColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                              ),
+                                        ),
+                                        Text(
+                                          "Buy",
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.start,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: secondaryColor,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
                                             ),
-                                          )
-                                        ],
-                                      ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
                               ),
-                              const SizedBox(height: 30),
+                              const SizedBox(height: 50),
 
                               // Txs
                               selectedWalletTxs.length != 0
@@ -852,9 +917,11 @@ class _WalletScreenState extends State<WalletScreen> {
                                                               .center,
                                                       children: [
                                                         Text(
-                                                          (double.parse(tx[
-                                                                      'value']) /
-                                                                  pow(10, 18))
+                                                          EtherAmount.fromUnitAndValue(
+                                                                  EtherUnit.wei,
+                                                                  tx['value'])
+                                                              .getValueInUnit(
+                                                                  selectedEtherUnit)
                                                               .toString(),
                                                           maxLines: 2,
                                                           overflow: TextOverflow
@@ -875,7 +942,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                                           ),
                                                         ),
                                                         Text(
-                                                          "ETH",
+                                                          cryptoUnits[
+                                                                  selectedEtherUnit]
+                                                              .toString(),
                                                           overflow: TextOverflow
                                                               .ellipsis,
                                                           textAlign:

@@ -320,6 +320,9 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                           ph: 45,
                           text: 'IMPORT',
                           press: () async {
+                            setState(() {
+                              loading = true;
+                            });
                             if (_formKey.currentState!.validate() &&
                                 password != null &&
                                 password!.isNotEmpty) {
@@ -372,6 +375,9 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                 error = 'Incorrect seed phrase';
                               });
                             }
+                            setState(() {
+                                    loading = false;
+                                  });
                           },
                           color: secondaryColor,
                           textColor: darkPrimaryColor,

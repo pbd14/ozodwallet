@@ -126,12 +126,18 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                         ph: 45,
                         text: 'Create wallet',
                         press: () {
+                          setState(() {
+                                    loading = true;
+                                  });
                           Navigator.push(
                             context,
                             SlideRightRoute(
                               page: CreateWalletScreen(),
                             ),
                           );
+                          setState(() {
+                                    loading = false;
+                                  });
                         },
                         color: secondaryColor,
                         textColor: darkPrimaryColor,

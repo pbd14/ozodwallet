@@ -201,6 +201,9 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                           ph: 45,
                           text: 'CONTINUE',
                           press: () async {
+                            setState(() {
+                              loading = true;
+                            });
                             if (_formKey.currentState!.validate()) {
                               if (userMnemonicPhrase == mnemonicPhrase!) {
                                 if (validateMnemonic(mnemonicPhrase!)) {
@@ -262,6 +265,9 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                                 });
                               }
                             }
+                            setState(() {
+                              loading = false;
+                            });
                           },
                           color: secondaryColor,
                           textColor: darkPrimaryColor,

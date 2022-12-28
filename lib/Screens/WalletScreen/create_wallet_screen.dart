@@ -305,6 +305,9 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                             if (_formKey.currentState!.validate() &&
                                 password != null &&
                                 password!.isNotEmpty) {
+                              setState(() {
+                                loading = true;
+                              });
                               Navigator.push(
                                 context,
                                 SlideRightRoute(
@@ -316,6 +319,9 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                                   ),
                                 ),
                               );
+                              setState(() {
+                                loading = false;
+                              });
                             }
                           },
                           color: secondaryColor,
