@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:jazzicon/jazzicon.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
@@ -41,8 +43,12 @@ class _WalletScreenState extends State<WalletScreen> {
   String privateKey = 'Loading';
   String selectedWalletIndex = "1";
   String selectedWalletName = "Wallet1";
+  String importingAssetContractAddress = "";
+  String importingAssetContractSymbol = "";
+
   EtherAmount selectedWalletBalance = EtherAmount.zero();
   List selectedWalletTxs = [];
+  List selectedWalletAssets = [];
   List wallets = [];
   Map<EtherUnit, String> cryptoUnits = {
     EtherUnit.ether: 'ETH',
@@ -50,6 +56,7 @@ class _WalletScreenState extends State<WalletScreen> {
     EtherUnit.gwei: 'GWEI',
   };
   EtherUnit selectedEtherUnit = EtherUnit.ether;
+  DocumentSnapshot? walletFirebase;
 
   Client httpClient = Client();
   late Web3Client web3client;
@@ -60,9 +67,12 @@ class _WalletScreenState extends State<WalletScreen> {
     });
     publicKey = 'Loading';
     privateKey = 'Loading';
+    importingAssetContractAddress = "";
+    importingAssetContractSymbol = "";
     selectedWalletName = "Wallet1";
     selectedWalletBalance = EtherAmount.zero();
     selectedWalletTxs = [];
+    selectedWalletAssets = [];
     wallets = [];
 
     prepare();
@@ -80,6 +90,33 @@ class _WalletScreenState extends State<WalletScreen> {
         await SafeStorageService().getWalletData(selectedWalletIndex);
     EtherAmount valueBalance =
         await web3client.getBalance(walletData['address']);
+
+    walletFirebase = await FirebaseFirestore.instance
+        .collection('wallets')
+        .doc(walletData['address'].toString())
+        .get();
+
+    // get assets
+    if (walletFirebase!.exists) {
+      for (Map asset in walletFirebase!.get('assets')) {
+        final response = await httpClient.get(Uri.parse(
+            "https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${asset['address']}&apikey=${dotenv.env['ETHERSCAN_API']!}"));
+
+        final contract = DeployedContract(
+            ContractAbi.fromJson(
+                jsonDecode(response.body)['result'], "Loyalty Program"),
+            EthereumAddress.fromHex(asset['address']));
+        final balance = await web3client.call(
+            contract: contract,
+            function: contract.function('balanceOf'),
+            params: [walletData['address']]);
+        selectedWalletAssets.add({
+          'symbol': asset['symbol'],
+          'balance': balance[0],
+          'address': asset['address']
+        });
+      }
+    }
 
     // get txs
     final response = await httpClient.get(Uri.parse(
@@ -202,64 +239,89 @@ class _WalletScreenState extends State<WalletScreen> {
                                   children: [
                                     Container(
                                       width: size.width * 0.8 - 20,
-                                      child: DropdownButtonHideUnderline(
-                                        child: DropdownButton<int>(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
-                                          dropdownColor: darkPrimaryColor,
-                                          focusColor: whiteColor,
-                                          iconEnabledColor: whiteColor,
-                                          alignment: Alignment.centerLeft,
-                                          onChanged: (walletIndex) {
-                                            setState(() {
-                                              selectedWalletIndex =
-                                                  walletIndex.toString();
-                                              loading = true;
-                                            });
-                                            _refresh();
-                                          },
-                                          hint: Text(
-                                            selectedWalletName,
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: whiteColor,
-                                                fontSize: 25,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Jazzicon.getIconWidget(
+                                              Jazzicon.getJazziconData(160,
+                                                  address: publicKey),
+                                              size: 25),
+                                          SizedBox(
+                                            width: 10,
                                           ),
-                                          items: [
-                                            for (Map wallet in wallets)
-                                              DropdownMenuItem<int>(
-                                                value:
-                                                    wallets.indexOf(wallet) + 1,
-                                                child: Text(
-                                                  (wallets.indexOf(wallet) +
-                                                              1)
-                                                          .toString() +
-                                                      "   " +
-                                                      wallet[
-                                                          wallets.indexOf(
-                                                                  wallet) +
-                                                              1],
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  style: GoogleFonts
-                                                      .montserrat(
-                                                    textStyle:
-                                                        const TextStyle(
-                                                      color: secondaryColor,
-                                                      fontSize: 25,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
+                                          DropdownButtonHideUnderline(
+                                            child: DropdownButton<int>(
+                                              borderRadius:
+                                                  BorderRadius.circular(20.0),
+                                              dropdownColor: darkPrimaryColor,
+                                              focusColor: whiteColor,
+                                              iconEnabledColor: whiteColor,
+                                              alignment: Alignment.centerLeft,
+                                              onChanged: (walletIndex) {
+                                                setState(() {
+                                                  selectedWalletIndex =
+                                                      walletIndex.toString();
+                                                  loading = true;
+                                                });
+                                                _refresh();
+                                              },
+                                              hint: Text(
+                                                selectedWalletName,
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: whiteColor,
+                                                    fontSize: 25,
+                                                    fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
                                               ),
-                                          ],
-                                        ),
+                                              items: [
+                                                for (Map wallet in wallets)
+                                                  DropdownMenuItem<int>(
+                                                    value: wallets
+                                                            .indexOf(wallet) +
+                                                        1,
+                                                    child: Row(
+                                                      children: [
+                                                        Jazzicon.getIconWidget(
+                                                            Jazzicon.getJazziconData(
+                                                                160,
+                                                                address: wallet[
+                                                                    'publicKey']),
+                                                            size: 15),
+                                                        SizedBox(
+                                                          width: 10,
+                                                        ),
+                                                        Text(
+                                                          wallet[
+                                                              wallets.indexOf(
+                                                                      wallet) +
+                                                                  1],
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          style: GoogleFonts
+                                                              .montserrat(
+                                                            textStyle:
+                                                                const TextStyle(
+                                                              color:
+                                                                  secondaryColor,
+                                                              fontSize: 25,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                     Row(
@@ -558,27 +620,28 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                           .spaceBetween,
                                                                   children: [
                                                                     Expanded(
-                                                                      child: Text(
-                                                                          publicKey,
-                                                                          overflow:
-                                                                        TextOverflow.ellipsis,
-                                                                          maxLines:
-                                                                        10,
-                                                                          textAlign:
-                                                                        TextAlign.start,
-                                                                          style: GoogleFonts
-                                                                        .montserrat(
-                                                                      textStyle:
-                                                                          const TextStyle(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        fontSize:
-                                                                            15,
-                                                                        fontWeight:
-                                                                            FontWeight.w500,
-                                                                      ),
+                                                                      child:
+                                                                          Text(
+                                                                        publicKey,
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        maxLines:
+                                                                            10,
+                                                                        textAlign:
+                                                                            TextAlign.start,
+                                                                        style: GoogleFonts
+                                                                            .montserrat(
+                                                                          textStyle:
+                                                                              const TextStyle(
+                                                                            color:
+                                                                                secondaryColor,
+                                                                            fontSize:
+                                                                                15,
+                                                                            fontWeight:
+                                                                                FontWeight.w500,
                                                                           ),
                                                                         ),
+                                                                      ),
                                                                     ),
                                                                     Container(
                                                                       width: 30,
@@ -712,6 +775,405 @@ class _WalletScreenState extends State<WalletScreen> {
                                 ),
                               ),
                               const SizedBox(height: 50),
+
+                              // Assets
+
+                              Container(
+                                width: size.width * 0.8,
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      Color.fromRGBO(9, 32, 63, 1.0),
+                                      Color.fromRGBO(83, 120, 149, 1.0),
+                                    ],
+                                  ),
+                                ),
+                                child: Column(
+                                  children: [
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: Text(
+                                        "Assets",
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.start,
+                                        style: GoogleFonts.montserrat(
+                                          textStyle: const TextStyle(
+                                            color: whiteColor,
+                                            fontSize: 30,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 30,
+                                    ),
+                                    if (selectedWalletAssets.isNotEmpty)
+                                      for (dynamic asset
+                                          in selectedWalletAssets)
+                                        Container(
+                                          margin: EdgeInsets.only(bottom: 30),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              Jazzicon.getIconWidget(
+                                                  Jazzicon.getJazziconData(160,
+                                                      address:
+                                                          asset['address']),
+                                                  size: 25),
+                                              Container(
+                                                // width: size.width * 0.3,
+                                                child: Column(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.center,
+                                                  children: [
+                                                    // Image.network('')
+                                                    Text(
+                                                      (asset['balance'] /
+                                                              BigInt.from(
+                                                                  pow(10, 18)))
+                                                          .toString(),
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          color: whiteColor,
+                                                          fontSize: 25,
+                                                          fontWeight:
+                                                              FontWeight.w600,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Container(
+                                                // width: size.width * 0.3,
+                                                child: Text(
+                                                  asset['symbol'],
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  textAlign: TextAlign.start,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: const TextStyle(
+                                                      color: whiteColor,
+                                                      fontSize: 25,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    RoundedButton(
+                                      pw: 150,
+                                      ph: 45,
+                                      text: 'Import',
+                                      press: () {
+                                        final _formKey = GlobalKey<FormState>();
+                                        showDialog(
+                                            barrierDismissible: false,
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return StatefulBuilder(
+                                                builder: (context,
+                                                    StateSetter setState) {
+                                                  return AlertDialog(
+                                                    backgroundColor:
+                                                        darkPrimaryColor,
+                                                    shape:
+                                                        RoundedRectangleBorder(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20.0),
+                                                    ),
+                                                    title: const Text(
+                                                      'Import assets',
+                                                      style: TextStyle(
+                                                          color:
+                                                              secondaryColor),
+                                                    ),
+                                                    content:
+                                                        SingleChildScrollView(
+                                                      child: Container(
+                                                        margin:
+                                                            EdgeInsets.all(10),
+                                                        child: Form(
+                                                          key: _formKey,
+                                                          child: Column(
+                                                            children: [
+                                                              TextFormField(
+                                                                style: const TextStyle(
+                                                                    color:
+                                                                        secondaryColor),
+                                                                validator:
+                                                                    (val) {
+                                                                  if (val!
+                                                                      .isEmpty) {
+                                                                    return 'Enter contract address';
+                                                                  } else {
+                                                                    return null;
+                                                                  }
+                                                                },
+                                                                keyboardType:
+                                                                    TextInputType
+                                                                        .name,
+                                                                onChanged:
+                                                                    (val) {
+                                                                  setState(() {
+                                                                    importingAssetContractAddress =
+                                                                        val;
+                                                                  });
+                                                                },
+                                                                decoration:
+                                                                    InputDecoration(
+                                                                  labelText:
+                                                                      "Contract address",
+                                                                  labelStyle:
+                                                                      TextStyle(
+                                                                          color:
+                                                                              secondaryColor),
+                                                                  errorBorder:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide: BorderSide(
+                                                                        color: Colors
+                                                                            .red,
+                                                                        width:
+                                                                            1.0),
+                                                                  ),
+                                                                  focusedBorder:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide: BorderSide(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        width:
+                                                                            1.0),
+                                                                  ),
+                                                                  enabledBorder:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide: BorderSide(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        width:
+                                                                            1.0),
+                                                                  ),
+                                                                  hintStyle: TextStyle(
+                                                                      color: darkPrimaryColor
+                                                                          .withOpacity(
+                                                                              0.7)),
+                                                                  hintText:
+                                                                      'Contract address',
+                                                                  border:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide: BorderSide(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        width:
+                                                                            1.0),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 20,
+                                                              ),
+                                                              TextFormField(
+                                                                style: const TextStyle(
+                                                                    color:
+                                                                        secondaryColor),
+                                                                validator:
+                                                                    (val) {
+                                                                  if (val!
+                                                                      .isEmpty) {
+                                                                    return 'Enter symbol';
+                                                                  } else if (val
+                                                                          .length >
+                                                                      10) {
+                                                                    return 'Maximum 10 symbols';
+                                                                  } else {
+                                                                    return null;
+                                                                  }
+                                                                },
+                                                                keyboardType:
+                                                                    TextInputType
+                                                                        .name,
+                                                                onChanged:
+                                                                    (val) {
+                                                                  setState(() {
+                                                                    importingAssetContractSymbol =
+                                                                        val;
+                                                                  });
+                                                                },
+                                                                decoration:
+                                                                    InputDecoration(
+                                                                  labelText:
+                                                                      "Symbol",
+                                                                  labelStyle:
+                                                                      TextStyle(
+                                                                          color:
+                                                                              secondaryColor),
+                                                                  errorBorder:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide: BorderSide(
+                                                                        color: Colors
+                                                                            .red,
+                                                                        width:
+                                                                            1.0),
+                                                                  ),
+                                                                  focusedBorder:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide: BorderSide(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        width:
+                                                                            1.0),
+                                                                  ),
+                                                                  enabledBorder:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide: BorderSide(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        width:
+                                                                            1.0),
+                                                                  ),
+                                                                  hintStyle: TextStyle(
+                                                                      color: darkPrimaryColor
+                                                                          .withOpacity(
+                                                                              0.7)),
+                                                                  hintText:
+                                                                      'Symbol',
+                                                                  border:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide: BorderSide(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        width:
+                                                                            1.0),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 20,
+                                                              ),
+                                                              Center(
+                                                                child:
+                                                                    RoundedButton(
+                                                                  pw: 250,
+                                                                  ph: 45,
+                                                                  text:
+                                                                      'CONTINUE',
+                                                                  press:
+                                                                      () async {
+                                                                    setState(
+                                                                        () {
+                                                                      loading =
+                                                                          true;
+                                                                    });
+                                                                    if (_formKey
+                                                                        .currentState!
+                                                                        .validate()) {
+                                                                      ;
+                                                                      final response =
+                                                                          await httpClient
+                                                                              .get(Uri.parse("https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${importingAssetContractAddress}&apikey=${dotenv.env['ETHERSCAN_API']!}"));
+                                                                      if (jsonDecode(
+                                                                              response.body)['status'] !=
+                                                                          "1") {
+                                                                        await FirebaseFirestore
+                                                                            .instance
+                                                                            .collection('wallets')
+                                                                            .doc(publicKey.toString())
+                                                                            .update({
+                                                                          "address":
+                                                                              importingAssetContractAddress,
+                                                                          "symbol":
+                                                                              importingAssetContractSymbol,
+                                                                        });
+                                                                      } else {
+                                                                        PushNotificationMessage
+                                                                            notification =
+                                                                            PushNotificationMessage(
+                                                                          title:
+                                                                              'Failed',
+                                                                          body:
+                                                                              'Wrong contract',
+                                                                        );
+                                                                        showSimpleNotification(
+                                                                          Text(notification
+                                                                              .body),
+                                                                          position:
+                                                                              NotificationPosition.top,
+                                                                          background:
+                                                                              Colors.red,
+                                                                        );
+                                                                      }
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop(
+                                                                              true);
+                                                                    } else {
+                                                                      setState(
+                                                                          () {
+                                                                        loading =
+                                                                            false;
+                                                                      });
+                                                                    }
+                                                                  },
+                                                                  color:
+                                                                      secondaryColor,
+                                                                  textColor:
+                                                                      darkPrimaryColor,
+                                                                ),
+                                                              ),
+                                                              SizedBox(
+                                                                height: 20,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    actions: <Widget>[
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(false),
+                                                        child: const Text(
+                                                          'Cancel',
+                                                          style: TextStyle(
+                                                              color:
+                                                                  secondaryColor),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  );
+                                                },
+                                              );
+                                            });
+                                      },
+                                      color: secondaryColor,
+                                      textColor: darkPrimaryColor,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              SizedBox(
+                                height: 50,
+                              ),
 
                               // Txs
                               selectedWalletTxs.length != 0

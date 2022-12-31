@@ -1,5 +1,6 @@
 import 'dart:math';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'package:bip39/bip39.dart';
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
@@ -18,6 +19,7 @@ import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
 import 'package:ozodwallet/constants.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web3dart/credentials.dart';
+import 'package:web3dart/crypto.dart';
 
 // ignore: must_be_immutable
 class CheckSeedScreen extends StatefulWidget {
@@ -240,6 +242,15 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                                         EthPrivateKey.fromHex(privateKey),
                                         widget.password,
                                         Random());
+
+                                    await FirebaseFirestore.instance
+                                        .collection('wallets')
+                                        .doc(publicKey.toString())
+                                        .set({
+                                      'loyalty_programs': [],
+                                      'public_key': publicKey.toString(),
+                                      'assets': [],
+                                    });
                                     if (widget.isWelcomeScreen) {
                                       Navigator.pop(context);
                                       Navigator.pop(context);

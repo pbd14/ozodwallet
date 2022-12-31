@@ -44,6 +44,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
 
   QuerySnapshot? loyaltyPrograms;
   List<DocumentSnapshot> walletLoyaltyPrograms = [];
+  List<String> walletLoyaltyProgramsIds = [];
   List wallets = [];
   String selectedWalletIndex = "1";
   Map selectedWalletData = {};
@@ -53,6 +54,8 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
       loading = true;
     });
     wallets = [];
+    walletLoyaltyPrograms = [];
+    walletLoyaltyProgramsIds = [];
     prepare();
     Completer<void> completer = Completer<void>();
     completer.complete();
@@ -77,6 +80,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
         .get();
     if (walletFirebase.exists) {
       for (String programId in walletFirebase.get('loyalty_programs')) {
+        walletLoyaltyProgramsIds.add(programId);
         walletLoyaltyPrograms.add(await FirebaseFirestore.instance
             .collection('loyalty_programs')
             .doc(programId)
@@ -227,7 +231,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                           Container(
                                             width: 80,
                                             child: Text(
-                                              program.get('token'),
+                                              program.get('token_symbol'),
                                               overflow: TextOverflow.ellipsis,
                                               maxLines: 2,
                                               textAlign: TextAlign.start,
@@ -241,7 +245,8 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                             ),
                                           ),
                                           Container(
-                                            width: size.width * 0.8 - 70 - 15 - 20,
+                                            width:
+                                                size.width * 0.8 - 70 - 15 - 20,
                                             child: Text(
                                               program.get('name'),
                                               overflow: TextOverflow.ellipsis,
@@ -265,88 +270,178 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                 ),
                                 for (DocumentSnapshot program
                                     in loyaltyPrograms!.docs)
-                                  Card(
-                                    elevation: 10,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(20.0),
-                                    ),
-                                    // margin: EdgeInsets.only(bottom: 10),
-                                    color: darkPrimaryColor,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(10.0),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          Container(
-                                            width: 50,
-                                            child: Text(
-                                              program.get('token'),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 2,
-                                              textAlign: TextAlign.start,
-                                              style: GoogleFonts.montserrat(
-                                                textStyle: const TextStyle(
-                                                  color: secondaryColor,
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.w700,
+                                  if (!walletLoyaltyProgramsIds
+                                      .contains(program.id))
+                                    Card(
+                                      elevation: 10,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
+                                      ),
+                                      // margin: EdgeInsets.only(bottom: 10),
+                                      color: darkPrimaryColor,
+                                      child: Padding(
+                                        padding: const EdgeInsets.all(10.0),
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceEvenly,
+                                          children: [
+                                            Container(
+                                              width: 50,
+                                              child: Text(
+                                                program.get('token_symbol'),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: secondaryColor,
+                                                    fontSize: 10,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          Container(
-                                            width:
-                                                size.width * 0.7 - 20 - 50 - 70,
-                                            child: Text(
-                                              program.get('name'),
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 2,
-                                              textAlign: TextAlign.start,
-                                              style: GoogleFonts.montserrat(
-                                                textStyle: const TextStyle(
-                                                  color: secondaryColor,
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w500,
+                                            Container(
+                                              width: size.width * 0.7 -
+                                                  20 -
+                                                  50 -
+                                                  70,
+                                              child: Text(
+                                                program.get('name'),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: secondaryColor,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                          Container(
-                                            width: 70,
-                                            child: RoundedButton(
-                                              pw: 70,
-                                              ph: 25,
-                                              color: secondaryColor,
-                                              text: 'Join',
-                                              textColor: darkPrimaryColor,
-                                              press: () async {
-                                                setState(() {
-                                                  loading = true;
-                                                });
-                                                DocumentSnapshot walletFromFirebase =  await FirebaseFirestore.instance
-                                                      .collection('wallets')
-                                                      .doc(selectedWalletData[
-                                                              'address']
-                                                          .toString())
-                                                      .get();
+                                            Container(
+                                              width: 70,
+                                              child: RoundedButton(
+                                                pw: 70,
+                                                ph: 25,
+                                                color: secondaryColor,
+                                                text: 'Join',
+                                                textColor: darkPrimaryColor,
+                                                press: () async {
+                                                  setState(() {
+                                                    loading = true;
+                                                  });
+                                                  DocumentSnapshot
+                                                      walletFromFirebase =
+                                                      await FirebaseFirestore
+                                                          .instance
+                                                          .collection('wallets')
+                                                          .doc(
+                                                              selectedWalletData[
+                                                                      'address']
+                                                                  .toString())
+                                                          .get();
 
-                                                if (walletFromFirebase.exists) {
-                                                  await FirebaseFirestore.instance
-                                                      .collection('wallets')
-                                                      .doc(selectedWalletData[
-                                                              'address']
-                                                          .toString())
+                                                  if (walletFromFirebase
+                                                      .exists) {
+                                                    await FirebaseFirestore
+                                                        .instance
+                                                        .collection('wallets')
+                                                        .doc(selectedWalletData[
+                                                                'address']
+                                                            .toString())
+                                                        .update({
+                                                      "loyalty_programs":
+                                                          FieldValue.arrayUnion(
+                                                              [program.id]),
+                                                      "assets": FieldValue
+                                                          .arrayUnion([
+                                                        {
+                                                          'address': program
+                                                              .get('token'),
+                                                          'symbol': program.get(
+                                                              'token_symbol')
+                                                        }
+                                                      ]),
+                                                    }).onError(
+                                                      (error, stackTrace) {
+                                                        PushNotificationMessage
+                                                            notification =
+                                                            PushNotificationMessage(
+                                                          title: 'Failed',
+                                                          body: 'Error',
+                                                        );
+                                                        showSimpleNotification(
+                                                          Text(notification
+                                                              .body),
+                                                          position:
+                                                              NotificationPosition
+                                                                  .top,
+                                                          background:
+                                                              Colors.red,
+                                                        );
+                                                      },
+                                                    );
+                                                  } else {
+                                                    await FirebaseFirestore
+                                                        .instance
+                                                        .collection('wallets')
+                                                        .doc(selectedWalletData[
+                                                                'address']
+                                                            .toString())
+                                                        .set({
+                                                      "loyalty_programs":
+                                                          FieldValue.arrayUnion(
+                                                              [program.id]),
+                                                      "assets": FieldValue
+                                                          .arrayUnion([
+                                                        {
+                                                          'address': program
+                                                              .get('token'),
+                                                          'symbol': program.get(
+                                                              'token_symbol')
+                                                        }
+                                                      ]),
+                                                    }).onError(
+                                                      (error, stackTrace) {
+                                                        PushNotificationMessage
+                                                            notification =
+                                                            PushNotificationMessage(
+                                                          title: 'Failed',
+                                                          body: 'Error',
+                                                        );
+                                                        showSimpleNotification(
+                                                          Text(notification
+                                                              .body),
+                                                          position:
+                                                              NotificationPosition
+                                                                  .top,
+                                                          background:
+                                                              Colors.red,
+                                                        );
+                                                      },
+                                                    );
+                                                  }
+                                                  await FirebaseFirestore
+                                                      .instance
+                                                      .collection(
+                                                          'loyalty_programs')
+                                                      .doc(program.id)
                                                       .update({
-                                                    "loyalty_programs":
-                                                        FieldValue.arrayUnion(
-                                                            [program.id])
+                                                    "members":
+                                                        FieldValue.arrayUnion([
+                                                      selectedWalletData[
+                                                          'address']
+                                                    ])
                                                   }).onError(
                                                     (error, stackTrace) {
                                                       PushNotificationMessage
                                                           notification =
                                                           PushNotificationMessage(
                                                         title: 'Failed',
-                                                        body: 'Error3',
+                                                        body: 'Error1',
                                                       );
                                                       showSimpleNotification(
                                                         Text(notification.body),
@@ -357,71 +452,16 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                                       );
                                                     },
                                                   );
-                                                } else {
-                                                  await FirebaseFirestore.instance
-                                                      .collection('wallets')
-                                                      .doc(selectedWalletData[
-                                                              'address']
-                                                          .toString())
-                                                      .set({
-                                                    "loyalty_programs":
-                                                        FieldValue.arrayUnion(
-                                                            [program.id])
-                                                  }).onError(
-                                                    (error, stackTrace) {
-                                                      PushNotificationMessage
-                                                          notification =
-                                                          PushNotificationMessage(
-                                                        title: 'Failed',
-                                                        body: 'Error2',
-                                                      );
-                                                      showSimpleNotification(
-                                                        Text(notification.body),
-                                                        position:
-                                                            NotificationPosition
-                                                                .top,
-                                                        background: Colors.red,
-                                                      );
-                                                    },
-                                                  );
-                                                }
-                                                await FirebaseFirestore.instance
-                                                    .collection(
-                                                        'loyalty_programs')
-                                                    .doc(program.id)
-                                                    .update({
-                                                  "members":
-                                                      FieldValue.arrayUnion([
-                                                    selectedWalletData[
-                                                        'address']
-                                                  ])
-                                                }).onError(
-                                                  (error, stackTrace) {
-                                                    PushNotificationMessage
-                                                        notification =
-                                                        PushNotificationMessage(
-                                                      title: 'Failed',
-                                                      body: 'Error1',
-                                                    );
-                                                    showSimpleNotification(
-                                                      Text(notification.body),
-                                                      position:
-                                                          NotificationPosition
-                                                              .top,
-                                                      background: Colors.red,
-                                                    );
-                                                  },
-                                                );
-                                                _refresh();
-                                              },
-                                            ),
-                                          )
-                                        ],
+                                                  _refresh();
+                                                },
+                                              ),
+                                            )
+                                          ],
+                                        ),
                                       ),
                                     ),
-                                  ),
                                 SizedBox(
-                                  height: 100,
+                                  height: size.height * 0.5,
                                 ),
                               ],
                             ),

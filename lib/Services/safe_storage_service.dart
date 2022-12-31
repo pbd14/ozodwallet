@@ -31,7 +31,7 @@ class SafeStorageService {
     for (int i = 1; i <= int.parse(lastWalletIndex!) - 1; i++) {
       String? valuePublicKey = await storage.read(key: 'publicKey${i}');
       String? valueName = await storage.read(key: 'Wallet${i}');
-      wallets.add({i: valueName});
+      wallets.add({i: valueName, 'publicKey':valuePublicKey});
     }
     return wallets;
   }

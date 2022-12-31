@@ -2,6 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -356,6 +357,15 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                       publicKey.toString(),
                                       password!,
                                       name);
+
+                                  await FirebaseFirestore.instance
+                                      .collection('wallets')
+                                      .doc(publicKey.toString())
+                                      .set({
+                                    'loyalty_programs': [],
+                                    'public_key': publicKey.toString(),
+                                    'assets': [],
+                                  });
                                 }
                                 if (widget.isWelcomeScreen) {
                                   Navigator.pop(context);
@@ -376,8 +386,8 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                               });
                             }
                             setState(() {
-                                    loading = false;
-                                  });
+                              loading = false;
+                            });
                           },
                           color: secondaryColor,
                           textColor: darkPrimaryColor,
