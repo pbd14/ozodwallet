@@ -102,19 +102,21 @@ class _WalletScreenState extends State<WalletScreen> {
         final response = await httpClient.get(Uri.parse(
             "https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${asset['address']}&apikey=${dotenv.env['ETHERSCAN_API']!}"));
 
-        final contract = DeployedContract(
-            ContractAbi.fromJson(
-                jsonDecode(response.body)['result'], "Loyalty Program"),
-            EthereumAddress.fromHex(asset['address']));
-        final balance = await web3client.call(
-            contract: contract,
-            function: contract.function('balanceOf'),
-            params: [walletData['address']]);
-        selectedWalletAssets.add({
-          'symbol': asset['symbol'],
-          'balance': balance[0],
-          'address': asset['address']
-        });
+        if (int.parse(jsonDecode(response.body)['status'].toString()) == 1) {
+          final contract = DeployedContract(
+              ContractAbi.fromJson(
+                  jsonDecode(response.body)['result'], "LoyaltyToken"),
+              EthereumAddress.fromHex(asset['address']));
+          final balance = await web3client.call(
+              contract: contract,
+              function: contract.function('balanceOf'),
+              params: [walletData['address']]);
+          selectedWalletAssets.add({
+            'symbol': asset['symbol'],
+            'balance': balance[0],
+            'address': asset['address']
+          });
+        }
       }
     }
 
@@ -827,7 +829,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                           asset['address']),
                                                   size: 25),
                                               Container(
-                                                // width: size.width * 0.3,
+                                                width: 100,
                                                 child: Column(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment.center,
@@ -840,6 +842,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                           .toString(),
                                                       overflow:
                                                           TextOverflow.ellipsis,
+                                                      maxLines: 3,
                                                       textAlign:
                                                           TextAlign.start,
                                                       style: GoogleFonts
@@ -847,7 +850,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                         textStyle:
                                                             const TextStyle(
                                                           color: whiteColor,
-                                                          fontSize: 25,
+                                                          fontSize: 20,
                                                           fontWeight:
                                                               FontWeight.w600,
                                                         ),
@@ -857,7 +860,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 ),
                                               ),
                                               Container(
-                                                // width: size.width * 0.3,
+                                                width: 100,
                                                 child: Text(
                                                   asset['symbol'],
                                                   overflow:
@@ -866,7 +869,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                   style: GoogleFonts.montserrat(
                                                     textStyle: const TextStyle(
                                                       color: whiteColor,
-                                                      fontSize: 25,
+                                                      fontSize: 15,
                                                       fontWeight:
                                                           FontWeight.w700,
                                                     ),
@@ -1089,18 +1092,21 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                       final response =
                                                                           await httpClient
                                                                               .get(Uri.parse("https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${importingAssetContractAddress}&apikey=${dotenv.env['ETHERSCAN_API']!}"));
-                                                                      if (jsonDecode(
-                                                                              response.body)['status'] !=
-                                                                          "1") {
+                                                                      if (int.parse(
+                                                                              jsonDecode(response.body)['status'].toString()) ==
+                                                                          1) {
                                                                         await FirebaseFirestore
                                                                             .instance
                                                                             .collection('wallets')
                                                                             .doc(publicKey.toString())
                                                                             .update({
-                                                                          "address":
-                                                                              importingAssetContractAddress,
-                                                                          "symbol":
-                                                                              importingAssetContractSymbol,
+                                                                          'assets':
+                                                                              FieldValue.arrayUnion([
+                                                                            {
+                                                                              "address": importingAssetContractAddress,
+                                                                              "symbol": importingAssetContractSymbol,
+                                                                            }
+                                                                          ])
                                                                         });
                                                                       } else {
                                                                         PushNotificationMessage
@@ -1131,6 +1137,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                             false;
                                                                       });
                                                                     }
+                                                                    _refresh();
                                                                   },
                                                                   color:
                                                                       secondaryColor,
