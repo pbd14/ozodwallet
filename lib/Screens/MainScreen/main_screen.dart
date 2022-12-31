@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:ozodwallet/Screens/LoyaltyScreen/loyalty_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/wallet_screen.dart';
 import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
@@ -36,7 +37,7 @@ class _MainScreenState extends State<MainScreen> {
   List<Widget> _buildScreens() {
     return [
       WalletScreen(),
-      WalletScreen(),
+      LoyaltyScreen(),
       WalletScreen(),
       WalletScreen(),
     ];
@@ -69,7 +70,7 @@ class _MainScreenState extends State<MainScreen> {
         ),
       PersistentBottomNavBarItem(
         icon: const Icon(CupertinoIcons.square_grid_3x2_fill),
-        title: ("Network"),
+        title: ("Loyalty"),
         activeColorPrimary: secondaryColor,
         activeColorSecondary: secondaryColor,
         inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
