@@ -14,6 +14,7 @@ import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_tx_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
+import 'package:ozodwallet/Services/encryption_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
@@ -57,6 +58,8 @@ class _WalletScreenState extends State<WalletScreen> {
   };
   EtherUnit selectedEtherUnit = EtherUnit.ether;
   DocumentSnapshot? walletFirebase;
+  DocumentSnapshot? appDataNodes;
+  DocumentSnapshot? appDataApi;
 
   Client httpClient = Client();
   late Web3Client web3client;
@@ -82,10 +85,22 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Future<void> prepare() async {
-    await dotenv.load(fileName: ".env");
+    // await dotenv.load(fileName: ".env");
     wallets = await SafeStorageService().getAllWallets();
-    web3client =
-        Web3Client(dotenv.env['WEB3_QUICKNODE_GOERLI_URL']!, httpClient);
+
+    // get app data
+    appDataNodes = await FirebaseFirestore.instance
+        .collection('wallet_app_data')
+        .doc('nodes')
+        .get();
+    appDataApi = await FirebaseFirestore.instance
+        .collection('wallet_app_data')
+        .doc('api')
+        .get();
+
+    web3client = Web3Client(
+        EncryptionService().dec(appDataNodes!.get('WEB3_QUICKNODE_GOERLI_URL')),
+        httpClient);
     Map walletData =
         await SafeStorageService().getWalletData(selectedWalletIndex);
     EtherAmount valueBalance =
@@ -100,7 +115,7 @@ class _WalletScreenState extends State<WalletScreen> {
     if (walletFirebase!.exists) {
       for (Map asset in walletFirebase!.get('assets')) {
         final response = await httpClient.get(Uri.parse(
-            "https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${asset['address']}&apikey=${dotenv.env['ETHERSCAN_API']!}"));
+            "https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${asset['address']}&apikey=${ EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
 
         if (int.parse(jsonDecode(response.body)['status'].toString()) == 1) {
           final contract = DeployedContract(
@@ -122,7 +137,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
     // get txs
     final response = await httpClient.get(Uri.parse(
-        "https://api-goerli.etherscan.io//api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=${dotenv.env['ETHERSCAN_API']!}"));
+        "https://api-goerli.etherscan.io//api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
     dynamic jsonBody = jsonDecode(response.body);
     List valueTxs = jsonBody['result'];
 
@@ -1091,7 +1106,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                       ;
                                                                       final response =
                                                                           await httpClient
-                                                                              .get(Uri.parse("https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${importingAssetContractAddress}&apikey=${dotenv.env['ETHERSCAN_API']!}"));
+                                                                              .get(Uri.parse("https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${importingAssetContractAddress}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
                                                                       if (int.parse(
                                                                               jsonDecode(response.body)['status'].toString()) ==
                                                                           1) {

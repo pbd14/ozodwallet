@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:bip39/bip39.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:date_format/date_format.dart';
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import 'package:flutter/cupertino.dart';
@@ -14,6 +15,7 @@ import 'package:hex/hex.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Screens/WalletScreen/check_seed_screen.dart';
+import 'package:ozodwallet/Services/encryption_service.dart';
 import 'package:ozodwallet/Services/exchanges/mercury_api_service.dart';
 import 'package:ozodwallet/Services/exchanges/simpleswap_api_service.dart';
 import 'package:ozodwallet/Services/exchanges/swapzone_api_service.dart';
@@ -56,26 +58,26 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
   WebViewController webViewController = WebViewController();
 
   // Exchanges
-  Map<String, Map> exchanges = {
-    'simpleswap': {
-      'name': 'SimpleSwap',
-      'image':
-          'https://images.g2crowd.com/uploads/product/image/large_detail/large_detail_652890b0859641a280e40ecba8c92e0f/simpleswap.png',
-      'exchange_link':
-          'https://simpleswap.io/?cur_from=btc&cur_to=eth&amount=0.1&ref=a8e65f24b017',
-    },
-    'mercuryo': {
-      'name': 'Mercuryo',
-      'image':
-          'https://raw.githubusercontent.com/mercuryoio/iOS-SDK/main/images/logo.png',
-      'exchange_link': 'https://exchange.mercuryo.io/'
-    },
-    'swapzone': {
-      'name': 'Swapzone',
-      'image':
-          'https://blockspot-io.b-cdn.net/wp-content/uploads/swapzone-exchange-logo.png'
-    },
-  };
+  // Map<String, Map> exchanges = {
+  //   'simpleswap': {
+  //     'name': 'SimpleSwap',
+  //     'image':
+  //         'https://images.g2crowd.com/uploads/product/image/large_detail/large_detail_652890b0859641a280e40ecba8c92e0f/simpleswap.png',
+  //     'exchange_link':
+  //         'https://simpleswap.io/?cur_from=btc&cur_to=eth&amount=0.1&ref=a8e65f24b017',
+  //   },
+  //   'mercuryo': {
+  //     'name': 'Mercuryo',
+  //     'image':
+  //         'https://raw.githubusercontent.com/mercuryoio/iOS-SDK/main/images/logo.png',
+  //     'exchange_link': 'https://exchange.mercuryo.io/'
+  //   },
+  //   'swapzone': {
+  //     'name': 'Swapzone',
+  //     'image':
+  //         'https://blockspot-io.b-cdn.net/wp-content/uploads/swapzone-exchange-logo.png'
+  //   },
+  // };
   List<String> possibleExchanges = [];
   // Swapzone
   List swapzone_coins = [];
@@ -84,6 +86,8 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
   Map selectedExchange = {};
   Map walletData = {};
   EtherAmount? balance;
+  DocumentSnapshot? appData;
+  DocumentSnapshot? appDataExchanges;
 
   void getPossibleExchanges() {
     possibleExchanges.clear();
@@ -93,15 +97,15 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
       if (mounted) {
         setState(() {
           possibleExchanges.add('mercuryo');
-          selectedExchange = exchanges['mercuryo']!;
-          exchanges['mercuryo']!['exchange_link'] =
+          selectedExchange = appDataExchanges!.get('mercuryo');
+          appDataExchanges!.get('mercuryo')['exchange_link'] =
               'https://exchange.mercuryo.io/?currency=${selectedCoin['symbol']}&fiat_currency=USD';
-          webUrl = exchanges['mercuryo']!['exchange_link'];
+          webUrl = appDataExchanges!.get('mercuryo')!['exchange_link'];
         });
       } else {
         possibleExchanges.add('mercuryo');
-        selectedExchange = exchanges['mercuryo']!;
-        webUrl = exchanges['mercuryo']!['exchange_link'];
+        selectedExchange = appDataExchanges!.get('mercuryo');
+        webUrl = appDataExchanges!.get('mercuryo')['exchange_link'];
       }
     }
 
@@ -110,22 +114,31 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
       if (mounted) {
         setState(() {
           possibleExchanges.add('simpleswap');
-          selectedExchange = exchanges['simpleswap']!;
-          webUrl = exchanges['simpleswap']!['exchange_link'];
+          selectedExchange = appDataExchanges!.get('simpleswap');
+          webUrl = appDataExchanges!.get('simpleswap')['exchange_link'];
         });
       } else {
         possibleExchanges.add('simpleswap');
-        selectedExchange = exchanges['simpleswap']!;
-        webUrl = exchanges['simpleswap']!['exchange_link'];
+        selectedExchange = appDataExchanges!.get('simpleswap');
+        webUrl = appDataExchanges!.get('simpleswap')['exchange_link'];
       }
     }
   }
 
   Future<void> prepare() async {
+    // get app data
+    appData = await FirebaseFirestore.instance
+        .collection('wallet_app_data')
+        .doc('data')
+        .get();
+    appDataExchanges = await FirebaseFirestore.instance
+        .collection('wallet_app_data')
+        .doc('exchanges')
+        .get();
     walletData = await SafeStorageService().getWalletData(widget.walletIndex);
     balance = await widget.web3client.getBalance(walletData['address']);
-    await dotenv.load(fileName: ".env");
-    coins = json.decode(dotenv.env['ETHER_TOP20_COINS']!);
+    coins =
+        json.decode(appData!.get('ETHER_TOP20_COINS_JSON'));
     selectedCoin = coins[0];
     getPossibleExchanges();
     setState(() {
@@ -513,8 +526,8 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                               onChanged: (exchangeName) {
                                 setState(() {
                                   webUrl =
-                                      exchanges[exchangeName]!['exchange_link'];
-                                  selectedExchange = exchanges[exchangeName]!;
+                                      appDataExchanges!.get(exchangeName!)['exchange_link'];
+                                  selectedExchange = appDataExchanges!.get(exchangeName);
                                 });
                               },
                               hint: Row(
@@ -564,7 +577,7 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Image.network(
-                                            exchanges[exchangeName]!['image'],
+                                           appDataExchanges!.get(exchangeName)['image'],
                                             width: 30,
                                           ),
                                           Container(
