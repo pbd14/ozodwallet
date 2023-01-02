@@ -397,6 +397,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                                               .get('token'),
                                                           'symbol': program.get(
                                                               'token_symbol'),
+                                                          'network': 'goerli',
                                                           'decimals': 18,
                                                         }
                                                       ]),
@@ -437,6 +438,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                                               .get('token'),
                                                           'symbol': program.get(
                                                               'token_symbol'),
+                                                              'network':'goerli',
                                                           'decimals': 18,
                                                         }
                                                       ]),

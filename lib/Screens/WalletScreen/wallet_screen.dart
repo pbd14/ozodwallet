@@ -182,27 +182,30 @@ class _WalletScreenState extends State<WalletScreen> {
     // get assets
     if (walletFirebase!.exists) {
       for (Map asset in walletFirebase!.get('assets')) {
-        final response = await httpClient.get(Uri.parse(
-            "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}/api?module=contract&action=getabi&address=${asset['address']}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+        if (asset['network'] == selectedNetworkId) {
+          final response = await httpClient.get(Uri.parse(
+              "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}/api?module=contract&action=getabi&address=${asset['address']}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
 
-        if (int.parse(jsonDecode(response.body)['status'].toString()) == 1) {
-          final contract = DeployedContract(
-              ContractAbi.fromJson(
-                  jsonDecode(response.body)['result'], "LoyaltyToken"),
-              EthereumAddress.fromHex(asset['address']));
-          final balance = await web3client.call(
-              contract: contract,
-              function: contract.function('balanceOf'),
-              params: [walletData['address']]);
-          selectedWalletAssets.add({
-            'symbol': asset['symbol'],
-            'balance': balance[0],
-            'address': asset['address'],
-            'decimals': asset['decimal'],
-            'contract': contract,
-          });
-          selectedWalletAssetsData[asset['address'].toLowerCase()] =
-              asset['symbol'];
+          if (int.parse(jsonDecode(response.body)['status'].toString()) == 1) {
+            
+            final contract = DeployedContract(
+                ContractAbi.fromJson(
+                    jsonDecode(response.body)['result'], "LoyaltyToken"),
+                EthereumAddress.fromHex(asset['address']));
+            final balance = await web3client.call(
+                contract: contract,
+                function: contract.function('balanceOf'),
+                params: [walletData['address']]);
+            selectedWalletAssets.add({
+              'symbol': asset['symbol'],
+              'balance': balance[0],
+              'address': asset['address'],
+              'decimals': asset['decimal'],
+              'contract': contract,
+            });
+            selectedWalletAssetsData[asset['address'].toLowerCase()] =
+                asset['symbol'];
+          }
         }
       }
     }
@@ -597,7 +600,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                   await sharedPreferences!
                                                       .setString(
                                                           "selectedEtherUnit",
-                                                          cryptoUnits[unit].toString());
+                                                          cryptoUnits[unit]
+                                                              .toString());
                                                   setState(() {
                                                     selectedEtherUnit = unit!;
                                                   });
@@ -1343,6 +1347,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                             {
                                                                               "address": importingAssetContractAddress,
                                                                               "symbol": importingAssetContractSymbol,
+                                                                              "network": selectedNetworkId,
                                                                               "decimals": 18,
                                                                             }
                                                                           ])
