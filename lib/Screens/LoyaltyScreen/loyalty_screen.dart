@@ -149,38 +149,84 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                       colors: [
                                         darkPrimaryColor,
                                         primaryColor,
-                                        
                                       ],
                                     ),
                                   ),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Jazzicon.getIconWidget(
-                                          Jazzicon.getJazziconData(160,
-                                              address: selectedWalletData[
-                                                  'publicKey']),
-                                          size: 25),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          selectedWalletData['name'],
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 3,
-                                          textAlign: TextAlign.start,
-                                          style: GoogleFonts.montserrat(
-                                            textStyle: const TextStyle(
-                                              color: secondaryColor,
-                                              fontSize: 25,
-                                              fontWeight: FontWeight.w700,
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<int>(
+                                      isExpanded: true,
+                                      borderRadius: BorderRadius.circular(20.0),
+                                      dropdownColor: darkPrimaryColor,
+                                      focusColor: whiteColor,
+                                      iconEnabledColor: secondaryColor,
+                                      alignment: Alignment.centerLeft,
+                                      onChanged: (walletIndex) {
+                                        setState(() {
+                                          selectedWalletIndex =
+                                              walletIndex.toString();
+                                          loading = true;
+                                        });
+                                        _refresh();
+                                      },
+                                      hint: Row(
+                                        children: [
+                                          Jazzicon.getIconWidget(
+                                              Jazzicon.getJazziconData(160,
+                                                  address: selectedWalletData[
+                                                      'publicKey']),
+                                              size: 25),
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+                                          Text(
+                                            selectedWalletData['name'],
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: secondaryColor,
+                                                fontSize: 25,
+                                                fontWeight: FontWeight.w700,
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                        ],
                                       ),
-                                    ],
+                                      items: [
+                                        for (Map wallet in wallets)
+                                          DropdownMenuItem<int>(
+                                            value: wallets.indexOf(wallet) + 1,
+                                            child: Row(
+                                              children: [
+                                                Jazzicon.getIconWidget(
+                                                    Jazzicon.getJazziconData(
+                                                        160,
+                                                        address: wallet[
+                                                            'publicKey']),
+                                                    size: 15),
+                                                SizedBox(
+                                                  width: 10,
+                                                ),
+                                                Text(
+                                                  wallet[
+                                                      wallets.indexOf(wallet) +
+                                                          1],
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: const TextStyle(
+                                                      color: secondaryColor,
+                                                      fontSize: 25,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(
