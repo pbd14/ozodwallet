@@ -408,7 +408,8 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                                           'address': program
                                                               .get('token'),
                                                           'symbol': program.get(
-                                                              'token_symbol')
+                                                              'token_symbol'),
+                                                          'decimals': 18,
                                                         }
                                                       ]),
                                                     }).onError(
@@ -447,7 +448,8 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                                           'address': program
                                                               .get('token'),
                                                           'symbol': program.get(
-                                                              'token_symbol')
+                                                              'token_symbol'),
+                                                          'decimals': 18,
                                                         }
                                                       ]),
                                                     }).onError(

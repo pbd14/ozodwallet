@@ -1,6 +1,10 @@
+import 'dart:convert';
+
+import 'package:http/http.dart';
 import 'dart:math';
 import 'dart:typed_data';
 import 'package:bip39/bip39.dart';
+import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:date_format/date_format.dart';
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import 'package:flutter/cupertino.dart';
@@ -12,6 +16,7 @@ import 'package:jazzicon/jazzicon.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Screens/WalletScreen/check_seed_screen.dart';
+import 'package:ozodwallet/Services/encryption_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
@@ -24,12 +29,17 @@ import 'package:web3dart/web3dart.dart';
 class SendTxScreen extends StatefulWidget {
   String error;
   String walletIndex;
+  String networkId;
   Web3Client web3client;
+  List walletAssets;
+
   SendTxScreen({
     Key? key,
     this.error = 'Something Went Wrong',
     required this.walletIndex,
+    required this.networkId,
     required this.web3client,
+    required this.walletAssets,
   }) : super(key: key);
 
   @override
@@ -50,11 +60,16 @@ class _SendTxScreenState extends State<SendTxScreen> {
   String? receiverPublicAddress;
   String? amount;
   Map walletData = {};
+  Map selectedAsset = {'symbol': 'ETH'};
+  List walletAssets = [];
   EtherAmount? balance;
-
+  Client httpClient = Client();
+  firestore.DocumentSnapshot? walletFirebase;
   Future<void> prepare() async {
-    print("PRERER");
-    print(widget.walletIndex);
+    walletFirebase = await firestore.FirebaseFirestore.instance
+        .collection('wallets')
+        .doc(walletData['address'].toString())
+        .get();
     walletData = await SafeStorageService().getWalletData(widget.walletIndex);
     balance = await widget.web3client.getBalance(walletData['address']);
     setState(() {
@@ -120,7 +135,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                             end: Alignment.bottomRight,
                             colors: [
                               primaryColor,
-                              primaryColor,
+                              darkPrimaryColor,
                             ],
                           ),
                         ),
@@ -131,7 +146,9 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 Jazzicon.getJazziconData(160,
                                     address: walletData['publicKey']),
                                 size: 25),
-                            SizedBox(width: 10,),
+                            SizedBox(
+                              width: 10,
+                            ),
                             Expanded(
                               child: Text(
                                 walletData['name'],
@@ -239,6 +256,154 @@ class _SendTxScreenState extends State<SendTxScreen> {
                       const SizedBox(
                         height: 20,
                       ),
+                      Container(
+                        margin: EdgeInsets.symmetric(horizontal: 40),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButtonFormField<Map>(
+                            decoration: InputDecoration(
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide:
+                                    BorderSide(color: Colors.red, width: 1.0),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide: BorderSide(
+                                    color: secondaryColor, width: 1.0),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide: BorderSide(
+                                    color: secondaryColor, width: 1.0),
+                              ),
+                              // hintStyle: TextStyle(
+                              //     color: darkPrimaryColor.withOpacity(0.7)),
+                              // hintText: 'Asset',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide: BorderSide(
+                                    color: secondaryColor, width: 1.0),
+                              ),
+                            ),
+                            isDense: false,
+                            menuMaxHeight: 200,
+                            borderRadius: BorderRadius.circular(40.0),
+                            dropdownColor: darkPrimaryColor,
+                            focusColor: secondaryColor,
+                            iconEnabledColor: secondaryColor,
+                            alignment: Alignment.centerLeft,
+                            onChanged: (asset) {
+                              setState(() {
+                                loading = true;
+                              });
+
+                              if (asset!['symbol'] != 'ETH') {
+                                setState(() {
+                                  selectedAsset = asset;
+                                  loading = false;
+                                });
+                              } else {
+                                setState(() {
+                                  selectedAsset = {'symbol': 'ETH'};
+                                  loading = false;
+                                });
+                              }
+                            },
+                            hint: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Image.network(
+                                  'https://assets.coingecko.com/coins/images/279/large/ethereum.png?1595348880',
+                                  width: 30,
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Container(
+                                  width: 100,
+                                  child: Text(
+                                    'ETH',
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.start,
+                                    style: GoogleFonts.montserrat(
+                                      textStyle: const TextStyle(
+                                        color: secondaryColor,
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            items: [
+                              for (Map asset in widget.walletAssets)
+                                DropdownMenuItem<Map>(
+                                  value: asset,
+                                  child: Container(
+                                    margin: EdgeInsets.symmetric(vertical: 10),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Jazzicon.getIconWidget(
+                                            Jazzicon.getJazziconData(160,
+                                                address: asset['address']),
+                                            size: 15),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        // Container(
+                                        //   width: 100,
+                                        //   child: Column(
+                                        //     mainAxisAlignment:
+                                        //         MainAxisAlignment.center,
+                                        //     children: [
+                                        //       // Image.network('')
+                                        //       Text(
+                                        //         (asset['balance'] /
+                                        //                 BigInt.from(
+                                        //                     pow(10, 18)))
+                                        //             .toString(),
+                                        //         overflow: TextOverflow.ellipsis,
+                                        //         maxLines: 3,
+                                        //         textAlign: TextAlign.start,
+                                        //         style: GoogleFonts.montserrat(
+                                        //           textStyle: const TextStyle(
+                                        //             color: secondaryColor,
+                                        //             fontSize: 15,
+                                        //             fontWeight: FontWeight.w600,
+                                        //           ),
+                                        //         ),
+                                        //       ),
+                                        //     ],
+                                        //   ),
+                                        // ),
+
+                                        Container(
+                                          width: 100,
+                                          child: Text(
+                                            asset['symbol'],
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: secondaryColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -248,9 +413,13 @@ class _SendTxScreenState extends State<SendTxScreen> {
                               validator: (val) {
                                 if (val!.isEmpty) {
                                   return 'Enter amount';
-                                } else if (double.parse(val) >=
-                                    balance!
-                                        .getValueInUnit(selectedEtherUnit)) {
+                                } else if (selectedAsset['symbol'] == 'ETH'
+                                    ? double.parse(val) >=
+                                        balance!
+                                            .getValueInUnit(selectedEtherUnit)
+                                    : double.parse(val) >=
+                                        (selectedAsset['balance'] /
+                                            BigInt.from(pow(10, 18)))) {
                                   return 'Too big amount';
                                 } else {
                                   return null;
@@ -285,59 +454,82 @@ class _SendTxScreenState extends State<SendTxScreen> {
                               ),
                             ),
                           ),
+                          SizedBox(
+                            width: 5,
+                          ),
                           Container(
                             width: 100,
                             child: Center(
-                              child: DropdownButtonHideUnderline(
-                                child: DropdownButton<EtherUnit>(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  dropdownColor: darkPrimaryColor,
-                                  focusColor: whiteColor,
-                                  iconEnabledColor: whiteColor,
-                                  alignment: Alignment.centerLeft,
-                                  onChanged: (unit) {
-                                    setState(() {
-                                      selectedEtherUnit = unit!;
-                                    });
-                                  },
-                                  hint: Text(
-                                    cryptoUnits[selectedEtherUnit]!,
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 3,
-                                    textAlign: TextAlign.center,
-                                    style: GoogleFonts.montserrat(
-                                      textStyle: const TextStyle(
-                                        color: secondaryColor,
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                  items: [
-                                    for (EtherUnit unit in cryptoUnits.keys)
-                                      DropdownMenuItem<EtherUnit>(
-                                        value: unit,
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.start,
-                                          children: <Widget>[
-                                            Text(
-                                              cryptoUnits[unit]!,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.montserrat(
-                                                textStyle: const TextStyle(
-                                                  color: secondaryColor,
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
+                              child: selectedAsset['symbol'] == 'ETH'
+                                  ? DropdownButtonHideUnderline(
+                                      child: DropdownButton<EtherUnit>(
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
+                                        dropdownColor: darkPrimaryColor,
+                                        focusColor: secondaryColor,
+                                        iconEnabledColor: secondaryColor,
+                                        alignment: Alignment.centerLeft,
+                                        onChanged: (unit) {
+                                          setState(() {
+                                            selectedEtherUnit = unit!;
+                                          });
+                                        },
+                                        hint: Text(
+                                          cryptoUnits[selectedEtherUnit]!,
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 3,
+                                          textAlign: TextAlign.center,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: secondaryColor,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        items: [
+                                          for (EtherUnit unit
+                                              in cryptoUnits.keys)
+                                            DropdownMenuItem<EtherUnit>(
+                                              value: unit,
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: <Widget>[
+                                                  Text(
+                                                    cryptoUnits[unit]!,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      textStyle:
+                                                          const TextStyle(
+                                                        color: secondaryColor,
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
-                                          ],
+                                        ],
+                                      ),
+                                    )
+                                  : Text(
+                                      selectedAsset['symbol'],
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 3,
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: secondaryColor,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w700,
                                         ),
                                       ),
-                                  ],
-                                ),
-                              ),
+                                    ),
                             ),
                           ),
                         ],
@@ -346,7 +538,12 @@ class _SendTxScreenState extends State<SendTxScreen> {
                         height: 10,
                       ),
                       Text(
-                        "Balance: ${balance!.getValueInUnit(selectedEtherUnit).toString()}  ${cryptoUnits[selectedEtherUnit]}",
+                        selectedAsset['symbol'] == 'ETH'
+                            ? "Balance: ${balance!.getValueInUnit(selectedEtherUnit).toString()}  ${cryptoUnits[selectedEtherUnit]}"
+                            : "Balance: " +
+                                (selectedAsset['balance'] /
+                                        BigInt.from(pow(10, 18)))
+                                    .toString(),
                         overflow: TextOverflow.ellipsis,
                         maxLines: 3,
                         textAlign: TextAlign.start,
@@ -387,45 +584,83 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 isValidAddress) {
                               BigInt chainId =
                                   await widget.web3client.getChainId();
-                              widget.web3client
-                                  .sendTransaction(
-                                walletData['credentials'],
-                                Transaction(
-                                  to: EthereumAddress.fromHex(
-                                      receiverPublicAddress!),
-                                  // gasPrice: EtherAmount.inWei(BigInt.one),
-                                  // maxGas: 100000,
-                                  value: EtherAmount.fromUnitAndValue(
-                                      selectedEtherUnit, amount),
-                                ),
-                                chainId: chainId.toInt(),
-                              )
-                                  .catchError((error, stackTrace) {
+                              // ETH
+                              if (selectedAsset['symbol'] == 'ETH') {
+                                widget.web3client
+                                    .sendTransaction(
+                                  walletData['credentials'],
+                                  Transaction(
+                                    to: EthereumAddress.fromHex(
+                                        receiverPublicAddress!),
+                                    // gasPrice: EtherAmount.inWei(BigInt.one),
+                                    // maxGas: 100000,
+                                    value: EtherAmount.fromUnitAndValue(
+                                        selectedEtherUnit, amount),
+                                  ),
+                                  chainId: chainId.toInt(),
+                                )
+                                    .catchError((error, stackTrace) {
+                                  PushNotificationMessage notification =
+                                      PushNotificationMessage(
+                                    title: 'Failed',
+                                    body: 'Failed to make transaction',
+                                  );
+                                  showSimpleNotification(
+                                    Text(notification.body),
+                                    position: NotificationPosition.top,
+                                    background: Colors.red,
+                                  );
+                                });
                                 PushNotificationMessage notification =
                                     PushNotificationMessage(
-                                  title: 'Failed',
-                                  body: 'Failed to make transaction',
+                                  title: 'Success',
+                                  body: 'Transaction made',
                                 );
                                 showSimpleNotification(
                                   Text(notification.body),
                                   position: NotificationPosition.top,
-                                  background: Colors.red,
+                                  background: Colors.green,
                                 );
-                              });
-                              PushNotificationMessage notification =
-                                  PushNotificationMessage(
-                                title: 'Success',
-                                body: 'Transaction made',
-                              );
-                              showSimpleNotification(
-                                Text(notification.body),
-                                position: NotificationPosition.top,
-                                background: Colors.green,
-                              );
-                              setState(() {
-                                loading = false;
-                              });
-                              Navigator.pop(context);
+                                setState(() {
+                                  loading = false;
+                                });
+                                Navigator.pop(context);
+                              } else {
+                                Transaction transaction =
+                                    await Transaction.callContract(
+                                  contract: selectedAsset['contract'],
+                                  function: selectedAsset['contract']
+                                      .function('transfer'),
+                                  parameters: [
+                                    EthereumAddress.fromHex(
+                                        receiverPublicAddress!),
+                                    (BigInt.from(int.parse(amount!)) *
+                                        BigInt.from(pow(10, 18))),
+                                  ],
+                                );
+                                final transfer =
+                                    widget.web3client.sendTransaction(
+                                  walletData['credentials'],
+                                  transaction,
+                                  chainId: chainId.toInt(),
+                                );
+                                if (await transfer != null) {
+                                  PushNotificationMessage notification =
+                                      PushNotificationMessage(
+                                    title: 'Success',
+                                    body: 'Transaction made',
+                                  );
+                                  showSimpleNotification(
+                                    Text(notification.body),
+                                    position: NotificationPosition.top,
+                                    background: Colors.green,
+                                  );
+                                }
+                                setState(() {
+                                  loading = false;
+                                });
+                                Navigator.pop(context);
+                              }
                             } else {
                               setState(() {
                                 loading = false;

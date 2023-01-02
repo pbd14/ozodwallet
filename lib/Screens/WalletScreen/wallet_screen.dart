@@ -52,6 +52,7 @@ class _WalletScreenState extends State<WalletScreen> {
   EtherAmount selectedWalletBalance = EtherAmount.zero();
   List selectedWalletTxs = [];
   List selectedWalletAssets = [];
+  Map selectedWalletAssetsData = {};
   List wallets = [];
   Map<EtherUnit, String> cryptoUnits = {
     EtherUnit.ether: 'ETH',
@@ -79,6 +80,7 @@ class _WalletScreenState extends State<WalletScreen> {
     selectedWalletBalance = EtherAmount.zero();
     selectedWalletTxs = [];
     selectedWalletAssets = [];
+    selectedWalletAssetsData = {};
     wallets = [];
 
     prepare();
@@ -139,17 +141,22 @@ class _WalletScreenState extends State<WalletScreen> {
           selectedWalletAssets.add({
             'symbol': asset['symbol'],
             'balance': balance[0],
-            'address': asset['address']
+            'address': asset['address'],
+            'decimals': asset['decimal'],
+            'contract': contract,
           });
+          selectedWalletAssetsData[asset['address'].toLowerCase()] = asset['symbol'];
         }
       }
     }
 
     // get txs
     final response = await httpClient.get(Uri.parse(
-        "https://api-goerli.etherscan.io//api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=10&sort=asc&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+        "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}//api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
     dynamic jsonBody = jsonDecode(response.body);
     List valueTxs = jsonBody['result'];
+    for (dynamic act in valueTxs) {
+    }
 
     setState(() {
       walletData['publicKey'] != null
@@ -165,7 +172,7 @@ class _WalletScreenState extends State<WalletScreen> {
           ? selectedWalletBalance = valueBalance
           : selectedWalletBalance = EtherAmount.zero();
       valueTxs != null
-          ? selectedWalletTxs = valueTxs.reversed.toList()
+          ? selectedWalletTxs = valueTxs.toList()
           : selectedWalletTxs = [];
       // if (appData != null) {
       //   selectedNetworkId = appData!.get('AVAILABLE_ETHER_NETWORKS')[0];
@@ -256,49 +263,54 @@ class _WalletScreenState extends State<WalletScreen> {
                                 child: DropdownButtonHideUnderline(
                                   child: DropdownButtonFormField<String>(
                                     decoration: InputDecoration(
-                                  errorBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(40.0),
-                                    borderSide: BorderSide(
-                                        color: Colors.red, width: 1.0),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(40.0),
-                                    borderSide: BorderSide(
-                                        color: secondaryColor, width: 1.0),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(40.0),
-                                    borderSide: BorderSide(
-                                        color: secondaryColor, width: 1.0),
-                                  ),
-                                  hintStyle: TextStyle(
-                                      color:
-                                          darkPrimaryColor.withOpacity(0.7)),
-                                  hintText: 'Network',
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(40.0),
-                                    borderSide: BorderSide(
-                                        color: secondaryColor, width: 1.0),
-                                  ),
-                                ),
-                                
+                                      errorBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(40.0),
+                                        borderSide: BorderSide(
+                                            color: Colors.red, width: 1.0),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(40.0),
+                                        borderSide: BorderSide(
+                                            color: secondaryColor, width: 1.0),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(40.0),
+                                        borderSide: BorderSide(
+                                            color: secondaryColor, width: 1.0),
+                                      ),
+                                      hintStyle: TextStyle(
+                                          color: darkPrimaryColor
+                                              .withOpacity(0.7)),
+                                      hintText: 'Network',
+                                      border: OutlineInputBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(40.0),
+                                        borderSide: BorderSide(
+                                            color: secondaryColor, width: 1.0),
+                                      ),
+                                    ),
                                     isDense: true,
                                     menuMaxHeight: 200,
                                     borderRadius: BorderRadius.circular(40.0),
                                     dropdownColor: darkPrimaryColor,
                                     focusColor: whiteColor,
                                     iconEnabledColor: secondaryColor,
-                                    alignment: Alignment.center,
+                                    alignment: Alignment.centerLeft,
                                     onChanged: (networkId) async {
                                       setState(() {
                                         loading = true;
                                       });
 
                                       setState(() {
-                                        selectedNetworkId = appData!
-                                          .get('AVAILABLE_ETHER_NETWORKS')[networkId]['id'];
-                                        selectedNetworkName = appData!
-                                          .get('AVAILABLE_ETHER_NETWORKS')[networkId]['name'];
+                                        selectedNetworkId = appData!.get(
+                                                'AVAILABLE_ETHER_NETWORKS')[
+                                            networkId]['id'];
+                                        selectedNetworkName = appData!.get(
+                                                'AVAILABLE_ETHER_NETWORKS')[
+                                            networkId]['name'];
                                       });
                                       _refresh();
                                     },
@@ -325,7 +337,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                     ),
                                     items: [
                                       for (String networkId in appData!
-                                          .get('AVAILABLE_ETHER_NETWORKS').keys)
+                                          .get('AVAILABLE_ETHER_NETWORKS')
+                                          .keys)
                                         DropdownMenuItem<String>(
                                           value: networkId,
                                           child: Container(
@@ -340,16 +353,16 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 Row(
                                                   children: [
                                                     Text(
-                                                      appData!
-                                          .get('AVAILABLE_ETHER_NETWORKS')[networkId]['name'],
-                                                      overflow: TextOverflow
-                                                          .ellipsis,
+                                                      appData!.get(
+                                                              'AVAILABLE_ETHER_NETWORKS')[
+                                                          networkId]['name'],
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                       style: GoogleFonts
                                                           .montserrat(
                                                         textStyle:
                                                             const TextStyle(
-                                                          color:
-                                                              secondaryColor,
+                                                          color: secondaryColor,
                                                           fontSize: 20,
                                                           fontWeight:
                                                               FontWeight.w400,
@@ -366,7 +379,6 @@ class _WalletScreenState extends State<WalletScreen> {
                                   ),
                                 ),
                               ),
-
                               SizedBox(height: 20),
 
                               // Wallet
@@ -663,6 +675,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                                   web3client: web3client,
                                                   walletIndex:
                                                       selectedWalletIndex,
+                                                  networkId: selectedNetworkId,
+                                                  walletAssets:
+                                                      selectedWalletAssets,
                                                 ),
                                               ),
                                             );
@@ -1240,7 +1255,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                       ;
                                                                       final response =
                                                                           await httpClient
-                                                                              .get(Uri.parse("https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${importingAssetContractAddress}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+                                                                              .get(Uri.parse("${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}/api?module=contract&action=getabi&address=${importingAssetContractAddress}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
                                                                       if (int.parse(
                                                                               jsonDecode(response.body)['status'].toString()) ==
                                                                           1) {
@@ -1254,6 +1269,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                             {
                                                                               "address": importingAssetContractAddress,
                                                                               "symbol": importingAssetContractSymbol,
+                                                                              "decimals": 18,
                                                                             }
                                                                           ])
                                                                         });
@@ -1477,7 +1493,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                   ),
                                                                 ),
                                                               ),
-                                                        tx['from'] == publicKey
+                                                        tx['from'] == publicKey && !selectedWalletAssetsData.keys.contains(tx['to'])
                                                             ? Text(
                                                                 "To ${tx['to']}",
                                                                 overflow:
@@ -1535,12 +1551,14 @@ class _WalletScreenState extends State<WalletScreen> {
                                                               .center,
                                                       children: [
                                                         Text(
+                                                          !selectedWalletAssetsData.keys.contains(tx['to']) ?
                                                           EtherAmount.fromUnitAndValue(
                                                                   EtherUnit.wei,
                                                                   tx['value'])
                                                               .getValueInUnit(
                                                                   selectedEtherUnit)
-                                                              .toString(),
+                                                              .toString()
+                                                              : "N/A",
                                                           maxLines: 2,
                                                           overflow: TextOverflow
                                                               .ellipsis,
@@ -1560,9 +1578,11 @@ class _WalletScreenState extends State<WalletScreen> {
                                                           ),
                                                         ),
                                                         Text(
+                                                          !selectedWalletAssetsData.keys.contains(tx['to']) ?
                                                           cryptoUnits[
                                                                   selectedEtherUnit]
-                                                              .toString(),
+                                                              .toString()
+                                                              : selectedWalletAssetsData[tx['to']],
                                                           overflow: TextOverflow
                                                               .ellipsis,
                                                           textAlign:

@@ -314,7 +314,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 100),
+                      const SizedBox(height: 40),
                       Center(
                         child: RoundedButton(
                           pw: 250,
@@ -393,6 +393,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                           textColor: darkPrimaryColor,
                         ),
                       ),
+                      const SizedBox(height:300),
                     ],
                   ),
                 ),
