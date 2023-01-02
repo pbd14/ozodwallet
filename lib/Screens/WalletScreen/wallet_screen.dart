@@ -22,6 +22,7 @@ import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
 import 'package:ozodwallet/constants.dart';
 import 'package:http/http.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web3dart/web3dart.dart';
 
 // ignore: must_be_immutable
@@ -37,6 +38,7 @@ class WalletScreen extends StatefulWidget {
 class _WalletScreenState extends State<WalletScreen> {
   bool loading = true;
   ScrollController _scrollController = ScrollController();
+  SharedPreferences? sharedPreferences;
 
   String publicKey = 'Loading';
   String privateKey = 'Loading';
@@ -87,10 +89,66 @@ class _WalletScreenState extends State<WalletScreen> {
     return completer.future;
   }
 
-  Future<void> prepare() async {
-    // await dotenv.load(fileName: ".env");
-    wallets = await SafeStorageService().getAllWallets();
+  Future<void> getDataFromSP() async {
+    sharedPreferences = await SharedPreferences.getInstance();
+    String? valueSelectedWalletIndex =
+        await sharedPreferences!.getString("selectedWalletIndex");
+    String? valueselectedNetworkId =
+        await sharedPreferences!.getString("selectedNetworkId");
+    String? valueselectedNetworkName =
+        await sharedPreferences!.getString("selectedNetworkName");
+    String? valueselectedEtherUnit =
+        await sharedPreferences!.getString("selectedEtherUnit");
+    if (mounted) {
+      setState(() {
+        if (valueSelectedWalletIndex != null) {
+          selectedWalletIndex = valueSelectedWalletIndex;
+        }
+        if (valueselectedNetworkId != null) {
+          selectedNetworkId = valueselectedNetworkId;
+        }
+        if (valueselectedNetworkName != null) {
+          selectedNetworkName = valueselectedNetworkName;
+        }
+        if (valueselectedEtherUnit != null) {
+          if (valueselectedEtherUnit == 'ETH') {
+            selectedEtherUnit = EtherUnit.ether;
+          }
+          if (valueselectedEtherUnit == 'WEI') {
+            selectedEtherUnit = EtherUnit.wei;
+          }
+          if (valueselectedEtherUnit == 'GWEI') {
+            selectedEtherUnit = EtherUnit.gwei;
+          }
+        }
+      });
+    } else {
+      if (valueSelectedWalletIndex != null) {
+        selectedWalletIndex = valueSelectedWalletIndex;
+      }
+      if (valueselectedNetworkId != null) {
+        selectedNetworkId = valueselectedNetworkId;
+      }
+      if (valueselectedNetworkName != null) {
+        selectedNetworkName = valueselectedNetworkName;
+      }
+      if (valueselectedEtherUnit != null) {
+        if (valueselectedEtherUnit == 'ETH') {
+          selectedEtherUnit = EtherUnit.ether;
+        }
+        if (valueselectedEtherUnit == 'WEI') {
+          selectedEtherUnit = EtherUnit.wei;
+        }
+        if (valueselectedEtherUnit == 'GWEI') {
+          selectedEtherUnit = EtherUnit.gwei;
+        }
+      }
+    }
+  }
 
+  Future<void> prepare() async {
+    wallets = await SafeStorageService().getAllWallets();
+    await getDataFromSP();
     // get app data
     appDataNodes = await FirebaseFirestore.instance
         .collection('wallet_app_data')
@@ -143,7 +201,8 @@ class _WalletScreenState extends State<WalletScreen> {
             'decimals': asset['decimal'],
             'contract': contract,
           });
-          selectedWalletAssetsData[asset['address'].toLowerCase()] = asset['symbol'];
+          selectedWalletAssetsData[asset['address'].toLowerCase()] =
+              asset['symbol'];
         }
       }
     }
@@ -299,7 +358,18 @@ class _WalletScreenState extends State<WalletScreen> {
                                       setState(() {
                                         loading = true;
                                       });
-
+                                      await sharedPreferences!.setString(
+                                          "selectedNetworkId",
+                                          appData!
+                                              .get('AVAILABLE_ETHER_NETWORKS')[
+                                                  networkId]['id']
+                                              .toString());
+                                      await sharedPreferences!.setString(
+                                          "selectedNetworkName",
+                                          appData!
+                                              .get('AVAILABLE_ETHER_NETWORKS')[
+                                                  networkId]['name']
+                                              .toString());
                                       setState(() {
                                         selectedNetworkId = appData!.get(
                                                 'AVAILABLE_ETHER_NETWORKS')[
@@ -417,7 +487,11 @@ class _WalletScreenState extends State<WalletScreen> {
                                               focusColor: whiteColor,
                                               iconEnabledColor: whiteColor,
                                               alignment: Alignment.centerLeft,
-                                              onChanged: (walletIndex) {
+                                              onChanged: (walletIndex) async {
+                                                await sharedPreferences!
+                                                    .setString(
+                                                        "selectedWalletIndex",
+                                                        walletIndex.toString());
                                                 setState(() {
                                                   selectedWalletIndex =
                                                       walletIndex.toString();
@@ -519,7 +593,11 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 focusColor: whiteColor,
                                                 iconEnabledColor: whiteColor,
                                                 alignment: Alignment.centerLeft,
-                                                onChanged: (unit) {
+                                                onChanged: (unit) async {
+                                                  await sharedPreferences!
+                                                      .setString(
+                                                          "selectedEtherUnit",
+                                                          cryptoUnits[unit].toString());
                                                   setState(() {
                                                     selectedEtherUnit = unit!;
                                                   });
@@ -1489,7 +1567,12 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                   ),
                                                                 ),
                                                               ),
-                                                        tx['from'] == publicKey && !selectedWalletAssetsData.keys.contains(tx['to'])
+                                                        tx['from'] ==
+                                                                    publicKey &&
+                                                                !selectedWalletAssetsData
+                                                                    .keys
+                                                                    .contains(
+                                                                        tx['to'])
                                                             ? Text(
                                                                 "To ${tx['to']}",
                                                                 overflow:
@@ -1547,13 +1630,18 @@ class _WalletScreenState extends State<WalletScreen> {
                                                               .center,
                                                       children: [
                                                         Text(
-                                                          !selectedWalletAssetsData.keys.contains(tx['to']) ?
-                                                          EtherAmount.fromUnitAndValue(
-                                                                  EtherUnit.wei,
-                                                                  tx['value'])
-                                                              .getValueInUnit(
-                                                                  selectedEtherUnit)
-                                                              .toString()
+                                                          !selectedWalletAssetsData
+                                                                  .keys
+                                                                  .contains(
+                                                                      tx['to'])
+                                                              ? EtherAmount.fromUnitAndValue(
+                                                                      EtherUnit
+                                                                          .wei,
+                                                                      tx[
+                                                                          'value'])
+                                                                  .getValueInUnit(
+                                                                      selectedEtherUnit)
+                                                                  .toString()
                                                               : "N/A",
                                                           maxLines: 2,
                                                           overflow: TextOverflow
@@ -1574,11 +1662,15 @@ class _WalletScreenState extends State<WalletScreen> {
                                                           ),
                                                         ),
                                                         Text(
-                                                          !selectedWalletAssetsData.keys.contains(tx['to']) ?
-                                                          cryptoUnits[
-                                                                  selectedEtherUnit]
-                                                              .toString()
-                                                              : selectedWalletAssetsData[tx['to']],
+                                                          !selectedWalletAssetsData
+                                                                  .keys
+                                                                  .contains(
+                                                                      tx['to'])
+                                                              ? cryptoUnits[
+                                                                      selectedEtherUnit]
+                                                                  .toString()
+                                                              : selectedWalletAssetsData[
+                                                                  tx['to']],
                                                           overflow: TextOverflow
                                                               .ellipsis,
                                                           textAlign:
