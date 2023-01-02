@@ -1,16 +1,12 @@
-// import 'package:background_fetch/background_fetch.dart';
-import 'dart:async';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/services.dart';
-import 'package:ntp/ntp.dart';
 import 'package:ozodwallet/Screens/MainScreen/main_screen.dart';
-import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
 import 'package:ozodwallet/Services/languages/applocalizationsdelegate.dart';
 import 'package:ozodwallet/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'Services/languages/locale_constant.dart';
 
 // Firebase app ids

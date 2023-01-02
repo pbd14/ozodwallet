@@ -1,25 +1,16 @@
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:crypto/crypto.dart';
 import 'package:bip39/bip39.dart';
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hex/hex.dart';
-import 'package:ozodwallet/Screens/MainScreen/main_screen.dart';
-import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
-import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
-import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
 import 'package:ozodwallet/constants.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web3dart/credentials.dart';
-import 'package:web3dart/crypto.dart';
 
 // ignore: must_be_immutable
 class CheckSeedScreen extends StatefulWidget {
@@ -144,7 +135,6 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                               if (val!.isEmpty) {
                                 return 'Enter your seed phrase';
                               } else if (val != mnemonicPhrase) {
-                                print("EHERERE");
                                 return 'Seed phrase is not correct';
                               } else {
                                 return null;

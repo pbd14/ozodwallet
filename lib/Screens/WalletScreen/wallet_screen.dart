@@ -22,9 +22,7 @@ import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
 import 'package:ozodwallet/constants.dart';
 import 'package:http/http.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // ignore: must_be_immutable
 class WalletScreen extends StatefulWidget {
@@ -155,8 +153,6 @@ class _WalletScreenState extends State<WalletScreen> {
         "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}//api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
     dynamic jsonBody = jsonDecode(response.body);
     List valueTxs = jsonBody['result'];
-    for (dynamic act in valueTxs) {
-    }
 
     setState(() {
       walletData['publicKey'] != null

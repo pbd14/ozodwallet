@@ -1,8 +1,6 @@
 import 'dart:convert';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:web3dart/web3dart.dart';
 import 'package:http/http.dart';
 
 class SwapzoneApiService {
