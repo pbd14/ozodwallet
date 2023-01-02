@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:jazzicon/jazzicon.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
@@ -148,7 +149,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                       colors: [
                                         darkPrimaryColor,
                                         primaryColor,
-                                        secondaryColor
+                                        
                                       ],
                                     ),
                                   ),
@@ -156,14 +157,13 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                     mainAxisAlignment:
                                         MainAxisAlignment.spaceBetween,
                                     children: [
-                                      Container(
-                                        margin: EdgeInsets.symmetric(
-                                            horizontal: 10),
-                                        width: 30,
-                                        child: Icon(
-                                          CupertinoIcons.creditcard_fill,
-                                          color: secondaryColor,
-                                        ),
+                                      Jazzicon.getIconWidget(
+                                          Jazzicon.getJazziconData(160,
+                                              address: selectedWalletData[
+                                                  'publicKey']),
+                                          size: 25),
+                                      SizedBox(
+                                        width: 10,
                                       ),
                                       Expanded(
                                         child: Text(

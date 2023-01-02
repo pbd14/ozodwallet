@@ -12,6 +12,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hex/hex.dart';
+import 'package:jazzicon/jazzicon.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Screens/WalletScreen/check_seed_screen.dart';
@@ -137,8 +138,7 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
         .get();
     walletData = await SafeStorageService().getWalletData(widget.walletIndex);
     balance = await widget.web3client.getBalance(walletData['address']);
-    coins =
-        json.decode(appData!.get('ETHER_TOP20_COINS_JSON'));
+    coins = json.decode(appData!.get('ETHER_TOP20_COINS_JSON'));
     selectedCoin = coins[0];
     getPossibleExchanges();
     setState(() {
@@ -204,21 +204,18 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                             end: Alignment.bottomRight,
                             colors: [
                               primaryColor,
-                              primaryColor,
+                              darkPrimaryColor,
                             ],
                           ),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Container(
-                              margin: EdgeInsets.symmetric(horizontal: 10),
-                              width: 30,
-                              child: Icon(
-                                CupertinoIcons.creditcard_fill,
-                                color: secondaryColor,
-                              ),
-                            ),
+                            Jazzicon.getIconWidget(
+                                Jazzicon.getJazziconData(160,
+                                    address: walletData['publicKey']),
+                                size: 25),
+                            SizedBox(width: 10,),
                             Expanded(
                               child: Text(
                                 walletData['name'],
@@ -256,144 +253,140 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                       const SizedBox(
                         height: 20,
                       ),
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                        child: InputDecorator(
+                      DropdownButtonHideUnderline(
+                        child: DropdownButtonFormField<int>(
+                          isDense: false,
                           decoration: InputDecoration(
-                            errorBorder: const OutlineInputBorder(
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(40.0),
                               borderSide:
                                   BorderSide(color: Colors.red, width: 1.0),
                             ),
-                            focusedBorder: const OutlineInputBorder(
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(40.0),
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
                             ),
-                            enabledBorder: const OutlineInputBorder(
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(40.0),
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
                             ),
                             hintStyle: TextStyle(
                                 color: darkPrimaryColor.withOpacity(0.7)),
                             hintText: 'Coin',
-                            border: const OutlineInputBorder(
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(40.0),
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
                             ),
                           ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<int>(
-                              menuMaxHeight: 200,
-                              borderRadius: BorderRadius.circular(20.0),
-                              dropdownColor: darkPrimaryColor,
-                              focusColor: whiteColor,
-                              iconEnabledColor: whiteColor,
-                              alignment: Alignment.centerLeft,
-                              onChanged: (coinId) async {
-                                setState(() {
-                                  loading = true;
-                                });
+                          menuMaxHeight: 200,
+                          borderRadius: BorderRadius.circular(40.0),
+                          dropdownColor: darkPrimaryColor,
+                          focusColor: whiteColor,
+                          iconEnabledColor: secondaryColor,
+                          alignment: Alignment.centerLeft,
+                          onChanged: (coinId) async {
+                            setState(() {
+                              loading = true;
+                            });
 
-                                setState(() {
-                                  selectedCoin = coins[coinId!];
-                                });
-                                possibleExchanges = [];
-                                getPossibleExchanges();
-                                setState(() {
-                                  loading = false;
-                                });
-                              },
-                              hint: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Image.network(
-                                    selectedCoin['image'],
-                                    width: 30,
-                                  ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Container(
-                                    width: size.width * 0.6 - 20,
-                                    child: Text(
-                                      selectedCoin['id']
-                                              .substring(0, 1)
-                                              .toUpperCase() +
-                                          selectedCoin['id'].substring(1),
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.start,
-                                      style: GoogleFonts.montserrat(
-                                        textStyle: const TextStyle(
-                                          color: secondaryColor,
-                                          fontSize: 25,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
+                            setState(() {
+                              selectedCoin = coins[coinId!];
+                            });
+                            possibleExchanges = [];
+                            getPossibleExchanges();
+                            setState(() {
+                              loading = false;
+                            });
+                          },
+                          hint: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Image.network(
+                                selectedCoin['image'],
+                                width: 30,
+                              ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Container(
+                                width: size.width * 0.6 - 20,
+                                child: Text(
+                                  selectedCoin['id']
+                                          .substring(0, 1)
+                                          .toUpperCase() +
+                                      selectedCoin['id'].substring(1),
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.start,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: const TextStyle(
+                                      color: secondaryColor,
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                ],
+                                ),
                               ),
-                              items: [
-                                for (Map coin in coins)
-                                  DropdownMenuItem<int>(
-                                    value: coins.indexOf(coin),
-                                    child: Container(
-                                      margin:
-                                          EdgeInsets.symmetric(vertical: 10),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                            ],
+                          ),
+                          items: [
+                            for (Map coin in coins)
+                              DropdownMenuItem<int>(
+                                value: coins.indexOf(coin),
+                                child: Container(
+                                  margin: EdgeInsets.symmetric(vertical: 10),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      // Image + symbol
+                                      Row(
                                         children: [
-                                          // Image + symbol
-                                          Row(
-                                            children: [
-                                              Image.network(
-                                                coin['image'],
-                                                width: 30,
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              Text(
-                                                coin['symbol'].toUpperCase(),
-                                                overflow: TextOverflow.ellipsis,
-                                                style: GoogleFonts.montserrat(
-                                                  textStyle: const TextStyle(
-                                                    color: secondaryColor,
-                                                    fontSize: 20,
-                                                    fontWeight: FontWeight.w400,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
+                                          Image.network(
+                                            coin['image'],
+                                            width: 30,
                                           ),
-                                          Container(
-                                            width: size.width * 0.5 - 20,
-                                            child: Text(
-                                              coin['id']
-                                                      .substring(0, 1)
-                                                      .toUpperCase() +
-                                                  coin['id'].substring(1),
-                                              textAlign: TextAlign.end,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.montserrat(
-                                                textStyle: const TextStyle(
-                                                  color: secondaryColor,
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w400,
-                                                ),
+                                          SizedBox(
+                                            width: 5,
+                                          ),
+                                          Text(
+                                            coin['symbol'].toUpperCase(),
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: secondaryColor,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w400,
                                               ),
                                             ),
                                           ),
                                         ],
                                       ),
-                                    ),
+                                      Container(
+                                        width: size.width * 0.5 - 20,
+                                        child: Text(
+                                          coin['id']
+                                                  .substring(0, 1)
+                                                  .toUpperCase() +
+                                              coin['id'].substring(1),
+                                          textAlign: TextAlign.end,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: secondaryColor,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w400,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                              ],
-                            ),
-                          ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
                       const SizedBox(height: 50),
@@ -489,122 +482,119 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                       // const SizedBox(height: 30),
 
                       // // Exchange
-                      Container(
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20.0),
-                        ),
-                        child: InputDecorator(
+                      DropdownButtonHideUnderline(
+                        child: DropdownButtonFormField<String>(
+                          isDense: false,
                           decoration: InputDecoration(
-                            errorBorder: const OutlineInputBorder(
+                            errorBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(40.0),
                               borderSide:
                                   BorderSide(color: Colors.red, width: 1.0),
                             ),
-                            focusedBorder: const OutlineInputBorder(
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(40.0),
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
                             ),
-                            enabledBorder: const OutlineInputBorder(
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(40.0),
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
                             ),
                             hintStyle: TextStyle(
                                 color: darkPrimaryColor.withOpacity(0.7)),
-                            hintText: 'Coin',
-                            border: const OutlineInputBorder(
+                            hintText: 'Exchange',
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(40.0),
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
                             ),
                           ),
-                          child: DropdownButtonHideUnderline(
-                            child: DropdownButton<String>(
-                              menuMaxHeight: 200,
-                              borderRadius: BorderRadius.circular(20.0),
-                              dropdownColor: darkPrimaryColor,
-                              focusColor: whiteColor,
-                              iconEnabledColor: whiteColor,
-                              alignment: Alignment.centerLeft,
-                              onChanged: (exchangeName) {
-                                setState(() {
-                                  webUrl =
-                                      appDataExchanges!.get(exchangeName!)['exchange_link'];
-                                  selectedExchange = appDataExchanges!.get(exchangeName);
-                                });
-                              },
-                              hint: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  if (selectedExchange.isNotEmpty)
-                                    Image.network(
-                                      selectedExchange['image'],
-                                      width: 30,
+                          menuMaxHeight: 200,
+                          borderRadius: BorderRadius.circular(40.0),
+                          dropdownColor: darkPrimaryColor,
+                          focusColor: whiteColor,
+                          iconEnabledColor: whiteColor,
+                          alignment: Alignment.centerLeft,
+                          onChanged: (exchangeName) {
+                            setState(() {
+                              webUrl = appDataExchanges!
+                                  .get(exchangeName!)['exchange_link'];
+                              selectedExchange =
+                                  appDataExchanges!.get(exchangeName);
+                            });
+                          },
+                          hint: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              if (selectedExchange.isNotEmpty)
+                                Image.network(
+                                  selectedExchange['image'],
+                                  width: 30,
+                                ),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Container(
+                                width: size.width * 0.6 - 20,
+                                child: Text(
+                                  selectedExchange.isNotEmpty
+                                      ? selectedExchange['name']
+                                              .substring(0, 1)
+                                              .toUpperCase() +
+                                          selectedExchange['name'].substring(1)
+                                      : 'N/A',
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.start,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: const TextStyle(
+                                      color: secondaryColor,
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.w700,
                                     ),
-                                  SizedBox(
-                                    width: 10,
                                   ),
-                                  Container(
-                                    width: size.width * 0.6 - 20,
-                                    child: Text(
-                                      selectedExchange.isNotEmpty
-                                          ? selectedExchange['name']
+                                ),
+                              ),
+                            ],
+                          ),
+                          items: [
+                            for (String exchangeName in possibleExchanges)
+                              DropdownMenuItem<String>(
+                                value: exchangeName,
+                                child: Container(
+                                  margin: EdgeInsets.symmetric(vertical: 10),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Image.network(
+                                        appDataExchanges!
+                                            .get(exchangeName)['image'],
+                                        width: 30,
+                                      ),
+                                      Container(
+                                        width: size.width * 0.5 - 20,
+                                        child: Text(
+                                          exchangeName
                                                   .substring(0, 1)
                                                   .toUpperCase() +
-                                              selectedExchange['name']
-                                                  .substring(1)
-                                          : 'N/A',
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.start,
-                                      style: GoogleFonts.montserrat(
-                                        textStyle: const TextStyle(
-                                          color: secondaryColor,
-                                          fontSize: 25,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              items: [
-                                for (String exchangeName in possibleExchanges)
-                                  DropdownMenuItem<String>(
-                                    value: exchangeName,
-                                    child: Container(
-                                      margin:
-                                          EdgeInsets.symmetric(vertical: 10),
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Image.network(
-                                           appDataExchanges!.get(exchangeName)['image'],
-                                            width: 30,
-                                          ),
-                                          Container(
-                                            width: size.width * 0.5 - 20,
-                                            child: Text(
-                                              exchangeName
-                                                      .substring(0, 1)
-                                                      .toUpperCase() +
-                                                  exchangeName.substring(1),
-                                              textAlign: TextAlign.center,
-                                              overflow: TextOverflow.ellipsis,
-                                              style: GoogleFonts.montserrat(
-                                                textStyle: const TextStyle(
-                                                  color: secondaryColor,
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w400,
-                                                ),
-                                              ),
+                                              exchangeName.substring(1),
+                                          textAlign: TextAlign.center,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: secondaryColor,
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w400,
                                             ),
                                           ),
-                                        ],
+                                        ),
                                       ),
-                                    ),
+                                    ],
                                   ),
-                              ],
-                            ),
-                          ),
+                                ),
+                              ),
+                          ],
                         ),
                       ),
 

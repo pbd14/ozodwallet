@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hex/hex.dart';
+import 'package:jazzicon/jazzicon.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Screens/WalletScreen/check_seed_screen.dart';
@@ -105,6 +106,48 @@ class _SendTxScreenState extends State<SendTxScreen> {
                             fontSize: 45,
                             fontWeight: FontWeight.w700,
                           ),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 50,
+                      ),
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(20.0),
+                          gradient: const LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              primaryColor,
+                              primaryColor,
+                            ],
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Jazzicon.getIconWidget(
+                                Jazzicon.getJazziconData(160,
+                                    address: walletData['publicKey']),
+                                size: 25),
+                            SizedBox(width: 10,),
+                            Expanded(
+                              child: Text(
+                                walletData['name'],
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 3,
+                                textAlign: TextAlign.start,
+                                style: GoogleFonts.montserrat(
+                                  textStyle: const TextStyle(
+                                    color: secondaryColor,
+                                    fontSize: 25,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                       const SizedBox(

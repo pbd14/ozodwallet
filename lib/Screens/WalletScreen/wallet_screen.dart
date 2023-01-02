@@ -46,6 +46,8 @@ class _WalletScreenState extends State<WalletScreen> {
   String selectedWalletName = "Wallet1";
   String importingAssetContractAddress = "";
   String importingAssetContractSymbol = "";
+  String selectedNetworkId = "mainnet";
+  String selectedNetworkName = "Ethereum Mainnet";
 
   EtherAmount selectedWalletBalance = EtherAmount.zero();
   List selectedWalletTxs = [];
@@ -60,6 +62,7 @@ class _WalletScreenState extends State<WalletScreen> {
   DocumentSnapshot? walletFirebase;
   DocumentSnapshot? appDataNodes;
   DocumentSnapshot? appDataApi;
+  DocumentSnapshot? appData;
 
   Client httpClient = Client();
   late Web3Client web3client;
@@ -97,10 +100,17 @@ class _WalletScreenState extends State<WalletScreen> {
         .collection('wallet_app_data')
         .doc('api')
         .get();
+    appData = await FirebaseFirestore.instance
+        .collection('wallet_app_data')
+        .doc('data')
+        .get();
 
     web3client = Web3Client(
-        EncryptionService().dec(appDataNodes!.get('WEB3_QUICKNODE_GOERLI_URL')),
+        EncryptionService().dec(appDataNodes!.get(appData!
+            .get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['node'])),
         httpClient);
+
+    // Wallet
     Map walletData =
         await SafeStorageService().getWalletData(selectedWalletIndex);
     EtherAmount valueBalance =
@@ -115,7 +125,7 @@ class _WalletScreenState extends State<WalletScreen> {
     if (walletFirebase!.exists) {
       for (Map asset in walletFirebase!.get('assets')) {
         final response = await httpClient.get(Uri.parse(
-            "https://api-goerli.etherscan.io/api?module=contract&action=getabi&address=${asset['address']}&apikey=${ EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+            "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}/api?module=contract&action=getabi&address=${asset['address']}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
 
         if (int.parse(jsonDecode(response.body)['status'].toString()) == 1) {
           final contract = DeployedContract(
@@ -157,6 +167,11 @@ class _WalletScreenState extends State<WalletScreen> {
       valueTxs != null
           ? selectedWalletTxs = valueTxs.reversed.toList()
           : selectedWalletTxs = [];
+      // if (appData != null) {
+      //   selectedNetworkId = appData!.get('AVAILABLE_ETHER_NETWORKS')[0];
+      //   selectedNetworkName =
+      //       appData!.get('AVAILABLE_ETHER_NETWORKS')[0]['name'];
+      // }
 
       loading = false;
     });
@@ -233,7 +248,126 @@ class _WalletScreenState extends State<WalletScreen> {
                                 color: darkPrimaryColor,
                                 textColor: secondaryColor,
                               ),
-                              SizedBox(height: 30),
+                              SizedBox(height: 50),
+
+                              // Blockchain network
+                              Container(
+                                margin: EdgeInsets.symmetric(horizontal: 40),
+                                child: DropdownButtonHideUnderline(
+                                  child: DropdownButtonFormField<String>(
+                                    decoration: InputDecoration(
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.red, width: 1.0),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40.0),
+                                    borderSide: BorderSide(
+                                        color: secondaryColor, width: 1.0),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40.0),
+                                    borderSide: BorderSide(
+                                        color: secondaryColor, width: 1.0),
+                                  ),
+                                  hintStyle: TextStyle(
+                                      color:
+                                          darkPrimaryColor.withOpacity(0.7)),
+                                  hintText: 'Network',
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(40.0),
+                                    borderSide: BorderSide(
+                                        color: secondaryColor, width: 1.0),
+                                  ),
+                                ),
+                                
+                                    isDense: true,
+                                    menuMaxHeight: 200,
+                                    borderRadius: BorderRadius.circular(40.0),
+                                    dropdownColor: darkPrimaryColor,
+                                    focusColor: whiteColor,
+                                    iconEnabledColor: secondaryColor,
+                                    alignment: Alignment.center,
+                                    onChanged: (networkId) async {
+                                      setState(() {
+                                        loading = true;
+                                      });
+
+                                      setState(() {
+                                        selectedNetworkId = appData!
+                                          .get('AVAILABLE_ETHER_NETWORKS')[networkId]['id'];
+                                        selectedNetworkName = appData!
+                                          .get('AVAILABLE_ETHER_NETWORKS')[networkId]['name'];
+                                      });
+                                      _refresh();
+                                    },
+                                    hint: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Container(
+                                          // width: size.width * 0.6 - 20,
+                                          child: Text(
+                                            selectedNetworkName,
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: secondaryColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    items: [
+                                      for (String networkId in appData!
+                                          .get('AVAILABLE_ETHER_NETWORKS').keys)
+                                        DropdownMenuItem<String>(
+                                          value: networkId,
+                                          child: Container(
+                                            margin: EdgeInsets.symmetric(
+                                                vertical: 10),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                // Image + symbol
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      appData!
+                                          .get('AVAILABLE_ETHER_NETWORKS')[networkId]['name'],
+                                                      overflow: TextOverflow
+                                                          .ellipsis,
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          color:
+                                                              secondaryColor,
+                                                          fontSize: 20,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              SizedBox(height: 20),
 
                               // Wallet
                               Container(
