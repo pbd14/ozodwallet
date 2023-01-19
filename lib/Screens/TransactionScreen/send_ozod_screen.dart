@@ -374,7 +374,9 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                       Text(
                         "Balance: " +
                             (balance!.getInWei / BigInt.from(pow(10, 18)))
-                                .toString() + " " + widget.coin['symbol'],
+                                .toString() +
+                            " " +
+                            widget.coin['symbol'],
                         overflow: TextOverflow.ellipsis,
                         maxLines: 3,
                         textAlign: TextAlign.start,
@@ -414,33 +416,30 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                 isValidAddress) {
                               BigInt chainId =
                                   await widget.web3client.getChainId();
-                              // ETH
-                              if (widget.coin['symbol'] == 'ETH') {
-                                widget.web3client
-                                    .sendTransaction(
-                                  walletData['credentials'],
-                                  Transaction(
-                                    to: EthereumAddress.fromHex(
-                                        receiverPublicAddress!),
-                                    // gasPrice: EtherAmount.inWei(BigInt.one),
-                                    // maxGas: 100000,
-                                    value: EtherAmount.fromUnitAndValue(
-                                        selectedEtherUnit, amount),
-                                  ),
-                                  chainId: chainId.toInt(),
-                                )
-                                    .catchError((error, stackTrace) {
-                                  PushNotificationMessage notification =
-                                      PushNotificationMessage(
-                                    title: 'Failed',
-                                    body: 'Failed to make transaction',
-                                  );
-                                  showSimpleNotification(
-                                    Text(notification.body),
-                                    position: NotificationPosition.top,
-                                    background: Colors.red,
-                                  );
-                                });
+                              print("GRGRG");
+                              print(amount!);
+                              print(double.parse(amount!));
+                              print(BigInt.from((double.parse(amount!) *
+                                      BigInt.from(pow(10, 18)).toDouble())));
+                              Transaction transaction =
+                                  await Transaction.callContract(
+                                contract: widget.coin['contract'],
+                                function: widget.coin['contract']
+                                    .function('transfer'),
+                                parameters: [
+                                  EthereumAddress.fromHex(
+                                      receiverPublicAddress!),
+                                  BigInt.from((double.parse(amount!) *
+                                      BigInt.from(pow(10, 18)).toDouble())),
+                                ],
+                              );
+                              final transfer =
+                                  widget.web3client.sendTransaction(
+                                walletData['credentials'],
+                                transaction,
+                                chainId: chainId.toInt(),
+                              );
+                              if (await transfer != null) {
                                 PushNotificationMessage notification =
                                     PushNotificationMessage(
                                   title: 'Success',
@@ -451,46 +450,11 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                   position: NotificationPosition.top,
                                   background: Colors.green,
                                 );
-                                setState(() {
-                                  loading = false;
-                                });
-                                Navigator.pop(context);
-                              } else {
-                                Transaction transaction =
-                                    await Transaction.callContract(
-                                  contract: widget.coin['contract'],
-                                  function: widget.coin['contract']
-                                      .function('transfer'),
-                                  parameters: [
-                                    EthereumAddress.fromHex(
-                                        receiverPublicAddress!),
-                                    (BigInt.from(int.parse(amount!)) *
-                                        BigInt.from(pow(10, 18))),
-                                  ],
-                                );
-                                final transfer =
-                                    widget.web3client.sendTransaction(
-                                  walletData['credentials'],
-                                  transaction,
-                                  chainId: chainId.toInt(),
-                                );
-                                if (await transfer != null) {
-                                  PushNotificationMessage notification =
-                                      PushNotificationMessage(
-                                    title: 'Success',
-                                    body: 'Transaction made',
-                                  );
-                                  showSimpleNotification(
-                                    Text(notification.body),
-                                    position: NotificationPosition.top,
-                                    background: Colors.green,
-                                  );
-                                }
-                                setState(() {
-                                  loading = false;
-                                });
-                                Navigator.pop(context);
                               }
+                              setState(() {
+                                loading = false;
+                              });
+                              Navigator.pop(context);
                             } else {
                               setState(() {
                                 loading = false;

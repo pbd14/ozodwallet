@@ -622,8 +622,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                   parameters: [
                                     EthereumAddress.fromHex(
                                         receiverPublicAddress!),
-                                    (BigInt.from(int.parse(amount!)) *
-                                        BigInt.from(pow(10, 18))),
+                                    BigInt.from((double.parse(amount!) *
+                                      BigInt.from(pow(10, 18)).toDouble())),
                                   ],
                                 );
                                 final transfer =
