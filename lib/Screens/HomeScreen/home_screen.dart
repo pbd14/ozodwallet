@@ -524,46 +524,21 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ],
                                       ),
                                     ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            selectedWalletBalance
-                                                .getValueInUnit(
-                                                    selectedEtherUnit)
-                                                .toString(),
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: darkDarkColor,
-                                                fontSize: 30,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ),
+                                    Text(
+                                      selectedWalletBalance
+                                          .getValueInUnit(
+                                              selectedEtherUnit)
+                                          .toString() + "  " + "UZSO",
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 2,
+                                      textAlign: TextAlign.start,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: darkDarkColor,
+                                          fontSize: 30,
+                                          fontWeight: FontWeight.w700,
                                         ),
-                                        Container(
-                                          width: 100,
-                                          child: Text(
-                                            "UZSO",
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: darkDarkColor,
-                                                fontSize: 25,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                      ),
                                     ),
                                     Spacer(),
                                     Row(

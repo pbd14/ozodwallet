@@ -420,7 +420,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                               print(amount!);
                               print(double.parse(amount!));
                               print(BigInt.from((double.parse(amount!) *
-                                      BigInt.from(pow(10, 18)).toDouble())));
+                                  BigInt.from(pow(10, 18)).toDouble())));
                               Transaction transaction =
                                   await Transaction.callContract(
                                 contract: widget.coin['contract'],
@@ -433,24 +433,37 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                       BigInt.from(pow(10, 18)).toDouble())),
                                 ],
                               );
-                              final transfer =
-                                  widget.web3client.sendTransaction(
+                              String notifTitle = "Success";
+                              String notifBody = "Transaction made";
+                              Color notifColor = Colors.green;
+
+                              final transfer = await widget.web3client
+                                  .sendTransaction(
                                 walletData['credentials'],
                                 transaction,
                                 chainId: chainId.toInt(),
+                              )
+                                  .onError((error, stackTrace) {
+                                notifTitle = "Error";
+                                notifBody = error.toString() ==
+                                        'RPCError: got code -32000 with msg "gas required exceeds allowance (0)".'
+                                    ? "Not enough gas. Buy ether"
+                                    : "Error";
+                                notifColor = Colors.red;
+
+                                return error.toString();
+                              });
+                              PushNotificationMessage notification =
+                                  PushNotificationMessage(
+                                title: notifTitle,
+                                body: notifBody,
                               );
-                              if (await transfer != null) {
-                                PushNotificationMessage notification =
-                                    PushNotificationMessage(
-                                  title: 'Success',
-                                  body: 'Transaction made',
-                                );
-                                showSimpleNotification(
-                                  Text(notification.body),
-                                  position: NotificationPosition.top,
-                                  background: Colors.green,
-                                );
-                              }
+                              showSimpleNotification(
+                                Text(notification.body),
+                                position: NotificationPosition.top,
+                                background: notifColor,
+                              );
+
                               setState(() {
                                 loading = false;
                               });

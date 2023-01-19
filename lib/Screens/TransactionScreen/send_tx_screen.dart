@@ -1,4 +1,3 @@
-
 import 'package:http/http.dart';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
@@ -555,8 +554,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                             });
                             bool isValidAddress = false;
                             try {
-                              EthereumAddress.fromHex(
-                                  receiverPublicAddress!);
+                              EthereumAddress.fromHex(receiverPublicAddress!);
                               isValidAddress = true;
                             } catch (e) {
                               setState(() {
@@ -614,6 +612,9 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 });
                                 Navigator.pop(context);
                               } else {
+                                String notifTitle = "Success";
+                                String notifBody = "Transaction made";
+                                Color notifColor = Colors.green;
                                 Transaction transaction =
                                     await Transaction.callContract(
                                   contract: selectedAsset['contract'],
@@ -623,25 +624,36 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                     EthereumAddress.fromHex(
                                         receiverPublicAddress!),
                                     BigInt.from((double.parse(amount!) *
-                                      BigInt.from(pow(10, 18)).toDouble())),
+                                        BigInt.from(pow(10, 18)).toDouble())),
                                   ],
                                 );
-                                final transfer =
-                                    widget.web3client.sendTransaction(
+
+                                final transfer = await widget.web3client
+                                    .sendTransaction(
                                   walletData['credentials'],
                                   transaction,
                                   chainId: chainId.toInt(),
-                                );
+                                )
+                                    .onError((error, stackTrace) {
+                                  notifTitle = "Error";
+                                  notifBody = error.toString() ==
+                                          'RPCError: got code -32000 with msg "gas required exceeds allowance (0)".'
+                                      ? "Not enough gas. Buy ether"
+                                      : "Error";
+                                  notifColor = Colors.red;
+
+                                  return error.toString();
+                                });
                                 if (await transfer != null) {
                                   PushNotificationMessage notification =
                                       PushNotificationMessage(
-                                    title: 'Success',
-                                    body: 'Transaction made',
+                                    title: notifTitle,
+                                    body: notifBody,
                                   );
                                   showSimpleNotification(
                                     Text(notification.body),
                                     position: NotificationPosition.top,
-                                    background: Colors.green,
+                                    background: notifColor,
                                   );
                                 }
                                 setState(() {
