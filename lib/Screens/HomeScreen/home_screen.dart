@@ -11,6 +11,7 @@ import 'package:jazzicon/jazzicon.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
+import 'package:ozodwallet/Screens/TransactionScreen/send_ozod_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_tx_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
@@ -26,16 +27,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web3dart/web3dart.dart';
 
 // ignore: must_be_immutable
-class WalletScreen extends StatefulWidget {
+class HomeScreen extends StatefulWidget {
   String error;
-  WalletScreen({Key? key, this.error = 'Something Went Wrong'})
-      : super(key: key);
+  HomeScreen({Key? key, this.error = 'Something Went Wrong'}) : super(key: key);
 
   @override
-  State<WalletScreen> createState() => _WalletScreenState();
+  State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _WalletScreenState extends State<WalletScreen> {
+class _HomeScreenState extends State<HomeScreen> {
   bool loading = true;
   ScrollController _scrollController = ScrollController();
   SharedPreferences? sharedPreferences;
@@ -50,20 +50,17 @@ class _WalletScreenState extends State<WalletScreen> {
   String selectedNetworkName = "Ethereum Mainnet";
 
   EtherAmount selectedWalletBalance = EtherAmount.zero();
+  EtherUnit selectedEtherUnit = EtherUnit.ether;
   List selectedWalletTxs = [];
   List selectedWalletAssets = [];
   Map selectedWalletAssetsData = {};
   List wallets = [];
-  Map<EtherUnit, String> cryptoUnits = {
-    EtherUnit.ether: 'ETH',
-    EtherUnit.wei: 'WEI',
-    EtherUnit.gwei: 'GWEI',
-  };
-  EtherUnit selectedEtherUnit = EtherUnit.ether;
   DocumentSnapshot? walletFirebase;
   DocumentSnapshot? appDataNodes;
   DocumentSnapshot? appDataApi;
   DocumentSnapshot? appData;
+  DocumentSnapshot? appStablecoins;
+  DocumentSnapshot? uzsoFirebase;
 
   Client httpClient = Client();
   late Web3Client web3client;
@@ -97,8 +94,6 @@ class _WalletScreenState extends State<WalletScreen> {
         await sharedPreferences!.getString("selectedNetworkId");
     String? valueselectedNetworkName =
         await sharedPreferences!.getString("selectedNetworkName");
-    String? valueselectedEtherUnit =
-        await sharedPreferences!.getString("selectedEtherUnit");
     if (mounted) {
       setState(() {
         if (valueSelectedWalletIndex != null) {
@@ -110,17 +105,6 @@ class _WalletScreenState extends State<WalletScreen> {
         if (valueselectedNetworkName != null) {
           selectedNetworkName = valueselectedNetworkName;
         }
-        if (valueselectedEtherUnit != null) {
-          if (valueselectedEtherUnit == 'ETH') {
-            selectedEtherUnit = EtherUnit.ether;
-          }
-          if (valueselectedEtherUnit == 'WEI') {
-            selectedEtherUnit = EtherUnit.wei;
-          }
-          if (valueselectedEtherUnit == 'GWEI') {
-            selectedEtherUnit = EtherUnit.gwei;
-          }
-        }
       });
     } else {
       if (valueSelectedWalletIndex != null) {
@@ -131,17 +115,6 @@ class _WalletScreenState extends State<WalletScreen> {
       }
       if (valueselectedNetworkName != null) {
         selectedNetworkName = valueselectedNetworkName;
-      }
-      if (valueselectedEtherUnit != null) {
-        if (valueselectedEtherUnit == 'ETH') {
-          selectedEtherUnit = EtherUnit.ether;
-        }
-        if (valueselectedEtherUnit == 'WEI') {
-          selectedEtherUnit = EtherUnit.wei;
-        }
-        if (valueselectedEtherUnit == 'GWEI') {
-          selectedEtherUnit = EtherUnit.gwei;
-        }
       }
     }
   }
@@ -162,59 +135,52 @@ class _WalletScreenState extends State<WalletScreen> {
         .collection('wallet_app_data')
         .doc('data')
         .get();
+    appStablecoins = await FirebaseFirestore.instance
+        .collection('stablecoins')
+        .doc('all_stablecoins')
+        .get();
+    uzsoFirebase = await FirebaseFirestore.instance
+        .collection('stablecoins')
+        .doc(appStablecoins!["UZSO"])
+        .get();
 
+    if (appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId] == null) {
+      if (!appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]
+          ['active']) {
+        selectedNetworkId = "mainnet";
+      }
+    }
     web3client = Web3Client(
         EncryptionService().dec(appDataNodes!.get(appData!
-            .get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['node'])),
+            .get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['node'])),
         httpClient);
 
     // Wallet
     Map walletData =
         await SafeStorageService().getWalletData(selectedWalletIndex);
+
+    // get balance
+    final responseBalance = await httpClient.get(Uri.parse(
+        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=tokenbalance&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+    dynamic jsonBodyBalance = jsonDecode(responseBalance.body);
     EtherAmount valueBalance =
-        await web3client.getBalance(walletData['address']);
+        EtherAmount.fromUnitAndValue(EtherUnit.wei, jsonBodyBalance['result']);
 
     walletFirebase = await FirebaseFirestore.instance
         .collection('wallets')
         .doc(walletData['address'].toString())
         .get();
 
-    // get assets
-    if (walletFirebase!.exists) {
-      for (Map asset in walletFirebase!.get('assets')) {
-        if (asset['network'] == selectedNetworkId) {
-          final response = await httpClient.get(Uri.parse(
-              "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}/api?module=contract&action=getabi&address=${asset['address']}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
-
-          if (int.parse(jsonDecode(response.body)['status'].toString()) == 1) {
-            
-            final contract = DeployedContract(
-                ContractAbi.fromJson(
-                    jsonDecode(response.body)['result'], "LoyaltyToken"),
-                EthereumAddress.fromHex(asset['address']));
-            final balance = await web3client.call(
-                contract: contract,
-                function: contract.function('balanceOf'),
-                params: [walletData['address']]);
-            selectedWalletAssets.add({
-              'symbol': asset['symbol'],
-              'balance': balance[0],
-              'address': asset['address'],
-              'decimals': asset['decimal'],
-              'contract': contract,
-            });
-            selectedWalletAssetsData[asset['address'].toLowerCase()] =
-                asset['symbol'];
-          }
-        }
-      }
-    }
-
+    
     // get txs
     final response = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}//api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=tokentx&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&page=1&offset=10&startblock=0&endblock=99999999&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
     dynamic jsonBody = jsonDecode(response.body);
     List valueTxs = jsonBody['result'];
+    // remove duplicates
+    final jsonList = valueTxs.map((item) => jsonEncode(item)).toList();
+    final uniqueJsonList = jsonList.toSet().toList();
+    valueTxs = uniqueJsonList.map((item) => jsonDecode(item)).toList();
 
     setState(() {
       walletData['publicKey'] != null
@@ -230,13 +196,8 @@ class _WalletScreenState extends State<WalletScreen> {
           ? selectedWalletBalance = valueBalance
           : selectedWalletBalance = EtherAmount.zero();
       valueTxs != null
-          ? selectedWalletTxs = valueTxs.toList()
+          ? selectedWalletTxs = valueTxs.toSet().toList()
           : selectedWalletTxs = [];
-      // if (appData != null) {
-      //   selectedNetworkId = appData!.get('AVAILABLE_ETHER_NETWORKS')[0];
-      //   selectedNetworkName =
-      //       appData!.get('AVAILABLE_ETHER_NETWORKS')[0]['name'];
-      // }
 
       loading = false;
     });
@@ -364,21 +325,21 @@ class _WalletScreenState extends State<WalletScreen> {
                                       await sharedPreferences!.setString(
                                           "selectedNetworkId",
                                           appData!
-                                              .get('AVAILABLE_ETHER_NETWORKS')[
+                                              .get('AVAILABLE_OZOD_NETWORKS')[
                                                   networkId]['id']
                                               .toString());
                                       await sharedPreferences!.setString(
                                           "selectedNetworkName",
                                           appData!
-                                              .get('AVAILABLE_ETHER_NETWORKS')[
+                                              .get('AVAILABLE_OZOD_NETWORKS')[
                                                   networkId]['name']
                                               .toString());
                                       setState(() {
-                                        selectedNetworkId = appData!.get(
-                                                'AVAILABLE_ETHER_NETWORKS')[
+                                        selectedNetworkId = appData!
+                                                .get('AVAILABLE_OZOD_NETWORKS')[
                                             networkId]['id'];
-                                        selectedNetworkName = appData!.get(
-                                                'AVAILABLE_ETHER_NETWORKS')[
+                                        selectedNetworkName = appData!
+                                                .get('AVAILABLE_OZOD_NETWORKS')[
                                             networkId]['name'];
                                       });
                                       _refresh();
@@ -406,7 +367,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                     ),
                                     items: [
                                       for (String networkId in appData!
-                                          .get('AVAILABLE_ETHER_NETWORKS')
+                                          .get('AVAILABLE_OZOD_NETWORKS')
                                           .keys)
                                         DropdownMenuItem<String>(
                                           value: networkId,
@@ -423,7 +384,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                   children: [
                                                     Text(
                                                       appData!.get(
-                                                              'AVAILABLE_ETHER_NETWORKS')[
+                                                              'AVAILABLE_OZOD_NETWORKS')[
                                                           networkId]['name'],
                                                       overflow:
                                                           TextOverflow.ellipsis,
@@ -456,16 +417,19 @@ class _WalletScreenState extends State<WalletScreen> {
                                 height: 200,
                                 padding: const EdgeInsets.all(15),
                                 decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.blue,
-                                      Colors.green,
-                                    ],
-                                  ),
-                                ),
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    // gradient: const LinearGradient(
+                                    //   begin: Alignment.topLeft,
+                                    //   end: Alignment.bottomRight,
+                                    //   colors: [
+                                    //     Colors.blue,
+                                    //     Colors.green,
+                                    //   ],
+                                    // ),
+                                    image: DecorationImage(
+                                        image: AssetImage(
+                                            "assets/images/card.png"),
+                                        fit: BoxFit.fill)),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -487,8 +451,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                               borderRadius:
                                                   BorderRadius.circular(20.0),
                                               dropdownColor: darkPrimaryColor,
-                                              focusColor: whiteColor,
-                                              iconEnabledColor: whiteColor,
+                                              focusColor: darkDarkColor,
+                                              iconEnabledColor: darkDarkColor,
                                               alignment: Alignment.centerLeft,
                                               onChanged: (walletIndex) async {
                                                 await sharedPreferences!
@@ -508,7 +472,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 textAlign: TextAlign.start,
                                                 style: GoogleFonts.montserrat(
                                                   textStyle: const TextStyle(
-                                                    color: whiteColor,
+                                                    color: darkDarkColor,
                                                     fontSize: 25,
                                                     fontWeight: FontWeight.w700,
                                                   ),
@@ -577,7 +541,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                             textAlign: TextAlign.start,
                                             style: GoogleFonts.montserrat(
                                               textStyle: const TextStyle(
-                                                color: whiteColor,
+                                                color: darkDarkColor,
                                                 fontSize: 30,
                                                 fontWeight: FontWeight.w700,
                                               ),
@@ -586,73 +550,15 @@ class _WalletScreenState extends State<WalletScreen> {
                                         ),
                                         Container(
                                           width: 100,
-                                          child: DropdownButtonHideUnderline(
-                                            child: Align(
-                                              alignment: Alignment.centerRight,
-                                              child: DropdownButton<EtherUnit>(
-                                                borderRadius:
-                                                    BorderRadius.circular(20.0),
-                                                dropdownColor: darkPrimaryColor,
-                                                focusColor: whiteColor,
-                                                iconEnabledColor: whiteColor,
-                                                alignment: Alignment.centerLeft,
-                                                onChanged: (unit) async {
-                                                  await sharedPreferences!
-                                                      .setString(
-                                                          "selectedEtherUnit",
-                                                          cryptoUnits[unit]
-                                                              .toString());
-                                                  setState(() {
-                                                    selectedEtherUnit = unit!;
-                                                  });
-                                                },
-                                                hint: Text(
-                                                  cryptoUnits[
-                                                      selectedEtherUnit]!,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines: 2,
-                                                  style: GoogleFonts.montserrat(
-                                                    textStyle: const TextStyle(
-                                                      color: whiteColor,
-                                                      fontSize: 25,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ),
-                                                ),
-                                                items: [
-                                                  for (EtherUnit unit
-                                                      in cryptoUnits.keys)
-                                                    DropdownMenuItem<EtherUnit>(
-                                                      value: unit,
-                                                      child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
-                                                        children: <Widget>[
-                                                          Text(
-                                                            cryptoUnits[unit]!,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            style: GoogleFonts
-                                                                .montserrat(
-                                                              textStyle:
-                                                                  const TextStyle(
-                                                                color:
-                                                                    secondaryColor,
-                                                                fontSize: 20,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                ],
+                                          child: Text(
+                                            "UZSO",
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 2,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: darkDarkColor,
+                                                fontSize: 25,
+                                                fontWeight: FontWeight.w700,
                                               ),
                                             ),
                                           ),
@@ -674,7 +580,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                             textAlign: TextAlign.start,
                                             style: GoogleFonts.montserrat(
                                               textStyle: const TextStyle(
-                                                color: whiteColor,
+                                                color: darkDarkColor,
                                                 fontSize: 15,
                                                 fontWeight: FontWeight.w400,
                                               ),
@@ -704,7 +610,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                             },
                                             icon: Icon(
                                               CupertinoIcons.doc,
-                                              color: whiteColor,
+                                              color: darkDarkColor,
                                             ),
                                           ),
                                         ),
@@ -715,7 +621,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                             onPressed: () async {},
                                             icon: Icon(
                                               CupertinoIcons.settings,
-                                              color: whiteColor,
+                                              color: darkDarkColor,
                                             ),
                                           ),
                                         ),
@@ -742,23 +648,44 @@ class _WalletScreenState extends State<WalletScreen> {
                                               minWidth: 70, minHeight: 60),
                                           fillColor: secondaryColor,
                                           shape: CircleBorder(),
-                                          onPressed: () {
+                                          onPressed: () async {
                                             setState(() {
                                               loading = true;
                                             });
-                                            Navigator.push(
-                                              context,
-                                              SlideRightRoute(
-                                                page: SendTxScreen(
-                                                  web3client: web3client,
-                                                  walletIndex:
-                                                      selectedWalletIndex,
-                                                  networkId: selectedNetworkId,
-                                                  walletAssets:
-                                                      selectedWalletAssets,
+                                            final response =
+                                                await httpClient.get(Uri.parse(
+                                                    "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${uzsoFirebase!.id}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+
+                                            if (int.parse(jsonDecode(
+                                                        response.body)['status']
+                                                    .toString()) ==
+                                                1) {
+                                              final contract = DeployedContract(
+                                                  ContractAbi.fromJson(
+                                                      jsonDecode(response.body)[
+                                                          'result'],
+                                                      "UZSOImplementation"),
+                                                  EthereumAddress.fromHex(
+                                                      uzsoFirebase!.id));
+                                              Navigator.push(
+                                                context,
+                                                SlideRightRoute(
+                                                  page: SendOzodScreen(
+                                                    web3client: web3client,
+                                                    walletIndex:
+                                                        selectedWalletIndex,
+                                                    networkId:
+                                                        selectedNetworkId,
+                                                    coin: {
+                                                      'id': uzsoFirebase!.id,
+                                                      'contract':contract,
+                                                      'symbol': uzsoFirebase!
+                                                          .get('symbol'),
+                                                    },
+                                                  ),
                                                 ),
-                                              ),
-                                            );
+                                              );
+                                            }
                                             setState(() {
                                               loading = false;
                                             });
@@ -1019,413 +946,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                 ),
                               ),
                               const SizedBox(height: 50),
-
-                              // Assets
-
-                              Container(
-                                width: size.width * 0.8,
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color.fromRGBO(9, 32, 63, 1.0),
-                                      Color.fromRGBO(83, 120, 149, 1.0),
-                                    ],
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        "Assets",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
-                                            color: whiteColor,
-                                            fontSize: 30,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 30,
-                                    ),
-                                    if (selectedWalletAssets.isNotEmpty)
-                                      for (dynamic asset
-                                          in selectedWalletAssets)
-                                        Container(
-                                          margin: EdgeInsets.only(bottom: 30),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
-                                            children: [
-                                              Jazzicon.getIconWidget(
-                                                  Jazzicon.getJazziconData(160,
-                                                      address:
-                                                          asset['address']),
-                                                  size: 25),
-                                              Container(
-                                                width: 100,
-                                                child: Column(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.center,
-                                                  children: [
-                                                    // Image.network('')
-                                                    Text(
-                                                      (asset['balance'] /
-                                                              BigInt.from(
-                                                                  pow(10, 18)))
-                                                          .toString(),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      maxLines: 3,
-                                                      textAlign:
-                                                          TextAlign.start,
-                                                      style: GoogleFonts
-                                                          .montserrat(
-                                                        textStyle:
-                                                            const TextStyle(
-                                                          color: whiteColor,
-                                                          fontSize: 20,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                              Container(
-                                                width: 100,
-                                                child: Text(
-                                                  asset['symbol'],
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  textAlign: TextAlign.start,
-                                                  style: GoogleFonts.montserrat(
-                                                    textStyle: const TextStyle(
-                                                      color: whiteColor,
-                                                      fontSize: 15,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    RoundedButton(
-                                      pw: 150,
-                                      ph: 45,
-                                      text: 'Import',
-                                      press: () {
-                                        final _formKey = GlobalKey<FormState>();
-                                        showDialog(
-                                            barrierDismissible: false,
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return StatefulBuilder(
-                                                builder: (context,
-                                                    StateSetter setState) {
-                                                  return AlertDialog(
-                                                    backgroundColor:
-                                                        darkPrimaryColor,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20.0),
-                                                    ),
-                                                    title: const Text(
-                                                      'Import assets',
-                                                      style: TextStyle(
-                                                          color:
-                                                              secondaryColor),
-                                                    ),
-                                                    content:
-                                                        SingleChildScrollView(
-                                                      child: Container(
-                                                        margin:
-                                                            EdgeInsets.all(10),
-                                                        child: Form(
-                                                          key: _formKey,
-                                                          child: Column(
-                                                            children: [
-                                                              TextFormField(
-                                                                style: const TextStyle(
-                                                                    color:
-                                                                        secondaryColor),
-                                                                validator:
-                                                                    (val) {
-                                                                  if (val!
-                                                                      .isEmpty) {
-                                                                    return 'Enter contract address';
-                                                                  } else {
-                                                                    return null;
-                                                                  }
-                                                                },
-                                                                keyboardType:
-                                                                    TextInputType
-                                                                        .name,
-                                                                onChanged:
-                                                                    (val) {
-                                                                  setState(() {
-                                                                    importingAssetContractAddress =
-                                                                        val;
-                                                                  });
-                                                                },
-                                                                decoration:
-                                                                    InputDecoration(
-                                                                  labelText:
-                                                                      "Contract address",
-                                                                  labelStyle:
-                                                                      TextStyle(
-                                                                          color:
-                                                                              secondaryColor),
-                                                                  errorBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color: Colors
-                                                                            .red,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  focusedBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  enabledBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  hintStyle: TextStyle(
-                                                                      color: darkPrimaryColor
-                                                                          .withOpacity(
-                                                                              0.7)),
-                                                                  hintText:
-                                                                      'Contract address',
-                                                                  border:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                height: 20,
-                                                              ),
-                                                              TextFormField(
-                                                                style: const TextStyle(
-                                                                    color:
-                                                                        secondaryColor),
-                                                                validator:
-                                                                    (val) {
-                                                                  if (val!
-                                                                      .isEmpty) {
-                                                                    return 'Enter symbol';
-                                                                  } else if (val
-                                                                          .length >
-                                                                      10) {
-                                                                    return 'Maximum 10 symbols';
-                                                                  } else {
-                                                                    return null;
-                                                                  }
-                                                                },
-                                                                keyboardType:
-                                                                    TextInputType
-                                                                        .name,
-                                                                onChanged:
-                                                                    (val) {
-                                                                  setState(() {
-                                                                    importingAssetContractSymbol =
-                                                                        val;
-                                                                  });
-                                                                },
-                                                                decoration:
-                                                                    InputDecoration(
-                                                                  labelText:
-                                                                      "Symbol",
-                                                                  labelStyle:
-                                                                      TextStyle(
-                                                                          color:
-                                                                              secondaryColor),
-                                                                  errorBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color: Colors
-                                                                            .red,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  focusedBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  enabledBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  hintStyle: TextStyle(
-                                                                      color: darkPrimaryColor
-                                                                          .withOpacity(
-                                                                              0.7)),
-                                                                  hintText:
-                                                                      'Symbol',
-                                                                  border:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                height: 20,
-                                                              ),
-                                                              Center(
-                                                                child:
-                                                                    RoundedButton(
-                                                                  pw: 250,
-                                                                  ph: 45,
-                                                                  text:
-                                                                      'CONTINUE',
-                                                                  press:
-                                                                      () async {
-                                                                    setState(
-                                                                        () {
-                                                                      loading =
-                                                                          true;
-                                                                    });
-                                                                    if (_formKey
-                                                                        .currentState!
-                                                                        .validate()) {
-                                                                      ;
-                                                                      final response =
-                                                                          await httpClient
-                                                                              .get(Uri.parse("${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}/api?module=contract&action=getabi&address=${importingAssetContractAddress}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
-                                                                      if (int.parse(
-                                                                              jsonDecode(response.body)['status'].toString()) ==
-                                                                          1) {
-                                                                        await FirebaseFirestore
-                                                                            .instance
-                                                                            .collection('wallets')
-                                                                            .doc(publicKey.toString())
-                                                                            .update({
-                                                                          'assets':
-                                                                              FieldValue.arrayUnion([
-                                                                            {
-                                                                              "address": importingAssetContractAddress,
-                                                                              "symbol": importingAssetContractSymbol,
-                                                                              "network": selectedNetworkId,
-                                                                              "decimals": 18,
-                                                                            }
-                                                                          ])
-                                                                        });
-                                                                      } else {
-                                                                        PushNotificationMessage
-                                                                            notification =
-                                                                            PushNotificationMessage(
-                                                                          title:
-                                                                              'Failed',
-                                                                          body:
-                                                                              'Wrong contract',
-                                                                        );
-                                                                        showSimpleNotification(
-                                                                          Text(notification
-                                                                              .body),
-                                                                          position:
-                                                                              NotificationPosition.top,
-                                                                          background:
-                                                                              Colors.red,
-                                                                        );
-                                                                      }
-                                                                      Navigator.of(
-                                                                              context)
-                                                                          .pop(
-                                                                              true);
-                                                                    } else {
-                                                                      setState(
-                                                                          () {
-                                                                        loading =
-                                                                            false;
-                                                                      });
-                                                                    }
-                                                                    _refresh();
-                                                                  },
-                                                                  color:
-                                                                      secondaryColor,
-                                                                  textColor:
-                                                                      darkPrimaryColor,
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                height: 20,
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    actions: <Widget>[
-                                                      TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop(false),
-                                                        child: const Text(
-                                                          'Cancel',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  secondaryColor),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
-                                            });
-                                      },
-                                      color: secondaryColor,
-                                      textColor: darkPrimaryColor,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              SizedBox(
-                                height: 50,
-                              ),
-
+                              
                               // Txs
                               selectedWalletTxs.length != 0
                                   ? Container(
@@ -1671,8 +1192,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                   .keys
                                                                   .contains(
                                                                       tx['to'])
-                                                              ? cryptoUnits[
-                                                                      selectedEtherUnit]
+                                                              ? "UZSO"
                                                                   .toString()
                                                               : selectedWalletAssetsData[
                                                                   tx['to']],

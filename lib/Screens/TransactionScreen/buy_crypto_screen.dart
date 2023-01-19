@@ -128,9 +128,13 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
     coins = json.decode(appData!.get('ETHER_TOP20_COINS_JSON'));
     selectedCoin = coins[0];
     getPossibleExchanges();
-    setState(() {
+    if (mounted) {
+      setState(() {
+        loading = false;
+      });
+    } else {
       loading = false;
-    });
+    }
   }
 
   @override
@@ -202,7 +206,9 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                 Jazzicon.getJazziconData(160,
                                     address: walletData['publicKey']),
                                 size: 25),
-                            SizedBox(width: 10,),
+                            SizedBox(
+                              width: 10,
+                            ),
                             Expanded(
                               child: Text(
                                 walletData['name'],

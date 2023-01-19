@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:ozodwallet/Screens/HomeScreen/home_screen.dart';
 import 'package:ozodwallet/Screens/LoyaltyScreen/loyalty_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/wallet_screen.dart';
 import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
@@ -33,9 +34,9 @@ class _MainScreenState extends State<MainScreen> {
 
   List<Widget> _buildScreens() {
     return [
+      HomeScreen(),
       WalletScreen(),
       LoyaltyScreen(),
-      WalletScreen(),
       WalletScreen(),
     ];
   }
@@ -57,24 +58,24 @@ class _MainScreenState extends State<MainScreen> {
 
   List<PersistentBottomNavBarItem> _navBarsItems() {
     return [
-      if (!kIsWeb)
-        PersistentBottomNavBarItem(
-          icon: const Icon(CupertinoIcons.money_dollar),
-          title: ("Home"),
-          activeColorPrimary: secondaryColor,
-          activeColorSecondary: secondaryColor,
-          inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
-        ),
+      // if (!kIsWeb)
       PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.square_grid_3x2_fill),
-        title: ("Loyalty"),
+        icon: const Icon(CupertinoIcons.money_dollar),
+        title: ("Home"),
         activeColorPrimary: secondaryColor,
         activeColorSecondary: secondaryColor,
         inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
       ),
       PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.gamecontroller_fill),
-        title: ("Battle"),
+        icon: const Icon(CupertinoIcons.suit_diamond_fill),
+        title: ("Ethereum"),
+        activeColorPrimary: secondaryColor,
+        activeColorSecondary: secondaryColor,
+        inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
+      ),
+      PersistentBottomNavBarItem(
+        icon: const Icon(CupertinoIcons.square_grid_3x2_fill),
+        title: ("Loyalty"),
         activeColorPrimary: secondaryColor,
         activeColorSecondary: secondaryColor,
         inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
@@ -90,7 +91,6 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> prepare() async {
-    
     AndroidOptions _getAndroidOptions() => const AndroidOptions(
           encryptedSharedPreferences: true,
         );
@@ -103,7 +103,7 @@ class _MainScreenState extends State<MainScreen> {
           page: WelcomeScreen(),
         ),
       );
-    } else{
+    } else {
       walletExists = true;
     }
     setState(() {
