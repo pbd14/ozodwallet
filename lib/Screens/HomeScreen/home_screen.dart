@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
+import 'package:ozodwallet/Screens/TransactionScreen/BuyOzodScreen/buy_ozod_payme_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_ozod_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_tx_screen.dart';
@@ -171,7 +172,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .doc(walletData['address'].toString())
         .get();
 
-    
     // get txs
     final response = await httpClient.get(Uri.parse(
         "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=tokentx&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&page=1&offset=10&startblock=0&endblock=99999999&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
@@ -526,9 +526,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     Text(
                                       selectedWalletBalance
-                                          .getValueInUnit(
-                                              selectedEtherUnit)
-                                          .toString() + "  " + "UZSO",
+                                              .getValueInUnit(selectedEtherUnit)
+                                              .toString() +
+                                          "  " +
+                                          "UZSO",
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 2,
                                       textAlign: TextAlign.start,
@@ -653,7 +654,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         selectedNetworkId,
                                                     coin: {
                                                       'id': uzsoFirebase!.id,
-                                                      'contract':contract,
+                                                      'contract': contract,
                                                       'symbol': uzsoFirebase!
                                                           .get('symbol'),
                                                     },
@@ -871,6 +872,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                         )
                                       ],
                                     ),
+
+                                    // Buy button
                                     Column(
                                       mainAxisAlignment:
                                           MainAxisAlignment.center,
@@ -881,22 +884,104 @@ class _HomeScreenState extends State<HomeScreen> {
                                           fillColor: secondaryColor,
                                           shape: CircleBorder(),
                                           onPressed: () {
-                                            setState(() {
-                                              loading = true;
-                                            });
-                                            Navigator.push(
-                                              context,
-                                              SlideRightRoute(
-                                                page: BuyCryptoScreen(
-                                                  web3client: web3client,
-                                                  walletIndex:
-                                                      selectedWalletIndex,
-                                                ),
-                                              ),
-                                            );
-                                            setState(() {
-                                              loading = false;
-                                            });
+                                            showDialog(
+                                                barrierDismissible: false,
+                                                context: context,
+                                                builder:
+                                                    (BuildContext context) {
+                                                  return StatefulBuilder(
+                                                    builder: (context,
+                                                        StateSetter setState) {
+                                                      return AlertDialog(
+                                                        backgroundColor:
+                                                            lightPrimaryColor,
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      20.0),
+                                                        ),
+                                                        title: const Text(
+                                                          'Method',
+                                                          style: TextStyle(
+                                                              color:
+                                                                  darkPrimaryColor),
+                                                        ),
+                                                        content:
+                                                            SingleChildScrollView(
+                                                          child: Container(
+                                                            margin:
+                                                                EdgeInsets.all(
+                                                                    10),
+                                                            child: Column(
+                                                              children: [
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceEvenly,
+                                                                  children: [
+                                                                    Image
+                                                                        .asset(
+                                                                      "assets/images/payme.png",
+                                                                      width: 80,
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: 10,
+                                                                    ),
+                                                                    Expanded(
+                                                                      child:
+                                                                          RoundedButton(
+                                                                        pw: 250,
+                                                                        ph: 45,
+                                                                        text:
+                                                                            'PayMe',
+                                                                        press:
+                                                                            () {
+                                                                          Navigator
+                                                                              .push(
+                                                                            context,
+                                                                            SlideRightRoute(
+                                                                              page: BuyOzodPaymeScreen(
+                                                                                walletIndex: selectedWalletIndex,
+                                                                                web3client: web3client,
+                                                                              ),
+                                                                            ),
+                                                                          );
+                                                                        },
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        textColor:
+                                                                            darkPrimaryColor,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 20,
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        actions: <Widget>[
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop(false),
+                                                            child: const Text(
+                                                              'Ok',
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      darkPrimaryColor),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                });
                                           },
                                           child: Icon(
                                             CupertinoIcons.money_dollar,
@@ -921,7 +1006,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               const SizedBox(height: 50),
-                              
+
                               // Txs
                               selectedWalletTxs.length != 0
                                   ? Container(
