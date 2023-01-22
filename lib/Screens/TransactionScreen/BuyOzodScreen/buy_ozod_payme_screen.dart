@@ -208,7 +208,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                               validator: (val) {
                                 if (val!.isEmpty) {
                                   return 'Enter amount';
-                                } else if (double.parse(val) < 10) {
+                                } else if (double.parse(val) < 1) {
                                   return 'Min 1 UZS0';
                                 } else if (double.parse(val) > 1000) {
                                   return 'Max 1000 UZS0';
@@ -543,9 +543,9 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                           paymentMade);
                                     } else {
                                       // Get Verif code
-                                      bool cardGetVerifyCode =
+                                      Map cardGetVerify =
                                           await cardsGetVerifyCode(cardToken);
-                                      if (!cardGetVerifyCode) {
+                                      if (!cardGetVerify['sent']) {
                                         notificationTitle = "Failed";
                                         notificationBody =
                                             "Failed to send code";
@@ -588,7 +588,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                         child: Column(
                                                           children: [
                                                             Text(
-                                                              "Enter the code that was sent to your phone.",
+                                                              "Enter the code that was sent to your phone ${cardGetVerify['phone']}",
                                                               overflow:
                                                                   TextOverflow
                                                                       .ellipsis,
@@ -749,8 +749,9 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                 String
                                                                     receiptState =
                                                                     await receiptsPay(
-                                                                        receiptId,
-                                                                        cardToken);
+                                                                  receiptId,
+                                                                  cardToken,
+                                                                );
                                                                 if (receiptState
                                                                     .isEmpty) {
                                                                   notificationTitle =
@@ -766,11 +767,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                       notificaitonColor,
                                                                       paymentMade);
                                                                 } else {
-                                                                  if (receiptState ==
-                                                                      "4") {
-                                                                    paymentMade =
-                                                                        true;
-                                                                  } else {
+                                                                  if (receiptState !=
+                                                                      "5") {
                                                                     notificationTitle =
                                                                         "Failed";
                                                                     notificationBody =
@@ -778,12 +776,41 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                     notificaitonColor =
                                                                         Colors
                                                                             .red;
+                                                                    endPayment(
+                                                                        notificationTitle,
+                                                                        notificationBody,
+                                                                        notificaitonColor,
+                                                                        paymentMade);
+                                                                  } else {
+                                                                    String
+                                                                        receiptStateHold =
+                                                                        await receiptsConfirmHold(
+                                                                      receiptId,
+                                                                    );
+                                                                    if (receiptState !=
+                                                                        "4") {
+                                                                      notificationTitle =
+                                                                          "Failed";
+                                                                      notificationBody =
+                                                                          "Payment Failed";
+                                                                      notificaitonColor =
+                                                                          Colors
+                                                                              .red;
+                                                                      endPayment(
+                                                                          notificationTitle,
+                                                                          notificationBody,
+                                                                          notificaitonColor,
+                                                                          paymentMade);
+                                                                    } else {
+                                                                      paymentMade =
+                                                                          true;
+                                                                    }
+                                                                    endPayment(
+                                                                        notificationTitle,
+                                                                        notificationBody,
+                                                                        notificaitonColor,
+                                                                        paymentMade);
                                                                   }
-                                                                  endPayment(
-                                                                      notificationTitle,
-                                                                      notificationBody,
-                                                                      notificaitonColor,
-                                                                      paymentMade);
                                                                 }
                                                               }
                                                             }
@@ -831,6 +858,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
       headers: <String, String>{
         'X-Auth': appDataPaymentOptions!.get('payme')['id'],
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
       },
       body: jsonEncode({
         'id': 250,
@@ -851,17 +879,18 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
 
     print("RGRE1");
     print(decodedResponse);
-    print(decodedResponse['result']['card']);
+    print(decodedResponse['result']);
 
     return result;
   }
 
-  Future<bool> cardsGetVerifyCode(String token) async {
+  Future<Map> cardsGetVerifyCode(String token) async {
     final responseBalance = await httpClient.post(
       Uri.parse(appDataPaymentOptions!.get('payme')['endpoint']),
       headers: <String, String>{
         'X-Auth': appDataPaymentOptions!.get('payme')['id'],
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
       },
       body: jsonEncode({
         "id": 250,
@@ -872,12 +901,14 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
       }),
     );
     dynamic decodedResponse = jsonDecode(responseBalance.body);
-    bool result = false;
+    Map result = {};
     try {
-      result = decodedResponse['result']['sent'];
-      print(decodedResponse['result']['phone']);
+      result = {
+        'sent': decodedResponse['result']['sent'],
+        'phone': decodedResponse['result']['phone'],
+      };
     } catch (e) {
-      result = false;
+      result = {};
     }
 
     print("RGRE1.2");
@@ -892,6 +923,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
       headers: <String, String>{
         'X-Auth': appDataPaymentOptions!.get('payme')['id'],
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
       },
       body: jsonEncode({
         "id": 250,
@@ -907,7 +939,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
       result = false;
     }
 
-    print("RGRE4");
+    print("RGRE1.3");
     print(decodedResponse);
     print(token);
     // print(decodedResponse['result']['card']);
@@ -921,13 +953,15 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
       headers: <String, String>{
         'X-Auth': appDataPaymentOptions!.get('payme')['id'],
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
       },
       body: jsonEncode({
         "id": 250,
         "method": "receipts.create",
         "params": {
           "amount": amount * 1000 * 100,
-          "account": {"order_id": "test"},
+          "hold": true,
+          "account": {"order_id": "ozod"},
           "detail": {
             "receipt_type": 0,
             // "shipping": {"title": "Доставка до ттз-4 28/23", "price": 500000},
@@ -965,6 +999,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
       headers: <String, String>{
         'X-Auth': appDataPaymentOptions!.get('payme')['id'],
         'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
       },
       body: jsonEncode({
         "id": 123,
@@ -972,7 +1007,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
         "params": {
           "id": receiptId,
           "token": token,
-          // "payer": {"phone": "998901304527"}
+          "hold": true,
+          // "payer": {"phone": "998912345678"}
         },
       }),
     );
@@ -987,6 +1023,35 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
     print(decodedResponse);
     print(receiptId);
     print(token);
+    return result;
+  }
+
+  Future<String> receiptsConfirmHold(String receiptId) async {
+    final responseBalance = await httpClient.post(
+      Uri.parse(appDataPaymentOptions!.get('payme')['endpoint']),
+      headers: <String, String>{
+        'X-Auth': appDataPaymentOptions!.get('payme')['id'],
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-cache',
+      },
+      body: jsonEncode({
+        "id": 123,
+        "method": "receipts.confirm_hold",
+        "params": {
+          "id": receiptId,
+        },
+      }),
+    );
+    dynamic decodedResponse = jsonDecode(responseBalance.body);
+    String result = "";
+    try {
+      result = decodedResponse['result']['receipt']['state'];
+    } catch (e) {
+      result = "";
+    }
+    print("RGRE3.2");
+    print(decodedResponse);
+    print(receiptId);
     return result;
   }
 

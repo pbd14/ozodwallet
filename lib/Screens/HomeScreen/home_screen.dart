@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
+import 'package:ozodwallet/Screens/TransactionScreen/BuyOzodScreen/buy_ozod_octo_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/BuyOzodScreen/buy_ozod_payme_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_ozod_screen.dart';
@@ -52,6 +53,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   EtherAmount selectedWalletBalance = EtherAmount.zero();
   EtherUnit selectedEtherUnit = EtherUnit.ether;
+  DeployedContract? uzsoContract;
   List selectedWalletTxs = [];
   List selectedWalletAssets = [];
   Map selectedWalletAssetsData = {};
@@ -159,6 +161,17 @@ class _HomeScreenState extends State<HomeScreen> {
     // Wallet
     Map walletData =
         await SafeStorageService().getWalletData(selectedWalletIndex);
+
+    // UZSO Contract
+    final contractResponse = await httpClient.get(Uri.parse(
+        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${uzsoFirebase!.id}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+
+    if (int.parse(jsonDecode(contractResponse.body)['status'].toString()) == 1) {
+      uzsoContract = DeployedContract(
+          ContractAbi.fromJson(
+              jsonDecode(contractResponse.body)['result'], "UZSOImplementation"),
+          EthereumAddress.fromHex(uzsoFirebase!.id));
+    }
 
     // get balance
     final responseBalance = await httpClient.get(Uri.parse(
@@ -628,40 +641,25 @@ class _HomeScreenState extends State<HomeScreen> {
                                             setState(() {
                                               loading = true;
                                             });
-                                            final response =
-                                                await httpClient.get(Uri.parse(
-                                                    "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${uzsoFirebase!.id}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
 
-                                            if (int.parse(jsonDecode(
-                                                        response.body)['status']
-                                                    .toString()) ==
-                                                1) {
-                                              final contract = DeployedContract(
-                                                  ContractAbi.fromJson(
-                                                      jsonDecode(response.body)[
-                                                          'result'],
-                                                      "UZSOImplementation"),
-                                                  EthereumAddress.fromHex(
-                                                      uzsoFirebase!.id));
-                                              Navigator.push(
-                                                context,
-                                                SlideRightRoute(
-                                                  page: SendOzodScreen(
-                                                    web3client: web3client,
-                                                    walletIndex:
-                                                        selectedWalletIndex,
-                                                    networkId:
-                                                        selectedNetworkId,
-                                                    coin: {
-                                                      'id': uzsoFirebase!.id,
-                                                      'contract': contract,
-                                                      'symbol': uzsoFirebase!
-                                                          .get('symbol'),
-                                                    },
-                                                  ),
+                                            Navigator.push(
+                                              context,
+                                              SlideRightRoute(
+                                                page: SendOzodScreen(
+                                                  web3client: web3client,
+                                                  walletIndex:
+                                                      selectedWalletIndex,
+                                                  networkId: selectedNetworkId,
+                                                  coin: {
+                                                    'id': uzsoFirebase!.id,
+                                                    'contract': uzsoContract,
+                                                    'symbol': uzsoFirebase!
+                                                        .get('symbol'),
+                                                  },
                                                 ),
-                                              );
-                                            }
+                                              ),
+                                            );
+
                                             setState(() {
                                               loading = false;
                                             });
@@ -916,13 +914,13 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                     10),
                                                             child: Column(
                                                               children: [
+                                                                // PayMe
                                                                 Row(
                                                                   mainAxisAlignment:
                                                                       MainAxisAlignment
                                                                           .spaceEvenly,
                                                                   children: [
-                                                                    Image
-                                                                        .asset(
+                                                                    Image.asset(
                                                                       "assets/images/payme.png",
                                                                       width: 80,
                                                                     ),
@@ -953,6 +951,52 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                             secondaryColor,
                                                                         textColor:
                                                                             darkPrimaryColor,
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                                const SizedBox(
+                                                                  height: 20,
+                                                                ),
+                                                                // Octo
+                                                                Row(
+                                                                  mainAxisAlignment:
+                                                                      MainAxisAlignment
+                                                                          .spaceEvenly,
+                                                                  children: [
+                                                                    Image.asset(
+                                                                      "assets/images/octo.png",
+                                                                      width: 80,
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: 10,
+                                                                    ),
+                                                                    Expanded(
+                                                                      child:
+                                                                          RoundedButton(
+                                                                        pw: 250,
+                                                                        ph: 45,
+                                                                        text:
+                                                                            'Octo',
+                                                                        press:
+                                                                            () {
+                                                                          Navigator
+                                                                              .push(
+                                                                            context,
+                                                                            SlideRightRoute(
+                                                                              page: BuyOzodOctoScreen(
+                                                                                walletIndex: selectedWalletIndex,
+                                                                                web3client: web3client,
+                                                                                selectedNetworkId: selectedNetworkId,
+                                                                                contract: uzsoContract!,
+                                                                              ),
+                                                                            ),
+                                                                          );
+                                                                        },
+                                                                        color: Colors
+                                                                            .blue,
+                                                                        textColor:
+                                                                            whiteColor,
                                                                       ),
                                                                     ),
                                                                   ],
