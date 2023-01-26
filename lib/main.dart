@@ -25,6 +25,8 @@ import 'Services/languages/locale_constant.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // FirebaseFunctions functions = FirebaseFunctions.instance;
+  
+  await Firebase.initializeApp();
   await FirebaseAppCheck.instance.activate(
     webRecaptchaSiteKey: 'recaptcha-v3-site-key',
     // Default provider for Android is the Play Integrity provider. You can use the "AndroidProvider" enum to choose
@@ -34,7 +36,6 @@ void main() async {
     // 3. play integrity provider
     androidProvider: AndroidProvider.playIntegrity,
   );
-  await Firebase.initializeApp();
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
     statusBarColor: Colors.transparent,
