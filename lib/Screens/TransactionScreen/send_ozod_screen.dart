@@ -1,4 +1,5 @@
 import 'dart:convert';
+
 import 'package:http/http.dart';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
@@ -415,6 +416,11 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                 isValidAddress) {
                               BigInt chainId =
                                   await widget.web3client.getChainId();
+                              print("GRGRG");
+                              print(amount!);
+                              print(double.parse(amount!));
+                              print(BigInt.from((double.parse(amount!) *
+                                  BigInt.from(pow(10, 18)).toDouble())));
                               Transaction transaction =
                                   await Transaction.callContract(
                                 contract: widget.coin['contract'],

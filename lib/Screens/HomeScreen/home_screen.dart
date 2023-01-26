@@ -163,13 +163,13 @@ class _HomeScreenState extends State<HomeScreen> {
         await SafeStorageService().getWalletData(selectedWalletIndex);
 
     // UZSO Contract
-    final contractResponse = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${uzsoFirebase!.id}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+    // final contractResponse = await httpClient.get(Uri.parse(
+    //     "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${uzsoFirebase!.id}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
 
-    if (int.parse(jsonDecode(contractResponse.body)['status'].toString()) == 1) {
+    if (jsonDecode(uzsoFirebase!.get('contract_abi')) != null) {
       uzsoContract = DeployedContract(
-          ContractAbi.fromJson(
-              jsonDecode(contractResponse.body)['result'], "UZSOImplementation"),
+          ContractAbi.fromJson(jsonEncode(jsonDecode(uzsoFirebase!.get('contract_abi'))),
+              "UZSOImplementation"),
           EthereumAddress.fromHex(uzsoFirebase!.id));
     }
 

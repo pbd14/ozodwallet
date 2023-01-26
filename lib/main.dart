@@ -1,5 +1,5 @@
-
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/services.dart';
 import 'package:ozodwallet/Screens/MainScreen/main_screen.dart';
 import 'package:ozodwallet/Services/languages/applocalizationsdelegate.dart';
@@ -24,6 +24,7 @@ import 'Services/languages/locale_constant.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // FirebaseFunctions functions = FirebaseFunctions.instance;
   await Firebase.initializeApp();
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(

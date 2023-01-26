@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
@@ -42,7 +43,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
   bool loading1 = false;
   String error = '';
   final _formKey = GlobalKey<FormState>();
-  double amount = 0;
+  double amount = 10;
 
   List coins = [];
 
@@ -800,11 +801,6 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                           }
                                         }
 
-                                        // endPayment(
-                                        //     notificationTitle,
-                                        //     notificationBody,
-                                        //     notificaitonColor,
-                                        //     paymentMade);
                                         setState(() {
                                           loading1 = false;
                                         });
@@ -866,61 +862,36 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                         confirmPaymentResult['status'] ==
                                             "succeeded") {
                                       bool web3TransactionMade = true;
-                                      BigInt chainId =
-                                          await widget.web3client.getChainId();
-                                      web3.Transaction transaction =
-                                          await web3.Transaction.callContract(
-                                              // gasPrice: web3.EtherAmount.inWei(BigInt.from(16000000000)),
-                                              from: web3.EthereumAddress.fromHex(
-                                                  "0x1493B22F4e734212085c4992B20eC84d8ECA050E"),
-                                              contract: widget.contract,
-                                              function: widget.contract
-                                                  .function('mintToCustomer'),
-                                              parameters: [
-                                            walletData['address'],
-                                            BigInt.from(amount) *
-                                                BigInt.from(pow(10, 18)),
-                                          ]);
-                                      final mint = await widget.web3client
-                                          .sendTransaction(
-                                        walletData['credentials'],
-                                        transaction,
-                                        chainId: chainId.toInt(),
-                                      )
-                                          .onError((error, stackTrace) {
-                                        web3TransactionMade = false;
-                                        notificationTitle = "Error";
-                                        switch (error.toString()) {
-                                          case 'RPCError: got code -32000 with msg "gas required exceeds allowance (0)".':
+                                      try {
+                                        final resp = await FirebaseFunctions
+                                            .instance
+                                            .httpsCallable('mintToCustomer')
+                                            .call({
+                                          'to':
+                                              walletData['address'].toString(),
+                                          'amount': (BigInt.from(amount) *
+                                                  BigInt.from(pow(10, 18)))
+                                              .toString(),
+                                        });
+                                        switch (resp.data) {
+                                          case "ERROR":
+                                            notificationTitle = "Error";
                                             notificationBody =
-                                                "Servers are not responding. Try again later";
+                                                "Servers are overloaded. Try again later";
+                                            notificaitonColor = Colors.red;
+                                            web3TransactionMade = false;
                                             break;
-                                          case 'RPCError: got code -32000 with msg "replacement transaction underpriced".':
+                                          case "NOT ENOUGH GAS":
+                                            notificationTitle = "Error";
                                             notificationBody =
-                                                "Gas price are high. Try again later";
+                                                "Problems with gas. Try again later";
+                                            notificaitonColor = Colors.red;
+                                            web3TransactionMade = false;
                                             break;
                                           default:
-                                          notificationBody ="Error";
-                                          break;
-
+                                            web3TransactionMade = true;
                                         }
-                                        notificaitonColor = Colors.red;
 
-                                        return error.toString();
-                                      });
-
-                                      print("GEGER");
-                                      print(walletData['address']);
-                                      print(widget.contract);
-                                      print(widget.contract.address);
-                                      print(chainId);
-                                      print(
-                                          "${appData!.get('AVAILABLE_OZOD_NETWORKS')[widget.selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${"0x4F9b00279F1fb182EE30874502AAA4F6b43f6263"}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}");
-                                      print(BigInt.from(amount) *
-                                          BigInt.from(pow(10, 18)));
-                                      print(mint);
-
-                                      if (web3TransactionMade) {
                                         await FirebaseFirestore.instance
                                             .collection('payments')
                                             .doc(paymentId.toString())
@@ -931,7 +902,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                           "amount": amount,
                                           "product": "UZSO",
                                           "method": "octo",
-                                          "web3Transaction": mint,
+                                          "web3Transaction": resp.data,
                                           "details": {
                                             "octo_shop_transaction_id":
                                                 confirmPaymentResult[
@@ -941,6 +912,19 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                                     'octo_payment_UUID'],
                                           },
                                         });
+                                      } on FirebaseFunctionsException catch (error) {
+                                        print("REFREG");
+                                        print(error.code);
+                                        print(error.details);
+                                        print(error.message);
+                                        notificationTitle = "Error";
+                                        notificationBody =
+                                            "Servers are overloaded. Try again later";
+                                        notificaitonColor = Colors.red;
+                                        web3TransactionMade = false;
+                                      }
+
+                                      if (web3TransactionMade) {
                                         if (mounted) {
                                           setState(() {
                                             showWeb = false;
