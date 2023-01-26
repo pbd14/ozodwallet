@@ -1,5 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:cloud_functions/cloud_functions.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/services.dart';
 import 'package:ozodwallet/Screens/MainScreen/main_screen.dart';
 import 'package:ozodwallet/Services/languages/applocalizationsdelegate.dart';
@@ -25,6 +25,15 @@ import 'Services/languages/locale_constant.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // FirebaseFunctions functions = FirebaseFunctions.instance;
+  await FirebaseAppCheck.instance.activate(
+    webRecaptchaSiteKey: 'recaptcha-v3-site-key',
+    // Default provider for Android is the Play Integrity provider. You can use the "AndroidProvider" enum to choose
+    // your preferred provider. Choose from:
+    // 1. debug provider
+    // 2. safety net provider
+    // 3. play integrity provider
+    androidProvider: AndroidProvider.playIntegrity,
+  );
   await Firebase.initializeApp();
 
   SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
