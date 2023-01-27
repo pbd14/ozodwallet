@@ -862,6 +862,26 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                         confirmPaymentResult['status'] ==
                                             "succeeded") {
                                       bool web3TransactionMade = true;
+                                      await FirebaseFirestore.instance
+                                          .collection('payments')
+                                          .doc(paymentId.toString())
+                                          .set({
+                                        "id": paymentId,
+                                        "walletPublicKey":
+                                            walletData['publicKey'],
+                                        "status_code": 1,
+                                        "amount": amount,
+                                        "product": "UZSO",
+                                        "method": "octo",
+                                        "details": {
+                                          "octo_shop_transaction_id":
+                                              confirmPaymentResult[
+                                                  'shop_transaction_id'],
+                                          "octo_payment_UUID":
+                                              confirmPaymentResult[
+                                                  'octo_payment_UUID'],
+                                        },
+                                      });
                                       try {
                                         final resp = await FirebaseFunctions
                                             .instance
@@ -872,6 +892,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                           'amount': (BigInt.from(amount) *
                                                   BigInt.from(pow(10, 18)))
                                               .toString(),
+                                          'paymentId': paymentId,
                                         });
                                         switch (resp.data) {
                                           case "ERROR":
@@ -892,26 +913,13 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                             web3TransactionMade = true;
                                         }
 
-                                        await FirebaseFirestore.instance
-                                            .collection('payments')
-                                            .doc(paymentId.toString())
-                                            .set({
-                                          "id": paymentId,
-                                          "walletPublicKey":
-                                              walletData['publicKey'],
-                                          "amount": amount,
-                                          "product": "UZSO",
-                                          "method": "octo",
-                                          "web3Transaction": resp.data,
-                                          "details": {
-                                            "octo_shop_transaction_id":
-                                                confirmPaymentResult[
-                                                    'shop_transaction_id'],
-                                            "octo_payment_UUID":
-                                                confirmPaymentResult[
-                                                    'octo_payment_UUID'],
-                                          },
-                                        });
+                                        // await FirebaseFirestore.instance
+                                        //     .collection('payments')
+                                        //     .doc(paymentId.toString())
+                                        //     .update({
+                                        //   "status_code": paymentStatusCode,
+                                        //   "web3Transaction": resp.data,
+                                        // });
                                       } on FirebaseFunctionsException catch (error) {
                                         print("REFREG");
                                         print(error.code);
@@ -919,7 +927,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                         print(error.message);
                                         notificationTitle = "Error";
                                         notificationBody =
-                                            "Servers are overloaded. Try again later";
+                                            "Servers are overloaded. Please try again later";
                                         notificaitonColor = Colors.red;
                                         web3TransactionMade = false;
                                       }

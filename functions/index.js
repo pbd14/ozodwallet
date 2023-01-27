@@ -6,11 +6,13 @@ var web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_QUICKNODE_G
 // const Moralis = require("moralis").default;
 const ABI = require("./abi.json");
 
+admin.initializeApp();
+
 exports.mintToCustomer = functions
     .runWith({
         enforceAppCheck: true  // Requests without valid App Check tokens will be rejected.
     })
-    .https.onCall(async (data, _) => {
+    .https.onCall(async (data, context) => {
         if (context.app == undefined) {
             throw new functions.https.HttpsError(
                 'failed-precondition',
@@ -31,23 +33,42 @@ exports.mintToCustomer = functions
                             console.log("CONFIRMATION");
                             console.log(confirmationNumber);
                             console.log(receipt);
-                            return receipt;
+                            if (confirmationNumber >= 10) {
+                                admin.firestore().collection("payments").doc(data.paymentId).update({
+                                    "status_code": 2,
+                                    "web3Transaction": receipt,
+                                });
+                                return receipt;
+                            }
                         })
                         .on('error', function (error, receipt) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
                             console.log("ERROR1");
                             console.log(error);
                             console.log(receipt);
+                            admin.firestore().collection("payments").doc(data.paymentId).update({
+                                "status_code": 3,
+                                "web3Transaction": receipt,
+                            });
                             return "ERROR";
                         });
                 } else {
+                    admin.firestore().collection("payments").doc(data.paymentId).update({
+                        "status_code": 3,
+                        "web3Transaction": "NOT ENOUGH GAS",
+                    });
                     console.log("NOT ENOUGH GAS");
                     console.log(error);
                     return "NOT ENOUGH GAS";
                 }
             })
             .catch(function (error) {
+                admin.firestore().collection("payments").doc(data.paymentId).update({
+                    "status_code": 3,
+                    "web3Transaction": "ERROR",
+                });
                 console.log("ERROR");
                 console.log(error);
+                return "ERROR";
             });
 
     });
@@ -56,7 +77,7 @@ exports.burn = functions
     .runWith({
         enforceAppCheck: true  // Requests without valid App Check tokens will be rejected.
     })
-    .https.onCall(async (data, _) => {
+    .https.onCall(async (data, context) => {
         if (context.app == undefined) {
             throw new functions.https.HttpsError(
                 'failed-precondition',
@@ -77,7 +98,9 @@ exports.burn = functions
                             console.log("CONFIRMATION");
                             console.log(confirmationNumber);
                             console.log(receipt);
-                            return receipt;
+                            if (confirmationNumber >= 10) {
+                                return receipt;
+                            }
                         })
                         .on('error', function (error, receipt) { // If the transaction was rejected by the network with a receipt, the second parameter will be the receipt.
                             console.log("ERROR1");
@@ -94,7 +117,9 @@ exports.burn = functions
             .catch(function (error) {
                 console.log("ERROR");
                 console.log(error);
+                return "ERROR";
             });
+
 
     });
 
