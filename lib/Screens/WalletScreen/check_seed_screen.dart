@@ -228,6 +228,7 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                                         widget.password,
                                         widget.name);
 
+                                    // ignore: unused_local_variable
                                     Wallet wallet = Wallet.createNew(
                                         EthPrivateKey.fromHex(privateKey),
                                         widget.password,

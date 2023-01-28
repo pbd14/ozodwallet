@@ -7,9 +7,8 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
-import 'package:overlay_support/overlay_support.dart';
-import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Services/encryption_service.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
@@ -860,6 +859,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                       Color notifColor =
                                                           Colors.green;
 
+                                                      // ignore: unused_local_variable
                                                       final transfer =
                                                           await widget
                                                               .web3client
@@ -882,19 +882,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
 
                                                         return error.toString();
                                                       });
-                                                      PushNotificationMessage
-                                                          notification =
-                                                          PushNotificationMessage(
-                                                        title: notifTitle,
-                                                        body: notifBody,
-                                                      );
-                                                      showSimpleNotification(
-                                                        Text(notification.body),
-                                                        position:
-                                                            NotificationPosition
-                                                                .top,
-                                                        background: notifColor,
-                                                      );
+                                                      
+                                                      showNotification(notifTitle,notifBody,notifColor);  
                                                     },
                                                     color: secondaryColor,
                                                     textColor: darkPrimaryColor,

@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
@@ -8,16 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
-import 'package:overlay_support/overlay_support.dart';
-import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/BuyOzodScreen/buy_ozod_octo_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/BuyOzodScreen/buy_ozod_payme_screen.dart';
-import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_ozod_screen.dart';
-import 'package:ozodwallet/Screens/TransactionScreen/send_tx_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
 import 'package:ozodwallet/Services/encryption_service.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
@@ -584,18 +580,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                               await Clipboard.setData(
                                                   ClipboardData(
                                                       text: publicKey));
-                                              PushNotificationMessage
-                                                  notification =
-                                                  PushNotificationMessage(
-                                                title: 'Copied',
-                                                body: 'Public key copied',
-                                              );
-                                              showSimpleNotification(
-                                                Text(notification.body),
-                                                position:
-                                                    NotificationPosition.top,
-                                                background: greenColor,
-                                              );
+                                              showNotification('Copied', 'Public key copied', greenColor);
+                                              
                                             },
                                             icon: Icon(
                                               CupertinoIcons.doc,
@@ -798,21 +784,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                             () async {
                                                                           await Clipboard.setData(
                                                                               ClipboardData(text: publicKey));
-                                                                          PushNotificationMessage
-                                                                              notification =
-                                                                              PushNotificationMessage(
-                                                                            title:
-                                                                                'Copied',
-                                                                            body:
-                                                                                'Public key copied',
-                                                                          );
-                                                                          showSimpleNotification(
-                                                                            Text(notification.body),
-                                                                            position:
-                                                                                NotificationPosition.top,
-                                                                            background:
-                                                                                greenColor,
-                                                                          );
+                                                                              showNotification('Copied','Public key copied', greenColor);
+                                                                          
                                                                         },
                                                                         icon:
                                                                             Icon(

@@ -1,15 +1,12 @@
 import 'dart:convert';
 import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:http/http.dart';
-import 'package:overlay_support/overlay_support.dart';
-import 'package:ozodwallet/Models/PushNotificationMessage.dart';
-import 'package:ozodwallet/Services/encryption_service.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
@@ -925,11 +922,8 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                           "status_code": paymentStatusCode,
                                           "web3Transaction": resp.data,
                                         });
-                                      } on FirebaseFunctionsException catch (error) {
-                                        print("REFREG");
-                                        print(error.code);
-                                        print(error.details);
-                                        print(error.message);
+                                      } on FirebaseFunctionsException {
+                                      
                                         notificationTitle = "Error";
                                         notificationBody =
                                             "Servers are overloaded. Please try again later";
@@ -1062,13 +1056,6 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
       }),
     );
     Map decodedResponse = jsonDecode(responseBalance.body);
-    String result = "";
-    try {
-      result = decodedResponse['octo_payment_UUID'];
-    } catch (e) {
-      result = "";
-    }
-
     return decodedResponse;
   }
 
@@ -1090,13 +1077,6 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
       }),
     );
     Map decodedResponse = jsonDecode(responseBalance.body);
-    String result = "";
-    try {
-      result = decodedResponse['octo_payment_UUID'];
-    } catch (e) {
-      result = "";
-    }
-
     return decodedResponse;
   }
 
@@ -1115,27 +1095,13 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
       }),
     );
     Map decodedResponse = jsonDecode(responseBalance.body);
-    String result = "";
-    try {
-      result = decodedResponse['status'];
-    } catch (e) {
-      result = "";
-    }
 
     return decodedResponse;
   }
 
   void endPayment(String notificationTitle, String notificationBody,
       Color notificaitonColor, bool paymentMade) {
-    PushNotificationMessage notification = PushNotificationMessage(
-      title: notificationTitle,
-      body: notificationBody,
-    );
-    showSimpleNotification(
-      Text(notificationBody),
-      position: NotificationPosition.top,
-      background: notificaitonColor,
-    );
+    showNotification(notificationTitle,notificationBody,notificaitonColor); 
     if (paymentMade) {
       Navigator.pop(context);
     }

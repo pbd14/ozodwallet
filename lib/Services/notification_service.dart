@@ -1,4 +1,7 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:overlay_support/overlay_support.dart';
+import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 
 class NotificationService {
   static final NotificationService _notificationService =
@@ -47,7 +50,6 @@ class NotificationService {
     );
 
     final InitializationSettings initializationSettings =
-
         InitializationSettings(
             android: initializationSettingsAndroid,
             iOS: initializationSettingsIOS,
@@ -63,15 +65,23 @@ class NotificationService {
         android: androidPlatformChannelSpecifics,
         iOS: iOSPlatformChannelSpecifics);
 
-    await flutterLocalNotificationsPlugin.show(
-        1,
-        title,
-        body,
-        platformChannelSpecifics,
-        payload: 'data');
+    await flutterLocalNotificationsPlugin
+        .show(1, title, body, platformChannelSpecifics, payload: 'data');
   }
 
   Future selectNotification(String payload) async {
     //Handle notification tapped logic here
   }
 }
+
+void showNotification(String title, String body, Color color) {
+    PushNotificationMessage notification = PushNotificationMessage(
+      title: title,
+      body: body,
+    );
+    showSimpleNotification(
+      Text(notification.body),
+      position: NotificationPosition.top,
+      background: color,
+    );
+  }

@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:ozodwallet/Screens/HomeScreen/home_screen.dart';
-import 'package:ozodwallet/Screens/LoyaltyScreen/loyalty_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/wallet_screen.dart';
 import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';

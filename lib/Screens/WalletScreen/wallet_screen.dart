@@ -8,13 +8,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
-import 'package:overlay_support/overlay_support.dart';
-import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_tx_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
 import 'package:ozodwallet/Services/encryption_service.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
@@ -693,18 +692,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                               await Clipboard.setData(
                                                   ClipboardData(
                                                       text: publicKey));
-                                              PushNotificationMessage
-                                                  notification =
-                                                  PushNotificationMessage(
-                                                title: 'Copied',
-                                                body: 'Public key copied',
-                                              );
-                                              showSimpleNotification(
-                                                Text(notification.body),
-                                                position:
-                                                    NotificationPosition.top,
-                                                background: greenColor,
-                                              );
+                                              
+                                              showNotification('Copied','Public key copied',greenColor); 
                                             },
                                             icon: Icon(
                                               CupertinoIcons.doc,
@@ -901,21 +890,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                             () async {
                                                                           await Clipboard.setData(
                                                                               ClipboardData(text: publicKey));
-                                                                          PushNotificationMessage
-                                                                              notification =
-                                                                              PushNotificationMessage(
-                                                                            title:
-                                                                                'Copied',
-                                                                            body:
-                                                                                'Public key copied',
-                                                                          );
-                                                                          showSimpleNotification(
-                                                                            Text(notification.body),
-                                                                            position:
-                                                                                NotificationPosition.top,
-                                                                            background:
-                                                                                greenColor,
-                                                                          );
+                                                                           showNotification('Copied','Public key copied',greenColor);
                                                                         },
                                                                         icon:
                                                                             Icon(
@@ -1165,9 +1140,6 @@ class _WalletScreenState extends State<WalletScreen> {
                                                               setState(() {
                                                                 loading = true;
                                                               });
-                                                              print("FR");
-                                                              print(asset[
-                                                                  'asset']);
                                                               await FirebaseFirestore
                                                                   .instance
                                                                   .collection(
@@ -1446,22 +1418,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                           ])
                                                                         });
                                                                       } else {
-                                                                        PushNotificationMessage
-                                                                            notification =
-                                                                            PushNotificationMessage(
-                                                                          title:
-                                                                              'Failed',
-                                                                          body:
-                                                                              'Wrong contract',
-                                                                        );
-                                                                        showSimpleNotification(
-                                                                          Text(notification
-                                                                              .body),
-                                                                          position:
-                                                                              NotificationPosition.top,
-                                                                          background:
-                                                                              Colors.red,
-                                                                        );
+                                                                        
+                                                                         showNotification('Failed','Wrong contract',Colors.red);
                                                                       }
                                                                       Navigator.of(
                                                                               context)

@@ -3,8 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
-import 'package:overlay_support/overlay_support.dart';
-import 'package:ozodwallet/Models/PushNotificationMessage.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
@@ -403,21 +402,8 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                                       ]),
                                                     }).onError(
                                                       (error, stackTrace) {
-                                                        PushNotificationMessage
-                                                            notification =
-                                                            PushNotificationMessage(
-                                                          title: 'Failed',
-                                                          body: 'Error',
-                                                        );
-                                                        showSimpleNotification(
-                                                          Text(notification
-                                                              .body),
-                                                          position:
-                                                              NotificationPosition
-                                                                  .top,
-                                                          background:
-                                                              Colors.red,
-                                                        );
+                                                        showNotification('Failed','Error',Colors.red);  
+                                                        
                                                       },
                                                     );
                                                   } else {
@@ -444,21 +430,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                                       ]),
                                                     }).onError(
                                                       (error, stackTrace) {
-                                                        PushNotificationMessage
-                                                            notification =
-                                                            PushNotificationMessage(
-                                                          title: 'Failed',
-                                                          body: 'Error',
-                                                        );
-                                                        showSimpleNotification(
-                                                          Text(notification
-                                                              .body),
-                                                          position:
-                                                              NotificationPosition
-                                                                  .top,
-                                                          background:
-                                                              Colors.red,
-                                                        );
+                                                        showNotification('Failed','Error',Colors.red);  
                                                       },
                                                     );
                                                   }
@@ -475,19 +447,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
                                                     ])
                                                   }).onError(
                                                     (error, stackTrace) {
-                                                      PushNotificationMessage
-                                                          notification =
-                                                          PushNotificationMessage(
-                                                        title: 'Failed',
-                                                        body: 'Error1',
-                                                      );
-                                                      showSimpleNotification(
-                                                        Text(notification.body),
-                                                        position:
-                                                            NotificationPosition
-                                                                .top,
-                                                        background: Colors.red,
-                                                      );
+                                                      showNotification('Failed','Error',Colors.red);  
                                                     },
                                                   );
                                                   _refresh();

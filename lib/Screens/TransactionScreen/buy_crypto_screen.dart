@@ -5,10 +5,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
-import 'package:overlay_support/overlay_support.dart';
-import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Services/exchanges/mercury_api_service.dart';
 import 'package:ozodwallet/Services/exchanges/simpleswap_api_service.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
@@ -633,16 +632,8 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                       onPressed: () async {
                                         await Clipboard.setData(ClipboardData(
                                             text: walletData['publicKey']));
-                                        PushNotificationMessage notification =
-                                            PushNotificationMessage(
-                                          title: 'Copied',
-                                          body: 'Public key copied',
-                                        );
-                                        showSimpleNotification(
-                                          Text(notification.body),
-                                          position: NotificationPosition.top,
-                                          background: greenColor,
-                                        );
+                                        
+                                        showNotification('Copied','Public key copied',greenColor);  
                                       },
                                       icon: Icon(
                                         CupertinoIcons.doc,

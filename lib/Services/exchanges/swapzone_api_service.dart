@@ -16,6 +16,7 @@ class SwapzoneApiService {
 
   Future<List> getRate(String currencyId, String coinId) async {
     await dotenv.load(fileName: ".env");
+    // ignore: unused_local_variable
     final swapzone_response = await httpClient.get(
         Uri.parse(
             'https://api.swapzone.io/v1/exchange/get-rate?from=${currencyId}&to=${currencyId}&amount=0.1&rateType=all&availableInUSA=false&chooseRate=best&noRefundAddress=false'),

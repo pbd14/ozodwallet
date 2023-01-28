@@ -1,13 +1,10 @@
 import 'dart:convert';
-import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:http/http.dart';
-import 'package:overlay_support/overlay_support.dart';
-import 'package:ozodwallet/Models/PushNotificationMessage.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
@@ -783,6 +780,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                         paymentMade);
                                                                   } else {
                                                                     String
+                                                                        // ignore: unused_local_variable
                                                                         receiptStateHold =
                                                                         await receiptsConfirmHold(
                                                                       receiptId,
@@ -877,9 +875,6 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
       result = "";
     }
 
-    print("RGRE1");
-    print(decodedResponse);
-    print(decodedResponse['result']);
 
     return result;
   }
@@ -911,8 +906,6 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
       result = {};
     }
 
-    print("RGRE1.2");
-    print(decodedResponse);
 
     return result;
   }
@@ -939,9 +932,6 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
       result = false;
     }
 
-    print("RGRE1.3");
-    print(decodedResponse);
-    print(token);
     // print(decodedResponse['result']['card']);
 
     return result;
@@ -988,8 +978,6 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
     } catch (e) {
       result = "";
     }
-    print("RGRE2");
-    print(decodedResponse);
     return result;
   }
 
@@ -1019,10 +1007,6 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
     } catch (e) {
       result = "";
     }
-    print("RGRE3");
-    print(decodedResponse);
-    print(receiptId);
-    print(token);
     return result;
   }
 
@@ -1049,23 +1033,13 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
     } catch (e) {
       result = "";
     }
-    print("RGRE3.2");
-    print(decodedResponse);
-    print(receiptId);
     return result;
   }
 
   void endPayment(String notificationTitle, String notificationBody,
       Color notificaitonColor, bool paymentMade) {
-    PushNotificationMessage notification = PushNotificationMessage(
-      title: notificationTitle,
-      body: notificationBody,
-    );
-    showSimpleNotification(
-      Text(notificationBody),
-      position: NotificationPosition.top,
-      background: notificaitonColor,
-    );
+    
+     showNotification(notificationTitle,notificationBody,notificaitonColor);
     if (paymentMade) {
       Navigator.pop(context);
     }
