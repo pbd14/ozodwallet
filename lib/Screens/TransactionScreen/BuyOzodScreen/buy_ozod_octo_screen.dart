@@ -140,13 +140,13 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                             style: GoogleFonts.montserrat(
                               textStyle: const TextStyle(
                                 color: secondaryColor,
-                                fontSize: 45,
+                                fontSize: 35,
                                 fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
                           const SizedBox(
-                            height: 30,
+                            height: 10,
                           ),
                           Container(
                             padding: const EdgeInsets.all(10),
@@ -190,7 +190,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                             ),
                           ),
                           const SizedBox(
-                            height: 50,
+                            height: 30,
                           ),
                           Text(
                             "Amount",
@@ -206,7 +206,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                             ),
                           ),
                           const SizedBox(
-                            height: 20,
+                            height: 10,
                           ),
 
                           // Amount
@@ -279,7 +279,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 50),
+                          const SizedBox(height: 30),
 
                           // Cost
                           Text(
@@ -312,9 +312,10 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 50),
+                          const SizedBox(height: 30),
 
                           // Octo
+                         if(!showWeb)
                           Center(
                             child: Container(
                               width: size.width * 0.8,
@@ -862,6 +863,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                         confirmPaymentResult['status'] ==
                                             "succeeded") {
                                       bool web3TransactionMade = true;
+                                      int paymentStatusCode = 1;
                                       await FirebaseFirestore.instance
                                           .collection('payments')
                                           .doc(paymentId.toString())
@@ -869,7 +871,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                         "id": paymentId,
                                         "walletPublicKey":
                                             walletData['publicKey'],
-                                        "status_code": 1,
+                                        "status_code": paymentStatusCode,
                                         "amount": amount,
                                         "product": "UZSO",
                                         "method": "octo",
@@ -901,6 +903,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                                 "Servers are overloaded. Try again later";
                                             notificaitonColor = Colors.red;
                                             web3TransactionMade = false;
+                                            paymentStatusCode = 1;
                                             break;
                                           case "NOT ENOUGH GAS":
                                             notificationTitle = "Error";
@@ -908,18 +911,20 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                                 "Problems with gas. Try again later";
                                             notificaitonColor = Colors.red;
                                             web3TransactionMade = false;
+                                            paymentStatusCode = 1;
                                             break;
                                           default:
                                             web3TransactionMade = true;
+                                            paymentStatusCode = 2;
                                         }
 
-                                        // await FirebaseFirestore.instance
-                                        //     .collection('payments')
-                                        //     .doc(paymentId.toString())
-                                        //     .update({
-                                        //   "status_code": paymentStatusCode,
-                                        //   "web3Transaction": resp.data,
-                                        // });
+                                        await FirebaseFirestore.instance
+                                            .collection('payments')
+                                            .doc(paymentId.toString())
+                                            .update({
+                                          "status_code": paymentStatusCode,
+                                          "web3Transaction": resp.data,
+                                        });
                                       } on FirebaseFunctionsException catch (error) {
                                         print("REFREG");
                                         print(error.code);

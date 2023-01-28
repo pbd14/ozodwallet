@@ -1496,7 +1496,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     .green,
                                                               ),
                                                         Text(
-                                                          "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp'])))}",
+                                                          "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000))}",
                                                           overflow: TextOverflow
                                                               .ellipsis,
                                                           textAlign:

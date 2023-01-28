@@ -36,7 +36,7 @@ class _MainScreenState extends State<MainScreen> {
     return [
       HomeScreen(),
       WalletScreen(),
-      LoyaltyScreen(),
+      // LoyaltyScreen(),
       WalletScreen(),
     ];
   }
@@ -73,13 +73,13 @@ class _MainScreenState extends State<MainScreen> {
         activeColorSecondary: secondaryColor,
         inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
       ),
-      PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.square_grid_3x2_fill),
-        title: ("Loyalty"),
-        activeColorPrimary: secondaryColor,
-        activeColorSecondary: secondaryColor,
-        inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
-      ),
+      // PersistentBottomNavBarItem(
+      //   icon: const Icon(CupertinoIcons.square_grid_3x2_fill),
+      //   title: ("Loyalty"),
+      //   activeColorPrimary: secondaryColor,
+      //   activeColorSecondary: secondaryColor,
+      //   inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
+      // ),
       PersistentBottomNavBarItem(
         icon: const Icon(CupertinoIcons.person),
         title: ("Profile"),

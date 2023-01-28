@@ -111,7 +111,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                         ),
                       ),
                       const SizedBox(
-                        height: 50,
+                        height: 10,
                       ),
                       Container(
                         padding: const EdgeInsets.all(10),
@@ -155,7 +155,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                         ),
                       ),
                       const SizedBox(
-                        height: 50,
+                        height: 30,
                       ),
                       Text(
                         "To",
@@ -165,13 +165,13 @@ class _SendTxScreenState extends State<SendTxScreen> {
                         style: GoogleFonts.montserrat(
                           textStyle: const TextStyle(
                             color: secondaryColor,
-                            fontSize: 25,
+                            fontSize: 35,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                       const SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       Text(
                         "Public address (0x...)",
@@ -187,7 +187,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                         ),
                       ),
                       const SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       TextFormField(
                         style: const TextStyle(color: secondaryColor),
@@ -226,7 +226,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 30),
                       Text(
                         "Amount",
                         overflow: TextOverflow.ellipsis,
@@ -235,13 +235,13 @@ class _SendTxScreenState extends State<SendTxScreen> {
                         style: GoogleFonts.montserrat(
                           textStyle: const TextStyle(
                             color: secondaryColor,
-                            fontSize: 25,
+                            fontSize: 35,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                       const SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       Container(
                         margin: EdgeInsets.symmetric(horizontal: 40),
@@ -391,12 +391,29 @@ class _SendTxScreenState extends State<SendTxScreen> {
                         ),
                       ),
                       SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              style: const TextStyle(color: secondaryColor),
+
+                      // B
+                      Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(color: secondaryColor, width: 1.0),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: EdgeInsets.all(10),
+                        margin: EdgeInsets.only(
+                            left: size.width * 0.1, right: size.width * 0.1),
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              cursorColor: secondaryColor,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.montserrat(
+                                textStyle: const TextStyle(
+                                  overflow: TextOverflow.ellipsis,
+                                  color: secondaryColor,
+                                  fontSize: 60,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
                               validator: (val) {
                                 if (val!.isEmpty) {
                                   return 'Enter amount';
@@ -415,134 +432,123 @@ class _SendTxScreenState extends State<SendTxScreen> {
                               keyboardType: TextInputType.number,
                               onChanged: (val) {
                                 setState(() {
-                                  amount = val;
+                                  setState(() {
+                                    amount = val;
+                                  });
                                 });
                               },
                               decoration: InputDecoration(
-                                errorBorder: const OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.red, width: 1.0),
-                                ),
-                                focusedBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: secondaryColor, width: 1.0),
-                                ),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: secondaryColor, width: 1.0),
-                                ),
-                                hintStyle: TextStyle(
-                                    color: darkPrimaryColor.withOpacity(0.7)),
-                                hintText: 'Amount',
-                                border: const OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: secondaryColor, width: 1.0),
+                                  errorBorder: const OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.red, width: 1.0),
+                                  ),
+                                  hintStyle: TextStyle(
+                                    color: secondaryColor.withOpacity(0.7),
+                                  ),
+                                  hintText: "0.0",
+                                  border: InputBorder.none),
+                            ),
+                            Container(
+                              width: 100,
+                              child: Center(
+                                child: selectedAsset['symbol'] == 'ETH'
+                                    ? DropdownButtonHideUnderline(
+                                        child: DropdownButton<EtherUnit>(
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                          dropdownColor: darkPrimaryColor,
+                                          focusColor: secondaryColor,
+                                          iconEnabledColor: secondaryColor,
+                                          alignment: Alignment.centerLeft,
+                                          onChanged: (unit) {
+                                            setState(() {
+                                              selectedEtherUnit = unit!;
+                                            });
+                                          },
+                                          hint: Text(
+                                            cryptoUnits[selectedEtherUnit]!,
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 3,
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: secondaryColor,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                          items: [
+                                            for (EtherUnit unit
+                                                in cryptoUnits.keys)
+                                              DropdownMenuItem<EtherUnit>(
+                                                value: unit,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: <Widget>[
+                                                    Text(
+                                                      cryptoUnits[unit]!,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          color: secondaryColor,
+                                                          fontSize: 20,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      )
+                                    : Text(
+                                        selectedAsset['symbol'],
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 3,
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.montserrat(
+                                          textStyle: const TextStyle(
+                                            color: secondaryColor,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                            ),
+                            SizedBox(
+                              height: 10,
+                            ),
+                            Text(
+                              selectedAsset['symbol'] == 'ETH'
+                                  ? "Balance: ${balance!.getValueInUnit(selectedEtherUnit).toString()}  ${cryptoUnits[selectedEtherUnit]}"
+                                  : "Balance: " +
+                                      (selectedAsset['balance'] /
+                                              BigInt.from(pow(10, 18)))
+                                          .toString(),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 3,
+                              textAlign: TextAlign.start,
+                              style: GoogleFonts.montserrat(
+                                textStyle: const TextStyle(
+                                  color: secondaryColor,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w500,
                                 ),
                               ),
                             ),
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Container(
-                            width: 100,
-                            child: Center(
-                              child: selectedAsset['symbol'] == 'ETH'
-                                  ? DropdownButtonHideUnderline(
-                                      child: DropdownButton<EtherUnit>(
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                        dropdownColor: darkPrimaryColor,
-                                        focusColor: secondaryColor,
-                                        iconEnabledColor: secondaryColor,
-                                        alignment: Alignment.centerLeft,
-                                        onChanged: (unit) {
-                                          setState(() {
-                                            selectedEtherUnit = unit!;
-                                          });
-                                        },
-                                        hint: Text(
-                                          cryptoUnits[selectedEtherUnit]!,
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 3,
-                                          textAlign: TextAlign.center,
-                                          style: GoogleFonts.montserrat(
-                                            textStyle: const TextStyle(
-                                              color: secondaryColor,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                        items: [
-                                          for (EtherUnit unit
-                                              in cryptoUnits.keys)
-                                            DropdownMenuItem<EtherUnit>(
-                                              value: unit,
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.start,
-                                                children: <Widget>[
-                                                  Text(
-                                                    cryptoUnits[unit]!,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    style:
-                                                        GoogleFonts.montserrat(
-                                                      textStyle:
-                                                          const TextStyle(
-                                                        color: secondaryColor,
-                                                        fontSize: 20,
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    )
-                                  : Text(
-                                      selectedAsset['symbol'],
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 3,
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.montserrat(
-                                        textStyle: const TextStyle(
-                                          color: secondaryColor,
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        selectedAsset['symbol'] == 'ETH'
-                            ? "Balance: ${balance!.getValueInUnit(selectedEtherUnit).toString()}  ${cryptoUnits[selectedEtherUnit]}"
-                            : "Balance: " +
-                                (selectedAsset['balance'] /
-                                        BigInt.from(pow(10, 18)))
-                                    .toString(),
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 50),
+                      const SizedBox(height: 30),
+
                       Center(
                         child: RoundedButton(
                           pw: 250,
@@ -639,9 +645,10 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                   notifBody = error.toString() ==
                                           'RPCError: got code -32000 with msg "gas required exceeds allowance (0)".'
                                       ? "Not enough gas. Buy ether"
-                                      : "Error";
+                                      : "Servers are overloaded. Try again later";
                                   notifColor = Colors.red;
-
+                                  print("REGREG");
+                                  print(error);
                                   return error.toString();
                                 });
                                 if (await transfer != null) {

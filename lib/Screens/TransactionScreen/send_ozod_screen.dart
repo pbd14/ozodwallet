@@ -133,7 +133,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                         ),
                       ),
                       const SizedBox(
-                        height: 50,
+                        height: 10,
                       ),
                       Container(
                         padding: const EdgeInsets.all(10),
@@ -177,7 +177,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                         ),
                       ),
                       const SizedBox(
-                        height: 50,
+                        height: 30,
                       ),
                       Text(
                         "To",
@@ -187,13 +187,13 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                         style: GoogleFonts.montserrat(
                           textStyle: const TextStyle(
                             color: secondaryColor,
-                            fontSize: 25,
+                            fontSize: 35,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                       const SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       Text(
                         "Public address (0x...)",
@@ -209,7 +209,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                         ),
                       ),
                       const SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       TextFormField(
                         style: const TextStyle(color: secondaryColor),
@@ -248,7 +248,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                           ),
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 30),
                       Text(
                         "Amount",
                         overflow: TextOverflow.ellipsis,
@@ -257,50 +257,35 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                         style: GoogleFonts.montserrat(
                           textStyle: const TextStyle(
                             color: secondaryColor,
-                            fontSize: 25,
+                            fontSize: 35,
                             fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
                       const SizedBox(
-                        height: 20,
+                        height: 10,
                       ),
                       Container(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: secondaryColor, width: 1.0),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        padding: EdgeInsets.all(10),
+                        margin: EdgeInsets.only(
+                            left: size.width * 0.1, right: size.width * 0.1),
+                        child: Column(
                           children: [
-                            Jazzicon.getIconWidget(
-                                Jazzicon.getJazziconData(160,
-                                    address: widget.coin['id']),
-                                size: 25),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Container(
-                              width: 100,
-                              child: Text(
-                                widget.coin['symbol'],
-                                overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.start,
-                                style: GoogleFonts.montserrat(
-                                  textStyle: const TextStyle(
-                                    color: secondaryColor,
-                                    fontSize: 25,
-                                    fontWeight: FontWeight.w700,
-                                  ),
+                            TextFormField(
+                              cursorColor: secondaryColor,
+                              textAlign: TextAlign.center,
+                              style: GoogleFonts.montserrat(
+                                textStyle: const TextStyle(
+                                  overflow: TextOverflow.ellipsis,
+                                  color: secondaryColor,
+                                  fontSize: 60,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                            child: TextFormField(
-                              style: const TextStyle(color: secondaryColor),
                               validator: (val) {
                                 if (val!.isEmpty) {
                                   return 'Enter amount';
@@ -319,76 +304,77 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                               keyboardType: TextInputType.number,
                               onChanged: (val) {
                                 setState(() {
-                                  amount = val;
+                                  setState(() {
+                                    amount = val;
+                                  });
                                 });
                               },
                               decoration: InputDecoration(
-                                errorBorder: const OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.red, width: 1.0),
-                                ),
-                                focusedBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: secondaryColor, width: 1.0),
-                                ),
-                                enabledBorder: const OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: secondaryColor, width: 1.0),
-                                ),
-                                hintStyle: TextStyle(
-                                    color: darkPrimaryColor.withOpacity(0.7)),
-                                hintText: 'Amount',
-                                border: const OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: secondaryColor, width: 1.0),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(
-                            width: 5,
-                          ),
-                          Container(
-                            width: 100,
-                            child: Center(
-                              child: Text(
-                                widget.coin['symbol'],
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 3,
-                                textAlign: TextAlign.center,
-                                style: GoogleFonts.montserrat(
-                                  textStyle: const TextStyle(
-                                    color: secondaryColor,
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.w700,
+                                  errorBorder: const OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: Colors.red, width: 1.0),
                                   ),
-                                ),
+                                  hintStyle: TextStyle(
+                                    color: secondaryColor.withOpacity(0.7),
+                                  ),
+                                  hintText: "0.0",
+                                  border: InputBorder.none),
+                            ),
+                            Container(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Jazzicon.getIconWidget(
+                                      Jazzicon.getJazziconData(160,
+                                          address: widget.coin['id']),
+                                      size: 25),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  Container(
+                                    width: 100,
+                                    child: Text(
+                                      widget.coin['symbol'],
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.start,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: secondaryColor,
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  
+                                ],
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        "Balance: " +
-                            (balance!.getInWei / BigInt.from(pow(10, 18)))
-                                .toString() +
-                            " " +
-                            widget.coin['symbol'],
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 15,
-                            fontWeight: FontWeight.w500,
-                          ),
+                          SizedBox(
+                                      height: 10,
+                                    ),
+                                    Text(
+                                      "Balance: " +
+                                          (balance!.getInWei /
+                                                  BigInt.from(pow(10, 18)))
+                                              .toString() +
+                                          " " +
+                                          widget.coin['symbol'],
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 3,
+                                      textAlign: TextAlign.start,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: secondaryColor,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 50),
+                      const SizedBox(height: 30),
                       Center(
                         child: RoundedButton(
                           pw: 250,

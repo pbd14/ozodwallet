@@ -194,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final jsonList = valueTxs.map((item) => jsonEncode(item)).toList();
     final uniqueJsonList = jsonList.toSet().toList();
     valueTxs = uniqueJsonList.map((item) => jsonDecode(item)).toList();
-
+   
     setState(() {
       walletData['publicKey'] != null
           ? publicKey = walletData['publicKey']
@@ -1121,7 +1121,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                     .green,
                                                               ),
                                                         Text(
-                                                          "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp'])))}",
+                                                          "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp'])* 1000))}",
                                                           overflow: TextOverflow
                                                               .ellipsis,
                                                           textAlign:
@@ -1132,7 +1132,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                 const TextStyle(
                                                               color:
                                                                   darkDarkColor,
-                                                              fontSize: 10,
+                                                              fontSize: 9,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w600,

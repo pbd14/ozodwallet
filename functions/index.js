@@ -8,6 +8,8 @@ const ABI = require("./abi.json");
 
 admin.initializeApp();
 
+
+
 exports.mintToCustomer = functions
     .runWith({
         enforceAppCheck: true  // Requests without valid App Check tokens will be rejected.
@@ -30,14 +32,15 @@ exports.mintToCustomer = functions
                 if (gasAmount <= 30000000000) {
                     proxyUZSO.methods.mintToCustomer(web3.utils.toChecksumAddress(data.to), data.amount).send({ from: web3.utils.toChecksumAddress(web3.eth.accounts.privateKeyToAccount(process.env.ETH_PRIVATE_KEY).address), gas: gasAmount })
                         .on('confirmation', function (confirmationNumber, receipt) {
-                            console.log("CONFIRMATION");
-                            console.log(confirmationNumber);
-                            console.log(receipt);
+
                             if (confirmationNumber >= 10) {
-                                admin.firestore().collection("payments").doc(data.paymentId).update({
-                                    "status_code": 2,
-                                    "web3Transaction": receipt,
-                                });
+                                console.log("CONFIRMATION");
+                                console.log(confirmationNumber);
+                                console.log(receipt);
+                                // admin.firestore().collection("payments").doc(data.paymentId).update({
+                                //     "status_code": 2,
+                                //     "web3Transaction": receipt,
+                                // });
                                 return receipt;
                             }
                         })
@@ -45,27 +48,27 @@ exports.mintToCustomer = functions
                             console.log("ERROR1");
                             console.log(error);
                             console.log(receipt);
-                            admin.firestore().collection("payments").doc(data.paymentId).update({
-                                "status_code": 3,
-                                "web3Transaction": receipt,
-                            });
+                            // admin.firestore().collection("payments").doc(data.paymentId).update({
+                            //     "status_code": 3,
+                            //     "web3Transaction": receipt,
+                            // });
                             return "ERROR";
                         });
                 } else {
-                    admin.firestore().collection("payments").doc(data.paymentId).update({
-                        "status_code": 3,
-                        "web3Transaction": "NOT ENOUGH GAS",
-                    });
+                    // admin.firestore().collection("payments").doc(data.paymentId).update({
+                    //     "status_code": 3,
+                    //     "web3Transaction": "NOT ENOUGH GAS",
+                    // });
                     console.log("NOT ENOUGH GAS");
                     console.log(error);
                     return "NOT ENOUGH GAS";
                 }
             })
             .catch(function (error) {
-                admin.firestore().collection("payments").doc(data.paymentId).update({
-                    "status_code": 3,
-                    "web3Transaction": "ERROR",
-                });
+                // admin.firestore().collection("payments").doc(data.paymentId).update({
+                //     "status_code": 3,
+                //     "web3Transaction": "ERROR",
+                // });
                 console.log("ERROR");
                 console.log(error);
                 return "ERROR";
@@ -95,10 +98,11 @@ exports.burn = functions
                 if (gasAmount <= 30000000000) {
                     proxyUZSO.methods.burn(web3.utils.toChecksumAddress(data.account), data.amount).send({ from: web3.utils.toChecksumAddress(web3.eth.accounts.privateKeyToAccount(process.env.ETH_PRIVATE_KEY).address), gas: gasAmount })
                         .on('confirmation', function (confirmationNumber, receipt) {
-                            console.log("CONFIRMATION");
-                            console.log(confirmationNumber);
-                            console.log(receipt);
+
                             if (confirmationNumber >= 10) {
+                                console.log("CONFIRMATION");
+                                console.log(confirmationNumber);
+                                console.log(receipt);
                                 return receipt;
                             }
                         })
