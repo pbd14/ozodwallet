@@ -41,6 +41,7 @@ class _WalletScreenState extends State<WalletScreen> {
   SharedPreferences? sharedPreferences;
 
   String publicKey = 'Loading';
+  String address = 'Loading';
   String privateKey = 'Loading';
   String selectedWalletIndex = "1";
   String selectedWalletName = "Wallet1";
@@ -187,7 +188,6 @@ class _WalletScreenState extends State<WalletScreen> {
               "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}/api?module=contract&action=getabi&address=${asset['address']}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
 
           if (int.parse(jsonDecode(response.body)['status'].toString()) == 1) {
-            
             final contract = DeployedContract(
                 ContractAbi.fromJson(
                     jsonDecode(response.body)['result'], "LoyaltyToken"),
@@ -202,6 +202,7 @@ class _WalletScreenState extends State<WalletScreen> {
               'address': asset['address'],
               'decimals': asset['decimal'],
               'contract': contract,
+              'asset': asset,
             });
             selectedWalletAssetsData[asset['address'].toLowerCase()] =
                 asset['symbol'];
@@ -220,6 +221,9 @@ class _WalletScreenState extends State<WalletScreen> {
       walletData['publicKey'] != null
           ? publicKey = walletData['publicKey']
           : publicKey = 'Error';
+      walletData['address'] != null
+          ? address = walletData['address'].toString()
+          : address = 'Error';
       walletData['privateKey'] != null
           ? privateKey = walletData['privateKey']
           : privateKey = 'Error';
@@ -1071,7 +1075,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                           asset['address']),
                                                   size: 25),
                                               Container(
-                                                width: 100,
+                                                width: 90,
                                                 child: Column(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment.center,
@@ -1102,7 +1106,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 ),
                                               ),
                                               Container(
-                                                width: 100,
+                                                width: 90,
                                                 child: Text(
                                                   asset['symbol'],
                                                   overflow:
@@ -1118,6 +1122,95 @@ class _WalletScreenState extends State<WalletScreen> {
                                                   ),
                                                 ),
                                               ),
+                                              IconButton(
+                                                onPressed: () {
+                                                  showDialog(
+                                                    barrierDismissible: false,
+                                                    context: context,
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return AlertDialog(
+                                                        backgroundColor:
+                                                            darkPrimaryColor,
+                                                        shape:
+                                                            RoundedRectangleBorder(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      20.0),
+                                                        ),
+                                                        // title: Text(
+                                                        //     Languages.of(context).profileScreenSignOut),
+                                                        // content: Text(
+                                                        //     Languages.of(context)!.profileScreenWantToLeave),
+                                                        title: Text(
+                                                          'Remove asset?',
+                                                          style: TextStyle(
+                                                              color:
+                                                                  secondaryColor),
+                                                        ),
+                                                        content: Text(
+                                                          'Your asset will still exist on blockchain',
+                                                          style: TextStyle(
+                                                              color:
+                                                                  secondaryColor),
+                                                        ),
+                                                        actions: <Widget>[
+                                                          TextButton(
+                                                            onPressed:
+                                                                () async {
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(true);
+                                                              setState(() {
+                                                                loading = true;
+                                                              });
+                                                              print("FR");
+                                                              print(asset[
+                                                                  'asset']);
+                                                              await FirebaseFirestore
+                                                                  .instance
+                                                                  .collection(
+                                                                      'wallets')
+                                                                  .doc(address)
+                                                                  .update({
+                                                                'assets': FieldValue
+                                                                    .arrayRemove([
+                                                                  asset['asset']
+                                                                ])
+                                                              });
+                                                              _refresh();
+                                                            },
+                                                            child: const Text(
+                                                              'Yes',
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      secondaryColor),
+                                                            ),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () =>
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop(false),
+                                                            child: const Text(
+                                                              'No',
+                                                              style: TextStyle(
+                                                                  color: Colors
+                                                                      .red),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                                icon: Icon(
+                                                  CupertinoIcons.trash,
+                                                  color: Colors.red,
+                                                  // size: 5,
+                                                ),
+                                              )
                                             ],
                                           ),
                                         ),
