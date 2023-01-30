@@ -1,4 +1,5 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
@@ -52,7 +53,28 @@ class _SendTxScreenState extends State<SendTxScreen> {
   EtherAmount? balance;
   Client httpClient = Client();
   firestore.DocumentSnapshot? walletFirebase;
+  firestore.DocumentSnapshot? appData;
+
   Future<void> prepare() async {
+    appData = await firestore.FirebaseFirestore.instance
+        .collection('wallet_app_data')
+        .doc('data')
+        .get();
+
+    // Check network availability
+    if (appData!.get('AVAILABLE_ETHER_NETWORKS')[widget.networkId] == null) {
+      widget.networkId = "mainnet";
+    } else {
+      if (!appData!.get('AVAILABLE_ETHER_NETWORKS')[widget.networkId]
+          ['active']) {
+        widget.networkId = "mainnet";
+      }
+    }
+
+    // Get coin unit
+    cryptoUnits[EtherUnit.ether] =
+        appData!.get('AVAILABLE_ETHER_NETWORKS')[widget.networkId]['unit'];
+
     walletFirebase = await firestore.FirebaseFirestore.instance
         .collection('wallets')
         .doc(walletData['address'].toString())
@@ -126,30 +148,66 @@ class _SendTxScreenState extends State<SendTxScreen> {
                             ],
                           ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
                           children: [
-                            Jazzicon.getIconWidget(
-                                Jazzicon.getJazziconData(160,
-                                    address: walletData['publicKey']),
-                                size: 25),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Expanded(
-                              child: Text(
-                                walletData['name'],
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 3,
-                                textAlign: TextAlign.start,
-                                style: GoogleFonts.montserrat(
-                                  textStyle: const TextStyle(
-                                    color: secondaryColor,
-                                    fontSize: 25,
-                                    fontWeight: FontWeight.w700,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Jazzicon.getIconWidget(
+                                    Jazzicon.getJazziconData(160,
+                                        address: walletData['publicKey']),
+                                    size: 25),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    walletData['name'],
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 3,
+                                    textAlign: TextAlign.start,
+                                    style: GoogleFonts.montserrat(
+                                      textStyle: const TextStyle(
+                                        color: secondaryColor,
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 20,
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Image.network(
+                                  appData!.get('AVAILABLE_ETHER_NETWORKS')[
+                                      widget.networkId]['image'],
+                                  width: 20,
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    appData!.get('AVAILABLE_ETHER_NETWORKS')[
+                                        widget.networkId]['name'],
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 3,
+                                    textAlign: TextAlign.start,
+                                    style: GoogleFonts.montserrat(
+                                      textStyle: const TextStyle(
+                                        color: secondaryColor,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -300,7 +358,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                               children: [
                                 Image.network(
-                                  'https://assets.coingecko.com/coins/images/279/large/ethereum.png?1595348880',
+                                  appData!.get('AVAILABLE_ETHER_NETWORKS')[
+                                      widget.networkId]['image'],
                                   width: 30,
                                 ),
                                 SizedBox(
@@ -309,7 +368,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 Container(
                                   width: 100,
                                   child: Text(
-                                    'ETH',
+                                    cryptoUnits[EtherUnit.ether]!,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.start,
                                     style: GoogleFonts.montserrat(
@@ -425,11 +484,26 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                         (selectedAsset['balance'] /
                                             BigInt.from(pow(10, 18)))) {
                                   return 'Too big amount';
-                                } else {
+                                } else if (selectedAsset['symbol'] != 'ETH' &&
+                                    val.contains('.')) {
+                                  return 'Only integers';
+                                } else if (selectedAsset['symbol'] == 'ETH' && selectedEtherUnit == EtherUnit.wei &&
+                                    val.contains('.')) {
+                                  return 'Only integers';
+                                }
+                                else {
                                   return null;
                                 }
                               },
                               keyboardType: TextInputType.number,
+                              inputFormatters:
+                                  selectedEtherUnit == EtherUnit.wei &&
+                                          selectedAsset['symbol'] != 'ETH'
+                                      ? [
+                                          FilteringTextInputFormatter.allow(
+                                              RegExp('[0-9.,]+')),
+                                        ]
+                                      : [],
                               onChanged: (val) {
                                 setState(() {
                                   setState(() {
@@ -574,7 +648,24 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 receiverPublicAddress != null &&
                                 receiverPublicAddress!.isNotEmpty &&
                                 isValidAddress) {
-                              EtherAmount etherGas = await widget.web3client.getGasPrice();
+                              if (double.parse(amount!) < 1) {
+                                if (selectedEtherUnit == EtherUnit.ether) {
+                                  amount = (double.parse(amount!) *
+                                          BigInt.from(pow(10, 9)).toDouble())
+                                      .toInt()
+                                      .toString();
+                                  selectedEtherUnit = EtherUnit.gwei;
+                                } else if (selectedEtherUnit ==
+                                    EtherUnit.gwei) {
+                                  amount = (double.parse(amount!) *
+                                          BigInt.from(pow(10, 9)).toDouble())
+                                      .toInt()
+                                      .toString();
+                                  selectedEtherUnit = EtherUnit.wei;
+                                }
+                              }
+                              EtherAmount etherGas =
+                                  await widget.web3client.getGasPrice();
                               BigInt estimateGas =
                                   await widget.web3client.estimateGas(
                                 sender: walletData['address'],
@@ -583,16 +674,16 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 value: EtherAmount.fromUnitAndValue(
                                     selectedEtherUnit,
                                     selectedAsset['symbol'] == 'ETH'
-                                        ? amount
+                                        ? BigInt.from(int.parse(amount!))
                                         : 0),
                               );
                               BigInt total = selectedAsset['symbol'] == 'ETH'
                                   ? estimateGas +
                                       BigInt.from(EtherAmount.fromUnitAndValue(
-                                              selectedEtherUnit, amount)
-                                          .getValueInUnit(EtherUnit.gwei))
+                                        selectedEtherUnit,
+                                        BigInt.from(int.parse(amount!)),
+                                      ).getValueInUnit(EtherUnit.gwei))
                                   : estimateGas;
-                              
                               setState(() {
                                 loading = false;
                               });
@@ -713,7 +804,9 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                       BigInt.from(EtherAmount
                                                               .fromUnitAndValue(
                                                                   selectedEtherUnit,
-                                                                  amount)
+                                                                  BigInt.from(
+                                                                      int.parse(
+                                                                          amount!)))
                                                           .getValueInUnit(
                                                               EtherUnit.gwei)))
                                                     Container(
@@ -911,7 +1004,10 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                     size.width *
                                                                         0.2,
                                                                 child: Text(
-                                                                  "${EtherAmount.fromUnitAndValue(EtherUnit.gwei, estimateGas).getValueInUnit(EtherUnit.ether)} ETH",
+                                                                  "${EtherAmount.fromUnitAndValue(EtherUnit.gwei, estimateGas).getValueInUnit(EtherUnit.ether)} " +
+                                                                      cryptoUnits[
+                                                                          EtherUnit
+                                                                              .ether]!,
                                                                   overflow:
                                                                       TextOverflow
                                                                           .ellipsis,
@@ -944,47 +1040,50 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                           height: 10,
                                                         ),
                                                         Row(
-                                                        children: [
-                                                          Icon(
-                                                            CupertinoIcons
-                                                                .exclamationmark_circle,
-                                                            color: secondaryColor,
-                                                          ),
-                                                          SizedBox(
-                                                            width: 5,
-                                                          ),
-                                                          Expanded(
-                                                            child: Text(
-                                                              "Estimate gas price might be significantly higher that the actual price",
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                              maxLines: 5,
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .start,
-                                                              style: GoogleFonts
-                                                                  .montserrat(
-                                                                textStyle:
-                                                                    const TextStyle(
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  color: secondaryColor,
-                                                                  fontSize: 10,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w300,
+                                                          children: [
+                                                            Icon(
+                                                              CupertinoIcons
+                                                                  .exclamationmark_circle,
+                                                              color:
+                                                                  secondaryColor,
+                                                            ),
+                                                            SizedBox(
+                                                              width: 5,
+                                                            ),
+                                                            Expanded(
+                                                              child: Text(
+                                                                "Estimate gas price might be significantly higher that the actual price",
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                                maxLines: 5,
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .start,
+                                                                style: GoogleFonts
+                                                                    .montserrat(
+                                                                  textStyle:
+                                                                      const TextStyle(
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    color:
+                                                                        secondaryColor,
+                                                                    fontSize:
+                                                                        10,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w300,
+                                                                  ),
                                                                 ),
                                                               ),
                                                             ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                      const SizedBox(
+                                                          ],
+                                                        ),
+                                                        const SizedBox(
                                                           height: 10,
                                                         ),
-                                                   
+
                                                         Divider(
                                                           color: secondaryColor,
                                                         ),
@@ -1032,7 +1131,10 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                   size.width *
                                                                       0.2,
                                                               child: Text(
-                                                                "${EtherAmount.fromUnitAndValue(EtherUnit.gwei, total).getValueInUnit(EtherUnit.ether)} ETH",
+                                                                "${EtherAmount.fromUnitAndValue(EtherUnit.gwei, total).getValueInUnit(EtherUnit.ether)} " +
+                                                                    cryptoUnits[
+                                                                        EtherUnit
+                                                                            .ether]!,
                                                                 overflow:
                                                                     TextOverflow
                                                                         .ellipsis,
@@ -1097,18 +1199,25 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                             value: EtherAmount
                                                                 .fromUnitAndValue(
                                                                     selectedEtherUnit,
-                                                                    amount),
+                                                                    BigInt.from(
+                                                                        int.parse(
+                                                                            amount!))),
                                                           ),
                                                           chainId:
                                                               chainId.toInt(),
                                                         )
                                                             .catchError((error,
                                                                 stackTrace) {
-                                                          
-                                                          showNotification('Failed','Failed to make transaction',Colors.red); 
+                                                          showNotification(
+                                                              'Failed',
+                                                              'Failed to make transaction',
+                                                              Colors.red);
                                                         });
-                                                        showNotification('Success','Transaction made',Colors.green); 
-                                                        
+                                                        showNotification(
+                                                            'Success',
+                                                            'Transaction made',
+                                                            Colors.green);
+
                                                         setState(() {
                                                           loading = false;
                                                         });
@@ -1133,12 +1242,14 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                           parameters: [
                                                             EthereumAddress.fromHex(
                                                                 receiverPublicAddress!),
-                                                            BigInt.from((double
-                                                                    .parse(
-                                                                        amount!) *
-                                                                BigInt.from(pow(
-                                                                        10, 18))
-                                                                    .toDouble())),
+                                                            BigInt.from(
+                                                              (double.parse(
+                                                                      amount!) *
+                                                                  BigInt.from(pow(
+                                                                          10,
+                                                                          18))
+                                                                      .toDouble()),
+                                                            ),
                                                           ],
                                                         );
 
@@ -1167,7 +1278,10 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                         });
                                                         if (await transfer !=
                                                             null) {
-                                                          showNotification(notifTitle,notifBody,notifColor); 
+                                                          showNotification(
+                                                              notifTitle,
+                                                              notifBody,
+                                                              notifColor);
                                                         }
                                                       }
                                                     },

@@ -148,31 +148,68 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                             ],
                           ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        child: Column(
                           children: [
-                            Jazzicon.getIconWidget(
-                                Jazzicon.getJazziconData(160,
-                                    address: walletData['publicKey']),
-                                size: 25),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Expanded(
-                              child: Text(
-                                walletData['name'],
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 3,
-                                textAlign: TextAlign.start,
-                                style: GoogleFonts.montserrat(
-                                  textStyle: const TextStyle(
-                                    color: secondaryColor,
-                                    fontSize: 25,
-                                    fontWeight: FontWeight.w700,
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Jazzicon.getIconWidget(
+                                    Jazzicon.getJazziconData(160,
+                                        address: walletData['publicKey']),
+                                    size: 25),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    walletData['name'],
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 3,
+                                    textAlign: TextAlign.start,
+                                    style: GoogleFonts.montserrat(
+                                      textStyle: const TextStyle(
+                                        color: secondaryColor,
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
+                              ],
                             ),
+                          SizedBox(
+                                  height: 20,
+                                ),
+                          Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Image.network(
+                                  appData!.get('AVAILABLE_ETHER_NETWORKS')[
+                                      widget.networkId]['image'],
+                                  width: 20,
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Expanded(
+                                  child: Text(
+                                    appData!.get('AVAILABLE_ETHER_NETWORKS')[
+                                        widget.networkId]['name'],
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 3,
+                                    textAlign: TextAlign.start,
+                                    style: GoogleFonts.montserrat(
+                                      textStyle: const TextStyle(
+                                        color: secondaryColor,
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.w400,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          
                           ],
                         ),
                       ),
