@@ -143,10 +143,15 @@ class _HomeScreenState extends State<HomeScreen> {
         .doc(appStablecoins!["UZSO"])
         .get();
 
+    // Check network availability
     if (appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId] == null) {
+      selectedNetworkId = "mainnet";
+      selectedNetworkName = "Ethereum Mainnet";
+    } else {
       if (!appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]
           ['active']) {
         selectedNetworkId = "mainnet";
+        selectedNetworkName = "Ethereum Mainnet";
       }
     }
     web3client = Web3Client(
@@ -160,18 +165,25 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // UZSO Contract
     // final contractResponse = await httpClient.get(Uri.parse(
-    //     "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${uzsoFirebase!.id}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+    //     "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${uzsoFirebase!.id}&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+
+// ENC CODE
+    print("RGREGRE");
+    EncryptionService encryptionService = EncryptionService();
+    print(encryptionService.enc(
+        "https://polygon-mainnet.g.alchemy.com/v2/YgO0GQyVRAGAm6r2sziRQkLwx7f41zJn"));
 
     if (jsonDecode(uzsoFirebase!.get('contract_abi')) != null) {
       uzsoContract = DeployedContract(
-          ContractAbi.fromJson(jsonEncode(jsonDecode(uzsoFirebase!.get('contract_abi'))),
+          ContractAbi.fromJson(
+              jsonEncode(jsonDecode(uzsoFirebase!.get('contract_abi'))),
               "UZSOImplementation"),
           EthereumAddress.fromHex(uzsoFirebase!.id));
     }
 
     // get balance
     final responseBalance = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=tokenbalance&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=tokenbalance&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
     dynamic jsonBodyBalance = jsonDecode(responseBalance.body);
     EtherAmount valueBalance =
         EtherAmount.fromUnitAndValue(EtherUnit.wei, jsonBodyBalance['result']);
@@ -183,14 +195,14 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // get txs
     final response = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=tokentx&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&page=1&offset=10&startblock=0&endblock=99999999&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=tokentx&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&page=1&offset=10&startblock=0&endblock=99999999&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
     dynamic jsonBody = jsonDecode(response.body);
     List valueTxs = jsonBody['result'];
     // remove duplicates
     final jsonList = valueTxs.map((item) => jsonEncode(item)).toList();
     final uniqueJsonList = jsonList.toSet().toList();
     valueTxs = uniqueJsonList.map((item) => jsonDecode(item)).toList();
-   
+
     setState(() {
       walletData['publicKey'] != null
           ? publicKey = walletData['publicKey']
@@ -357,6 +369,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceEvenly,
                                       children: [
+                                        Image.network(
+                                          appData!.get(
+                                                  'AVAILABLE_OZOD_NETWORKS')[
+                                              selectedNetworkId]['image'],
+                                          width: 30,
+                                        ),
+                                        SizedBox(
+                                          width: 5,
+                                        ),
                                         Container(
                                           // width: size.width * 0.6 - 20,
                                           child: Text(
@@ -385,30 +406,33 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 vertical: 10),
                                             child: Row(
                                               mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
+                                                  MainAxisAlignment.start,
                                               children: [
+                                                Image.network(
+                                                  appData!.get(
+                                                          'AVAILABLE_OZOD_NETWORKS')[
+                                                      networkId]['image'],
+                                                  width: 30,
+                                                ),
+                                                SizedBox(
+                                                  width: 5,
+                                                ),
                                                 // Image + symbol
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      appData!.get(
-                                                              'AVAILABLE_OZOD_NETWORKS')[
-                                                          networkId]['name'],
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: GoogleFonts
-                                                          .montserrat(
-                                                        textStyle:
-                                                            const TextStyle(
-                                                          color: secondaryColor,
-                                                          fontSize: 20,
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                        ),
-                                                      ),
+                                                Text(
+                                                  appData!.get(
+                                                          'AVAILABLE_OZOD_NETWORKS')[
+                                                      networkId]['name'],
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 2,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: const TextStyle(
+                                                      color: secondaryColor,
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                     ),
-                                                  ],
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -418,6 +442,47 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                               ),
+                              SizedBox(height: 20),
+
+                              if (appData!.get('AVAILABLE_ETHER_NETWORKS')[
+                                  selectedNetworkId]['is_testnet'])
+                                Container(
+                                  margin: EdgeInsets.symmetric(horizontal: 40),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: Colors.red, width: 1.0),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  padding: EdgeInsets.all(15),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        CupertinoIcons
+                                            .exclamationmark_circle_fill,
+                                        color: Colors.red,
+                                      ),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          "This is a test blockchain network. Assets in this chain do not have real value",
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 5,
+                                          textAlign: TextAlign.start,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              overflow: TextOverflow.ellipsis,
+                                              color:  secondaryColor,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w300,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               SizedBox(height: 20),
 
                               // Wallet
@@ -580,8 +645,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                               await Clipboard.setData(
                                                   ClipboardData(
                                                       text: publicKey));
-                                              showNotification('Copied', 'Public key copied', greenColor);
-                                              
+                                              showNotification(
+                                                  'Copied',
+                                                  'Public key copied',
+                                                  greenColor);
                                             },
                                             icon: Icon(
                                               CupertinoIcons.doc,
@@ -784,8 +851,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                             () async {
                                                                           await Clipboard.setData(
                                                                               ClipboardData(text: publicKey));
-                                                                              showNotification('Copied','Public key copied', greenColor);
-                                                                          
+                                                                          showNotification(
+                                                                              'Copied',
+                                                                              'Public key copied',
+                                                                              greenColor);
                                                                         },
                                                                         icon:
                                                                             Icon(
@@ -1094,7 +1163,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                     .green,
                                                               ),
                                                         Text(
-                                                          "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp'])* 1000))}",
+                                                          "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000))}",
                                                           overflow: TextOverflow
                                                               .ellipsis,
                                                           textAlign:

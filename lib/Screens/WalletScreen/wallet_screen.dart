@@ -163,6 +163,23 @@ class _WalletScreenState extends State<WalletScreen> {
         .doc('data')
         .get();
 
+    // Check network availability
+    if (appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId] == null) {
+      selectedNetworkId = "mainnet";
+      selectedNetworkName = "Ethereum Mainnet";
+    } else {
+      if (!appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]
+          ['active']) {
+        selectedNetworkId = "mainnet";
+        selectedNetworkName = "Ethereum Mainnet";
+      }
+    }
+
+    // Get coin unit
+    cryptoUnits[EtherUnit.ether] =
+        appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['unit'];
+
+    // Web3 client
     web3client = Web3Client(
         EncryptionService().dec(appDataNodes!.get(appData!
             .get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['node'])),
@@ -184,7 +201,7 @@ class _WalletScreenState extends State<WalletScreen> {
       for (Map asset in walletFirebase!.get('assets')) {
         if (asset['network'] == selectedNetworkId) {
           final response = await httpClient.get(Uri.parse(
-              "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}/api?module=contract&action=getabi&address=${asset['address']}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+              "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${asset['address']}&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
 
           if (int.parse(jsonDecode(response.body)['status'].toString()) == 1) {
             final contract = DeployedContract(
@@ -212,7 +229,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
     // get txs
     final response = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}//api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+        "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
     dynamic jsonBody = jsonDecode(response.body);
     List valueTxs = jsonBody['result'];
 
@@ -390,6 +407,15 @@ class _WalletScreenState extends State<WalletScreen> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceEvenly,
                                       children: [
+                                        Image.network(
+                                          appData!.get(
+                                                  'AVAILABLE_ETHER_NETWORKS')[
+                                              selectedNetworkId]['image'],
+                                          width: 30,
+                                        ),
+                                        SizedBox(
+                                          width: 5,
+                                        ),
                                         Container(
                                           // width: size.width * 0.6 - 20,
                                           child: Text(
@@ -418,30 +444,33 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 vertical: 10),
                                             child: Row(
                                               mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
+                                                  MainAxisAlignment.start,
                                               children: [
+                                                Image.network(
+                                                  appData!.get(
+                                                          'AVAILABLE_ETHER_NETWORKS')[
+                                                      networkId]['image'],
+                                                  width: 30,
+                                                ),
+                                                SizedBox(
+                                                  width: 5,
+                                                ),
                                                 // Image + symbol
-                                                Row(
-                                                  children: [
-                                                    Text(
-                                                      appData!.get(
-                                                              'AVAILABLE_ETHER_NETWORKS')[
-                                                          networkId]['name'],
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      style: GoogleFonts
-                                                          .montserrat(
-                                                        textStyle:
-                                                            const TextStyle(
-                                                          color: secondaryColor,
-                                                          fontSize: 20,
-                                                          fontWeight:
-                                                              FontWeight.w400,
-                                                        ),
-                                                      ),
+                                                Text(
+                                                  appData!.get(
+                                                          'AVAILABLE_ETHER_NETWORKS')[
+                                                      networkId]['name'],
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 2,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: const TextStyle(
+                                                      color: secondaryColor,
+                                                      fontSize: 20,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                     ),
-                                                  ],
+                                                  ),
                                                 ),
                                               ],
                                             ),
@@ -451,6 +480,47 @@ class _WalletScreenState extends State<WalletScreen> {
                                   ),
                                 ),
                               ),
+                              SizedBox(height: 20),
+
+                              if (appData!.get('AVAILABLE_ETHER_NETWORKS')[
+                                  selectedNetworkId]['is_testnet'])
+                                Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: Colors.red, width: 1.0),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  padding: EdgeInsets.all(15),
+                                  margin: EdgeInsets.symmetric(horizontal: 40),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        CupertinoIcons
+                                            .exclamationmark_circle_fill,
+                                        color: Colors.red,
+                                      ),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          "This is a test blockchain network. Assets in this chain do not have real value",
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 5,
+                                          textAlign: TextAlign.start,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              overflow: TextOverflow.ellipsis,
+                                              color: secondaryColor,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w300,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               SizedBox(height: 20),
 
                               // Wallet
@@ -618,7 +688,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                   style: GoogleFonts.montserrat(
                                                     textStyle: const TextStyle(
                                                       color: whiteColor,
-                                                      fontSize: 25,
+                                                      fontSize: 22,
                                                       fontWeight:
                                                           FontWeight.w700,
                                                     ),
@@ -692,8 +762,11 @@ class _WalletScreenState extends State<WalletScreen> {
                                               await Clipboard.setData(
                                                   ClipboardData(
                                                       text: publicKey));
-                                              
-                                              showNotification('Copied','Public key copied',greenColor); 
+
+                                              showNotification(
+                                                  'Copied',
+                                                  'Public key copied',
+                                                  greenColor);
                                             },
                                             icon: Icon(
                                               CupertinoIcons.doc,
@@ -890,7 +963,10 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                             () async {
                                                                           await Clipboard.setData(
                                                                               ClipboardData(text: publicKey));
-                                                                           showNotification('Copied','Public key copied',greenColor);
+                                                                          showNotification(
+                                                                              'Copied',
+                                                                              'Public key copied',
+                                                                              greenColor);
                                                                         },
                                                                         icon:
                                                                             Icon(
@@ -1398,7 +1474,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                       ;
                                                                       final response =
                                                                           await httpClient
-                                                                              .get(Uri.parse("${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['etherscan_url']}/api?module=contract&action=getabi&address=${importingAssetContractAddress}&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+                                                                              .get(Uri.parse("${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${importingAssetContractAddress}&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
                                                                       if (int.parse(
                                                                               jsonDecode(response.body)['status'].toString()) ==
                                                                           1) {
@@ -1418,8 +1494,10 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                           ])
                                                                         });
                                                                       } else {
-                                                                        
-                                                                         showNotification('Failed','Wrong contract',Colors.red);
+                                                                        showNotification(
+                                                                            'Failed',
+                                                                            'Wrong contract',
+                                                                            Colors.red);
                                                                       }
                                                                       Navigator.of(
                                                                               context)
