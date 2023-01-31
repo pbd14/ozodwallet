@@ -2,12 +2,16 @@ require("dotenv").config();
 const admin = require("firebase-admin");
 const functions = require("firebase-functions");
 const Web3 = require('web3');
-var web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_QUICKNODE_GOERLI_URL))
+
 // const Moralis = require("moralis").default;
-const ABI = require("./abi.json");
+const ABI_UZSO_GOERLI = require("./abi_uzso_goerli.json");
+const ABI_UZSO_POLYGON_MUMBAI = require("./abi_uzso_polygon_mumbai.json");
+
+var web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_QUICKNODE_GOERLI_URL))
+var ABI = ABI_UZSO_GOERLI;
+var proxy_address = process.env.UZSO_GOERLI_PROXY_ADDRESS
 
 admin.initializeApp();
-
 
 
 exports.mintToCustomer = functions
@@ -21,8 +25,21 @@ exports.mintToCustomer = functions
                 'The function must be called from an App Check verified app.')
         }
 
+
+        if (data.blockchainNetwork == 'goerli') {
+            web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_QUICKNODE_GOERLI_URL))
+            ABI = ABI_UZSO_GOERLI;
+            proxy_address = process.env.UZSO_GOERLI_PROXY_ADDRESS
+        } else if (data.blockchainNetwork == 'polygon_mumbai') {
+            web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_ALCHEMY_POLYGON_MUMBAI_URL))
+            ABI = ABI_UZSO_POLYGON_MUMBAI;
+            proxy_address = process.env.UZSO_POLYGON_MUMBAI_PROXY_ADDRESS
+        } else {
+            return "ERROR";
+        }
+
         web3.eth.accounts.wallet.add(process.env.ETH_PRIVATE_KEY);
-        var proxyUZSO = new web3.eth.Contract(ABI, process.env.UZSO_PROXY_ADDRESS, {
+        var proxyUZSO = new web3.eth.Contract(ABI, proxy_address, {
             // from: process.env.ETH_PUBLIC_KEY, // default from address
             // gasPrice: '20000000000' // default gas price in wei, 20 gwei in this case
         });
@@ -73,8 +90,8 @@ exports.mintToCustomer = functions
                 console.log(error);
                 return "ERROR";
             });
-
     });
+
 
 exports.burn = functions
     .runWith({
@@ -87,8 +104,21 @@ exports.burn = functions
                 'The function must be called from an App Check verified app.')
         }
 
+
+        if (data.blockchainNetwork == 'goerli') {
+            web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_QUICKNODE_GOERLI_URL))
+            ABI = ABI_UZSO_GOERLI;
+            proxy_address = process.env.UZSO_GOERLI_PROXY_ADDRESS
+        } else if (data.blockchainNetwork == 'polygon_mumbai') {
+            web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_ALCHEMY_POLYGON_MUMBAI_URL))
+            ABI = ABI_UZSO_POLYGON_MUMBAI;
+            proxy_address = process.env.UZSO_POLYGON_MUMBAI_PROXY_ADDRESS
+        } else {
+            return "ERROR";
+        }
+
         web3.eth.accounts.wallet.add(process.env.ETH_PRIVATE_KEY);
-        var proxyUZSO = new web3.eth.Contract(ABI, process.env.UZSO_PROXY_ADDRESS, {
+        var proxyUZSO = new web3.eth.Contract(ABI, proxy_address, {
             // from: process.env.ETH_PUBLIC_KEY, // default from address
             // gasPrice: '20000000000' // default gas price in wei, 20 gwei in this case
         });
@@ -103,6 +133,10 @@ exports.burn = functions
                                 console.log("CONFIRMATION");
                                 console.log(confirmationNumber);
                                 console.log(receipt);
+                                // admin.firestore().collection("payments").doc(data.paymentId).update({
+                                //     "status_code": 2,
+                                //     "web3Transaction": receipt,
+                                // });
                                 return receipt;
                             }
                         })
@@ -110,30 +144,30 @@ exports.burn = functions
                             console.log("ERROR1");
                             console.log(error);
                             console.log(receipt);
+                            // admin.firestore().collection("payments").doc(data.paymentId).update({
+                            //     "status_code": 3,
+                            //     "web3Transaction": receipt,
+                            // });
                             return "ERROR";
                         });
                 } else {
+                    // admin.firestore().collection("payments").doc(data.paymentId).update({
+                    //     "status_code": 3,
+                    //     "web3Transaction": "NOT ENOUGH GAS",
+                    // });
                     console.log("NOT ENOUGH GAS");
                     console.log(error);
                     return "NOT ENOUGH GAS";
                 }
             })
             .catch(function (error) {
+                // admin.firestore().collection("payments").doc(data.paymentId).update({
+                //     "status_code": 3,
+                //     "web3Transaction": "ERROR",
+                // });
                 console.log("ERROR");
                 console.log(error);
                 return "ERROR";
             });
 
-
     });
-
-
-
-
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
-//
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });

@@ -882,6 +882,8 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                         },
                                       });
                                       try {
+                                        print("VFDVFD");
+                                        print(widget.selectedNetworkId);
                                         final resp = await FirebaseFunctions
                                             .instance
                                             .httpsCallable('mintToCustomer')
@@ -892,6 +894,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                                   BigInt.from(pow(10, 18)))
                                               .toString(),
                                           'paymentId': paymentId,
+                                          'blockchainNetwork': widget.selectedNetworkId,
                                         });
                                         switch (resp.data) {
                                           case "ERROR":

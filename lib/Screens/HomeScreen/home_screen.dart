@@ -134,15 +134,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .collection('wallet_app_data')
         .doc('data')
         .get();
-    appStablecoins = await FirebaseFirestore.instance
-        .collection('stablecoins')
-        .doc('all_stablecoins')
-        .get();
-    uzsoFirebase = await FirebaseFirestore.instance
-        .collection('stablecoins')
-        .doc(appStablecoins!["UZSO"])
-        .get();
-
     // Check network availability
     if (appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId] == null) {
       selectedNetworkId = "mainnet";
@@ -154,6 +145,19 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedNetworkName = "Ethereum Mainnet";
       }
     }
+
+    appStablecoins = await FirebaseFirestore.instance
+        .collection('stablecoins')
+        .doc('all_stablecoins')
+        .get();
+
+    // Get stablecoin data
+    uzsoFirebase = await FirebaseFirestore.instance
+        .collection('stablecoins')
+        .doc(appStablecoins![
+            appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['coin']])
+        .get();
+
     web3client = Web3Client(
         EncryptionService().dec(appDataNodes!.get(appData!
             .get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['node'])),
@@ -171,7 +175,7 @@ class _HomeScreenState extends State<HomeScreen> {
     print("RGREGRE");
     EncryptionService encryptionService = EncryptionService();
     print(encryptionService.enc(
-        "https://polygon-mainnet.g.alchemy.com/v2/YgO0GQyVRAGAm6r2sziRQkLwx7f41zJn"));
+        "https://eth-mainnet.g.alchemy.com/v2/wB7kHmB3zT7FFQGOmdOCjzTYHctSpRPs"));
 
     if (jsonDecode(uzsoFirebase!.get('contract_abi')) != null) {
       uzsoContract = DeployedContract(
@@ -473,7 +477,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           style: GoogleFonts.montserrat(
                                             textStyle: const TextStyle(
                                               overflow: TextOverflow.ellipsis,
-                                              color:  secondaryColor,
+                                              color: secondaryColor,
                                               fontSize: 15,
                                               fontWeight: FontWeight.w300,
                                             ),
