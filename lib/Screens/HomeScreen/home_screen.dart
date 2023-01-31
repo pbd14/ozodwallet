@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
@@ -37,6 +38,20 @@ class _HomeScreenState extends State<HomeScreen> {
   bool loading = true;
   ScrollController _scrollController = ScrollController();
   SharedPreferences? sharedPreferences;
+  Map<String, Map> cardsData = {
+    'goerli': {
+      'image': "assets/images/card_ethereum.png",
+      'color': darkColor,
+    },
+    'mainnet': {
+      'image': "assets/images/card_ethereum.png",
+      'color': darkColor,
+    },
+    'polygon_mumbai': {
+      'image': "assets/images/card_polygon.png",
+      'color': whiteColor,
+    },
+  };
 
   String publicKey = 'Loading';
   String privateKey = 'Loading';
@@ -44,8 +59,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String selectedWalletName = "Wallet1";
   String importingAssetContractAddress = "";
   String importingAssetContractSymbol = "";
-  String selectedNetworkId = "mainnet";
-  String selectedNetworkName = "Ethereum Mainnet";
+  String selectedNetworkId = "goerli";
+  String selectedNetworkName = "Goerli Testnet";
 
   EtherAmount selectedWalletBalance = EtherAmount.zero();
   EtherUnit selectedEtherUnit = EtherUnit.ether;
@@ -64,10 +79,12 @@ class _HomeScreenState extends State<HomeScreen> {
   Client httpClient = Client();
   late Web3Client web3client;
 
-  Future<void> _refresh() async {
-    setState(() {
-      loading = true;
-    });
+  Future<void> _refresh({bool isLoading = true}) async {
+    if (isLoading) {
+      setState(() {
+        loading = true;
+      });
+    }
     publicKey = 'Loading';
     privateKey = 'Loading';
     importingAssetContractAddress = "";
@@ -136,13 +153,13 @@ class _HomeScreenState extends State<HomeScreen> {
         .get();
     // Check network availability
     if (appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId] == null) {
-      selectedNetworkId = "mainnet";
-      selectedNetworkName = "Ethereum Mainnet";
+      selectedNetworkId = "goerli";
+      selectedNetworkName = "Goerli Testnet";
     } else {
       if (!appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]
           ['active']) {
-        selectedNetworkId = "mainnet";
-        selectedNetworkName = "Ethereum Mainnet";
+        selectedNetworkId = "goerli";
+        selectedNetworkName = "Goerli Testnet";
       }
     }
 
@@ -150,7 +167,6 @@ class _HomeScreenState extends State<HomeScreen> {
         .collection('stablecoins')
         .doc('all_stablecoins')
         .get();
-
     // Get stablecoin data
     uzsoFirebase = await FirebaseFirestore.instance
         .collection('stablecoins')
@@ -167,15 +183,11 @@ class _HomeScreenState extends State<HomeScreen> {
     Map walletData =
         await SafeStorageService().getWalletData(selectedWalletIndex);
 
-    // UZSO Contract
-    // final contractResponse = await httpClient.get(Uri.parse(
-    //     "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${uzsoFirebase!.id}&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
-
-// ENC CODE
-    print("RGREGRE");
-    EncryptionService encryptionService = EncryptionService();
-    print(encryptionService.enc(
-        "https://eth-mainnet.g.alchemy.com/v2/wB7kHmB3zT7FFQGOmdOCjzTYHctSpRPs"));
+    // ENC CODE
+    // print("RGREGRE");
+    // EncryptionService encryptionService = EncryptionService();
+    // print(encryptionService.enc(
+    //     "https://eth-mainnet.g.alchemy.com/v2/wB7kHmB3zT7FFQGOmdOCjzTYHctSpRPs"));
 
     if (jsonDecode(uzsoFirebase!.get('contract_abi')) != null) {
       uzsoContract = DeployedContract(
@@ -461,8 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   child: Row(
                                     children: [
                                       Icon(
-                                        CupertinoIcons
-                                            .exclamationmark_circle_fill,
+                                        CupertinoIcons.exclamationmark_circle,
                                         color: Colors.red,
                                       ),
                                       SizedBox(
@@ -490,102 +501,138 @@ class _HomeScreenState extends State<HomeScreen> {
                               SizedBox(height: 20),
 
                               // Wallet
-                              Container(
-                                width: size.width * 0.8,
-                                height: 200,
-                                padding: const EdgeInsets.all(15),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    // gradient: const LinearGradient(
-                                    //   begin: Alignment.topLeft,
-                                    //   end: Alignment.bottomRight,
-                                    //   colors: [
-                                    //     Colors.blue,
-                                    //     Colors.green,
-                                    //   ],
-                                    // ),
-                                    image: DecorationImage(
-                                        image: AssetImage(
-                                            "assets/images/card.png"),
-                                        fit: BoxFit.fill)),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Container(
-                                      width: size.width * 0.8 - 20,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Jazzicon.getIconWidget(
-                                              Jazzicon.getJazziconData(160,
-                                                  address: publicKey),
-                                              size: 25),
-                                          SizedBox(
-                                            width: 10,
+                              CarouselSlider(
+                                options: CarouselOptions(
+                                  initialPage: appData!
+                                      .get('AVAILABLE_OZOD_NETWORKS')
+                                      .keys
+                                      .toList()
+                                      .indexOf(selectedNetworkId),
+                                  height: 210.0,
+                                  onPageChanged: (index, reason) async {
+                                    String networkId = appData!
+                                        .get('AVAILABLE_OZOD_NETWORKS')
+                                        .keys
+                                        .toList()[index];
+                                    await sharedPreferences!.setString(
+                                        "selectedNetworkId",
+                                        appData!
+                                            .get('AVAILABLE_OZOD_NETWORKS')[
+                                                networkId]['id']
+                                            .toString());
+                                    await sharedPreferences!.setString(
+                                        "selectedNetworkName",
+                                        appData!
+                                            .get('AVAILABLE_OZOD_NETWORKS')[
+                                                networkId]['name']
+                                            .toString());
+                                    setState(() {
+                                      selectedNetworkId = appData!
+                                              .get('AVAILABLE_OZOD_NETWORKS')[
+                                          networkId]['id'];
+                                      selectedNetworkName = appData!
+                                              .get('AVAILABLE_OZOD_NETWORKS')[
+                                          networkId]['name'];
+                                    });
+                                    _refresh(
+                                      isLoading: false,
+                                    );
+                                  },
+                                ),
+                                items: [
+                                  for (String networkId in appData!
+                                      .get('AVAILABLE_OZOD_NETWORKS')
+                                      .keys)
+                                    Builder(
+                                      builder: (BuildContext context) {
+                                        return Container(
+                                          margin: EdgeInsets.fromLTRB(
+                                              10, 0, 10, 10),
+                                          width: size.width * 0.8,
+                                          height: 200,
+                                          padding: const EdgeInsets.all(15),
+                                          decoration: BoxDecoration(
+                                            borderRadius:
+                                                BorderRadius.circular(20.0),
+                                            // gradient: const LinearGradient(
+                                            //   begin: Alignment.topLeft,
+                                            //   end: Alignment.bottomRight,
+                                            //   colors: [
+                                            //     Colors.blue,
+                                            //     Colors.green,
+                                            //   ],
+                                            // ),
+                                            image: DecorationImage(
+                                              image: AssetImage(cardsData[
+                                                  networkId]!['image']),
+                                              fit: BoxFit.fitHeight,
+                                            ),
                                           ),
-                                          DropdownButtonHideUnderline(
-                                            child: DropdownButton<int>(
-                                              borderRadius:
-                                                  BorderRadius.circular(20.0),
-                                              dropdownColor: darkPrimaryColor,
-                                              focusColor: darkDarkColor,
-                                              iconEnabledColor: darkDarkColor,
-                                              alignment: Alignment.centerLeft,
-                                              onChanged: (walletIndex) async {
-                                                await sharedPreferences!
-                                                    .setString(
-                                                        "selectedWalletIndex",
-                                                        walletIndex.toString());
-                                                setState(() {
-                                                  selectedWalletIndex =
-                                                      walletIndex.toString();
-                                                  loading = true;
-                                                });
-                                                _refresh();
-                                              },
-                                              hint: Text(
-                                                selectedWalletName,
-                                                overflow: TextOverflow.ellipsis,
-                                                textAlign: TextAlign.start,
-                                                style: GoogleFonts.montserrat(
-                                                  textStyle: const TextStyle(
-                                                    color: darkDarkColor,
-                                                    fontSize: 25,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
-                                                ),
-                                              ),
-                                              items: [
-                                                for (Map wallet in wallets)
-                                                  DropdownMenuItem<int>(
-                                                    value: wallets
-                                                            .indexOf(wallet) +
-                                                        1,
-                                                    child: Row(
-                                                      children: [
-                                                        Jazzicon.getIconWidget(
-                                                            Jazzicon.getJazziconData(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Container(
+                                                width: size.width * 0.8 - 20,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    Jazzicon.getIconWidget(
+                                                        Jazzicon
+                                                            .getJazziconData(
                                                                 160,
-                                                                address: wallet[
-                                                                    'publicKey']),
-                                                            size: 15),
-                                                        SizedBox(
-                                                          width: 10,
-                                                        ),
-                                                        Text(
-                                                          wallet[
-                                                              wallets.indexOf(
-                                                                      wallet) +
-                                                                  1],
+                                                                address:
+                                                                    publicKey),
+                                                        size: 25),
+                                                    SizedBox(
+                                                      width: 10,
+                                                    ),
+                                                    DropdownButtonHideUnderline(
+                                                      child:
+                                                          DropdownButton<int>(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(20.0),
+                                                        dropdownColor:
+                                                            darkPrimaryColor,
+                                                        focusColor: cardsData[
+                                                                networkId]![
+                                                            'color'],
+                                                        iconEnabledColor:
+                                                            cardsData[
+                                                                    networkId]![
+                                                                'color'],
+                                                        alignment: Alignment
+                                                            .centerLeft,
+                                                        onChanged:
+                                                            (walletIndex) async {
+                                                          await sharedPreferences!
+                                                              .setString(
+                                                                  "selectedWalletIndex",
+                                                                  walletIndex
+                                                                      .toString());
+                                                          setState(() {
+                                                            selectedWalletIndex =
+                                                                walletIndex
+                                                                    .toString();
+                                                            loading = true;
+                                                          });
+                                                          _refresh();
+                                                        },
+                                                        hint: Text(
+                                                          selectedWalletName,
                                                           overflow: TextOverflow
                                                               .ellipsis,
+                                                          textAlign:
+                                                              TextAlign.start,
                                                           style: GoogleFonts
                                                               .montserrat(
                                                             textStyle:
-                                                                const TextStyle(
-                                                              color:
-                                                                  secondaryColor,
+                                                                TextStyle(
+                                                              color: cardsData[
+                                                                      networkId]![
+                                                                  'color'],
                                                               fontSize: 25,
                                                               fontWeight:
                                                                   FontWeight
@@ -593,88 +640,146 @@ class _HomeScreenState extends State<HomeScreen> {
                                                             ),
                                                           ),
                                                         ),
-                                                      ],
+                                                        items: [
+                                                          for (Map wallet
+                                                              in wallets)
+                                                            DropdownMenuItem<
+                                                                int>(
+                                                              value: wallets
+                                                                      .indexOf(
+                                                                          wallet) +
+                                                                  1,
+                                                              child: Row(
+                                                                children: [
+                                                                  Jazzicon.getIconWidget(
+                                                                      Jazzicon.getJazziconData(
+                                                                          160,
+                                                                          address:
+                                                                              wallet['publicKey']),
+                                                                      size: 15),
+                                                                  SizedBox(
+                                                                    width: 10,
+                                                                  ),
+                                                                  Text(
+                                                                    wallet[wallets
+                                                                            .indexOf(wallet) +
+                                                                        1],
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        fontSize:
+                                                                            25,
+                                                                        fontWeight:
+                                                                            FontWeight.w700,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Text(
+                                                selectedWalletBalance
+                                                        .getValueInUnit(
+                                                            selectedEtherUnit)
+                                                        .toString() +
+                                                    "  " +
+                                                    "UZSO",
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 2,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: TextStyle(
+                                                    color: cardsData[
+                                                        networkId]!['color'],
+                                                    fontSize: 30,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ),
+                                              Spacer(),
+                                              Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Expanded(
+                                                    child: Text(
+                                                      publicKey,
+                                                      maxLines: 2,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle: TextStyle(
+                                                          color: cardsData[
+                                                                  networkId]![
+                                                              'color'],
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w400,
+                                                        ),
+                                                      ),
                                                     ),
                                                   ),
-                                              ],
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                    Text(
-                                      selectedWalletBalance
-                                              .getValueInUnit(selectedEtherUnit)
-                                              .toString() +
-                                          "  " +
-                                          "UZSO",
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 2,
-                                      textAlign: TextAlign.start,
-                                      style: GoogleFonts.montserrat(
-                                        textStyle: const TextStyle(
-                                          color: darkDarkColor,
-                                          fontSize: 30,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                    Spacer(),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            publicKey,
-                                            maxLines: 2,
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: darkDarkColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w400,
+                                                  Container(
+                                                    width: 30,
+                                                    child: IconButton(
+                                                      padding: EdgeInsets.zero,
+                                                      onPressed: () async {
+                                                        await Clipboard.setData(
+                                                            ClipboardData(
+                                                                text:
+                                                                    publicKey));
+                                                        showNotification(
+                                                            'Copied',
+                                                            'Public key copied',
+                                                            greenColor);
+                                                      },
+                                                      icon: Icon(
+                                                        CupertinoIcons.doc,
+                                                        color: cardsData[
+                                                                networkId]![
+                                                            'color'],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    width: 30,
+                                                    child: IconButton(
+                                                      padding: EdgeInsets.zero,
+                                                      onPressed: () async {},
+                                                      icon: Icon(
+                                                        CupertinoIcons.settings,
+                                                        color: cardsData[
+                                                                networkId]![
+                                                            'color'],
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
-                                            ),
+                                            ],
                                           ),
-                                        ),
-                                        Container(
-                                          width: 30,
-                                          child: IconButton(
-                                            padding: EdgeInsets.zero,
-                                            onPressed: () async {
-                                              await Clipboard.setData(
-                                                  ClipboardData(
-                                                      text: publicKey));
-                                              showNotification(
-                                                  'Copied',
-                                                  'Public key copied',
-                                                  greenColor);
-                                            },
-                                            icon: Icon(
-                                              CupertinoIcons.doc,
-                                              color: darkDarkColor,
-                                            ),
-                                          ),
-                                        ),
-                                        Container(
-                                          width: 30,
-                                          child: IconButton(
-                                            padding: EdgeInsets.zero,
-                                            onPressed: () async {},
-                                            icon: Icon(
-                                              CupertinoIcons.settings,
-                                              color: darkDarkColor,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
+                                        );
+                                      },
                                     ),
-                                  ],
-                                ),
+                                ],
                               ),
                               SizedBox(height: 20),
 
