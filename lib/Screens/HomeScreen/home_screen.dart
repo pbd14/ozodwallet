@@ -184,10 +184,10 @@ class _HomeScreenState extends State<HomeScreen> {
         await SafeStorageService().getWalletData(selectedWalletIndex);
 
     // ENC CODE
-    // print("RGREGRE");
-    // EncryptionService encryptionService = EncryptionService();
-    // print(encryptionService.enc(
-    //     "https://eth-mainnet.g.alchemy.com/v2/wB7kHmB3zT7FFQGOmdOCjzTYHctSpRPs"));
+    print("CODERGREGRE");
+    EncryptionService encryptionService = EncryptionService();
+    print(encryptionService.enc(
+        "https://rpc.ankr.com/premium-http/tron/e84adb6a22d3cb13dfeccf850187e9682510541afb194bd9232c8d2cd95bb328"));
 
     if (jsonDecode(uzsoFirebase!.get('contract_abi')) != null) {
       uzsoContract = DeployedContract(
@@ -503,6 +503,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               // Wallet
                               CarouselSlider(
                                 options: CarouselOptions(
+                                  enableInfiniteScroll: false,
                                   initialPage: appData!
                                       .get('AVAILABLE_OZOD_NETWORKS')
                                       .keys

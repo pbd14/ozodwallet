@@ -264,24 +264,28 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                           });
                         },
                         decoration: InputDecoration(
-                          errorBorder: const OutlineInputBorder(
+                          errorBorder:  OutlineInputBorder(
                             borderSide:
                                 BorderSide(color: Colors.red, width: 1.0),
+                            borderRadius: BorderRadius.circular(20),
                           ),
-                          focusedBorder: const OutlineInputBorder(
+                          focusedBorder:  OutlineInputBorder(
                             borderSide:
                                 BorderSide(color: secondaryColor, width: 1.0),
+                                borderRadius: BorderRadius.circular(20),
                           ),
-                          enabledBorder: const OutlineInputBorder(
+                          enabledBorder:  OutlineInputBorder(
                             borderSide:
                                 BorderSide(color: secondaryColor, width: 1.0),
+                                borderRadius: BorderRadius.circular(20),
                           ),
                           hintStyle: TextStyle(
                               color: darkPrimaryColor.withOpacity(0.7)),
                           hintText: 'Receiver',
-                          border: const OutlineInputBorder(
+                          border:  OutlineInputBorder(
                             borderSide:
                                 BorderSide(color: secondaryColor, width: 1.0),
+                                borderRadius: BorderRadius.circular(20),
                           ),
                         ),
                       ),
