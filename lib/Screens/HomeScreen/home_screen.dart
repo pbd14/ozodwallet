@@ -10,6 +10,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/BuyOzodScreen/buy_ozod_octo_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/BuyOzodScreen/buy_ozod_payme_screen.dart';
+import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_ozod_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
@@ -69,6 +70,10 @@ class _HomeScreenState extends State<HomeScreen> {
   List selectedWalletAssets = [];
   Map selectedWalletAssetsData = {};
   List wallets = [];
+  EtherAmount? estimateGas;
+  EtherAmount? gasBalance;
+  double gasTxsLeft = 0;
+
   DocumentSnapshot? walletFirebase;
   DocumentSnapshot? appDataNodes;
   DocumentSnapshot? appDataApi;
@@ -167,6 +172,7 @@ class _HomeScreenState extends State<HomeScreen> {
         .collection('stablecoins')
         .doc('all_stablecoins')
         .get();
+
     // Get stablecoin data
     uzsoFirebase = await FirebaseFirestore.instance
         .collection('stablecoins')
@@ -184,10 +190,10 @@ class _HomeScreenState extends State<HomeScreen> {
         await SafeStorageService().getWalletData(selectedWalletIndex);
 
     // ENC CODE
-    print("CODERGREGRE");
-    EncryptionService encryptionService = EncryptionService();
-    print(encryptionService.enc(
-        "https://rpc.ankr.com/premium-http/tron/e84adb6a22d3cb13dfeccf850187e9682510541afb194bd9232c8d2cd95bb328"));
+    // print("CODERGREGRE");
+    // EncryptionService encryptionService = EncryptionService();
+    // print(encryptionService.enc(
+    //     "https://rpc.ankr.com/premium-http/tron/e84adb6a22d3cb13dfeccf850187e9682510541afb194bd9232c8d2cd95bb328"));
 
     if (jsonDecode(uzsoFirebase!.get('contract_abi')) != null) {
       uzsoContract = DeployedContract(
@@ -219,6 +225,10 @@ class _HomeScreenState extends State<HomeScreen> {
     final uniqueJsonList = jsonList.toSet().toList();
     valueTxs = uniqueJsonList.map((item) => jsonDecode(item)).toList();
 
+    // Get gas indicator data
+    estimateGas = await web3client.getGasPrice();
+    gasBalance = await web3client.getBalance(walletData['address']);
+
     setState(() {
       walletData['publicKey'] != null
           ? publicKey = walletData['publicKey']
@@ -235,6 +245,9 @@ class _HomeScreenState extends State<HomeScreen> {
       valueTxs != null
           ? selectedWalletTxs = valueTxs.toSet().toList()
           : selectedWalletTxs = [];
+      gasTxsLeft = (gasBalance!.getValueInUnit(EtherUnit.gwei) /
+              estimateGas!.getValueInUnit(EtherUnit.gwei))
+          .toDouble();
 
       loading = false;
     });
@@ -460,6 +473,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               SizedBox(height: 20),
 
+                              // Alerts
                               if (appData!.get('AVAILABLE_ETHER_NETWORKS')[
                                   selectedNetworkId]['is_testnet'])
                                 Container(
@@ -498,6 +512,45 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ],
                                   ),
                                 ),
+                              if (gasTxsLeft == 0)
+                                Container(
+                                  margin: EdgeInsets.symmetric(
+                                      horizontal: 40, vertical: 10),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                        color: Colors.red, width: 1.0),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  padding: EdgeInsets.all(15),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        CupertinoIcons.exclamationmark_circle,
+                                        color: Colors.red,
+                                      ),
+                                      SizedBox(
+                                        width: 5,
+                                      ),
+                                      Expanded(
+                                        child: Text(
+                                          "You ran out of gas. Buy more coins",
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 5,
+                                          textAlign: TextAlign.start,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              overflow: TextOverflow.ellipsis,
+                                              color: secondaryColor,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w300,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              
                               SizedBox(height: 20),
 
                               // Wallet
@@ -1201,6 +1254,103 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ],
                                 ),
                               ),
+                              const SizedBox(height: 20),
+
+                              // Gas Indicator
+                              Container(
+                                margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                                width: size.width * 0.8,
+                                // height: 200,
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: gasTxsLeft == 0
+                                        ? [
+                                            Colors.red,
+                                            Colors.orange,
+                                          ]
+                                        : [
+                                            Colors.blue,
+                                            Colors.green,
+                                          ],
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Gas Indicator",
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.start,
+                                      maxLines: 2,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: whiteColor,
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Text(
+                                      "~ ${NumberFormat.compact().format(gasTxsLeft)} Txs left",
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.start,
+                                      maxLines: 2,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: whiteColor,
+                                          fontSize: 23,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text(
+                                      "${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.start,
+                                      maxLines: 4,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: whiteColor,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    Center(
+                                      child: RoundedButton(
+                                        pw: 150,
+                                        ph: 35,
+                                        text: 'Top up gas',
+                                        press: () {
+                                          Navigator.push(
+                                            context,
+                                            SlideRightRoute(
+                                                page: BuyCryptoScreen(
+                                              walletIndex: selectedWalletIndex,
+                                              web3client: web3client,
+                                            )),
+                                          );
+                                        },
+                                        color: whiteColor,
+                                        textColor: darkPrimaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                               const SizedBox(height: 50),
 
                               // Txs
@@ -1479,6 +1629,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       ),
                                     )
                                   : Container(),
+
                               SizedBox(
                                 height: 100,
                               ),

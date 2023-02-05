@@ -626,7 +626,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                     size.width *
                                                                         0.2,
                                                                 child: Text(
-                                                                  "${etherGas.getValueInUnit(EtherUnit.gwei)} GWEI",
+                                                                  "${etherGas.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
                                                                   overflow:
                                                                       TextOverflow
                                                                           .ellipsis,
