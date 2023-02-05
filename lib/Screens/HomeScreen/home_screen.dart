@@ -25,7 +25,6 @@ import 'package:http/http.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:web3dart/web3dart.dart';
-import 'package:bip39/bip39.dart' as bip39;
 
 // ignore: must_be_immutable
 class HomeScreen extends StatefulWidget {
@@ -974,7 +973,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ],
                                   ),
                                 ),
-                              if (gasTxsLeft == 0)
+                              if (gasTxsLeft < 0)
                                 Container(
                                   margin: EdgeInsets.symmetric(
                                       horizontal: 40, vertical: 10),
@@ -1366,7 +1365,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ],
                                     ),
-                                    
+
                                     // Receive button
                                     Column(
                                       mainAxisAlignment:
@@ -1720,7 +1719,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ],
                                     ),
-                                    
+
                                     // Sell button
                                     Column(
                                       mainAxisAlignment:
@@ -1732,152 +1731,151 @@ class _HomeScreenState extends State<HomeScreen> {
                                           fillColor: secondaryColor,
                                           shape: CircleBorder(),
                                           onPressed: () {
-                                          //   showDialog(
-                                          //       barrierDismissible: false,
-                                          //       context: context,
-                                          //       builder:
-                                          //           (BuildContext context) {
-                                          //         return StatefulBuilder(
-                                          //           builder: (context,
-                                          //               StateSetter setState) {
-                                          //             return AlertDialog(
-                                          //               backgroundColor:
-                                          //                   lightPrimaryColor,
-                                          //               shape:
-                                          //                   RoundedRectangleBorder(
-                                          //                 borderRadius:
-                                          //                     BorderRadius
-                                          //                         .circular(
-                                          //                             20.0),
-                                          //               ),
-                                          //               title: const Text(
-                                          //                 'Method',
-                                          //                 style: TextStyle(
-                                          //                     color:
-                                          //                         darkPrimaryColor),
-                                          //               ),
-                                          //               content:
-                                          //                   SingleChildScrollView(
-                                          //                 child: Container(
-                                          //                   margin:
-                                          //                       EdgeInsets.all(
-                                          //                           10),
-                                          //                   child: Column(
-                                          //                     children: [
-                                          //                       // PayMe
-                                          //                       Row(
-                                          //                         mainAxisAlignment:
-                                          //                             MainAxisAlignment
-                                          //                                 .spaceEvenly,
-                                          //                         children: [
-                                          //                           Image.asset(
-                                          //                             "assets/images/payme.png",
-                                          //                             width: 80,
-                                          //                           ),
-                                          //                           SizedBox(
-                                          //                             width: 10,
-                                          //                           ),
-                                          //                           Expanded(
-                                          //                             child:
-                                          //                                 RoundedButton(
-                                          //                               pw: 250,
-                                          //                               ph: 45,
-                                          //                               text:
-                                          //                                   'PayMe',
-                                          //                               press:
-                                          //                                   () {
-                                          //                                 Navigator
-                                          //                                     .push(
-                                          //                                   context,
-                                          //                                   SlideRightRoute(
-                                          //                                     page: BuyOzodPaymeScreen(
-                                          //                                       walletIndex: selectedWalletIndex,
-                                          //                                       web3client: web3client,
-                                          //                                     ),
-                                          //                                   ),
-                                          //                                 );
-                                          //                               },
-                                          //                               color:
-                                          //                                   secondaryColor,
-                                          //                               textColor:
-                                          //                                   darkPrimaryColor,
-                                          //                             ),
-                                          //                           ),
-                                          //                         ],
-                                          //                       ),
-                                          //                       const SizedBox(
-                                          //                         height: 20,
-                                          //                       ),
-                                          //                       // Octo
-                                          //                       Row(
-                                          //                         mainAxisAlignment:
-                                          //                             MainAxisAlignment
-                                          //                                 .spaceEvenly,
-                                          //                         children: [
-                                          //                           Image.asset(
-                                          //                             "assets/images/octo.png",
-                                          //                             width: 80,
-                                          //                           ),
-                                          //                           SizedBox(
-                                          //                             width: 10,
-                                          //                           ),
-                                          //                           Expanded(
-                                          //                             child:
-                                          //                                 RoundedButton(
-                                          //                               pw: 250,
-                                          //                               ph: 45,
-                                          //                               text:
-                                          //                                   'Octo',
-                                          //                               press:
-                                          //                                   () {
-                                          //                                 Navigator
-                                          //                                     .push(
-                                          //                                   context,
-                                          //                                   SlideRightRoute(
-                                          //                                     page: BuyOzodOctoScreen(
-                                          //                                       walletIndex: selectedWalletIndex,
-                                          //                                       web3client: web3client,
-                                          //                                       selectedNetworkId: selectedNetworkId,
-                                          //                                       contract: uzsoContract!,
-                                          //                                     ),
-                                          //                                   ),
-                                          //                                 );
-                                          //                               },
-                                          //                               color: Colors
-                                          //                                   .blue,
-                                          //                               textColor:
-                                          //                                   whiteColor,
-                                          //                             ),
-                                          //                           ),
-                                          //                         ],
-                                          //                       ),
-                                          //                       const SizedBox(
-                                          //                         height: 20,
-                                          //                       ),
-                                          //                     ],
-                                          //                   ),
-                                          //                 ),
-                                          //               ),
-                                          //               actions: <Widget>[
-                                          //                 TextButton(
-                                          //                   onPressed: () =>
-                                          //                       Navigator.of(
-                                          //                               context)
-                                          //                           .pop(false),
-                                          //                   child: const Text(
-                                          //                     'Ok',
-                                          //                     style: TextStyle(
-                                          //                         color:
-                                          //                             darkPrimaryColor),
-                                          //                   ),
-                                          //                 ),
-                                          //               ],
-                                          //             );
-                                          //           },
-                                          //         );
-                                          //       });
+                                            //   showDialog(
+                                            //       barrierDismissible: false,
+                                            //       context: context,
+                                            //       builder:
+                                            //           (BuildContext context) {
+                                            //         return StatefulBuilder(
+                                            //           builder: (context,
+                                            //               StateSetter setState) {
+                                            //             return AlertDialog(
+                                            //               backgroundColor:
+                                            //                   lightPrimaryColor,
+                                            //               shape:
+                                            //                   RoundedRectangleBorder(
+                                            //                 borderRadius:
+                                            //                     BorderRadius
+                                            //                         .circular(
+                                            //                             20.0),
+                                            //               ),
+                                            //               title: const Text(
+                                            //                 'Method',
+                                            //                 style: TextStyle(
+                                            //                     color:
+                                            //                         darkPrimaryColor),
+                                            //               ),
+                                            //               content:
+                                            //                   SingleChildScrollView(
+                                            //                 child: Container(
+                                            //                   margin:
+                                            //                       EdgeInsets.all(
+                                            //                           10),
+                                            //                   child: Column(
+                                            //                     children: [
+                                            //                       // PayMe
+                                            //                       Row(
+                                            //                         mainAxisAlignment:
+                                            //                             MainAxisAlignment
+                                            //                                 .spaceEvenly,
+                                            //                         children: [
+                                            //                           Image.asset(
+                                            //                             "assets/images/payme.png",
+                                            //                             width: 80,
+                                            //                           ),
+                                            //                           SizedBox(
+                                            //                             width: 10,
+                                            //                           ),
+                                            //                           Expanded(
+                                            //                             child:
+                                            //                                 RoundedButton(
+                                            //                               pw: 250,
+                                            //                               ph: 45,
+                                            //                               text:
+                                            //                                   'PayMe',
+                                            //                               press:
+                                            //                                   () {
+                                            //                                 Navigator
+                                            //                                     .push(
+                                            //                                   context,
+                                            //                                   SlideRightRoute(
+                                            //                                     page: BuyOzodPaymeScreen(
+                                            //                                       walletIndex: selectedWalletIndex,
+                                            //                                       web3client: web3client,
+                                            //                                     ),
+                                            //                                   ),
+                                            //                                 );
+                                            //                               },
+                                            //                               color:
+                                            //                                   secondaryColor,
+                                            //                               textColor:
+                                            //                                   darkPrimaryColor,
+                                            //                             ),
+                                            //                           ),
+                                            //                         ],
+                                            //                       ),
+                                            //                       const SizedBox(
+                                            //                         height: 20,
+                                            //                       ),
+                                            //                       // Octo
+                                            //                       Row(
+                                            //                         mainAxisAlignment:
+                                            //                             MainAxisAlignment
+                                            //                                 .spaceEvenly,
+                                            //                         children: [
+                                            //                           Image.asset(
+                                            //                             "assets/images/octo.png",
+                                            //                             width: 80,
+                                            //                           ),
+                                            //                           SizedBox(
+                                            //                             width: 10,
+                                            //                           ),
+                                            //                           Expanded(
+                                            //                             child:
+                                            //                                 RoundedButton(
+                                            //                               pw: 250,
+                                            //                               ph: 45,
+                                            //                               text:
+                                            //                                   'Octo',
+                                            //                               press:
+                                            //                                   () {
+                                            //                                 Navigator
+                                            //                                     .push(
+                                            //                                   context,
+                                            //                                   SlideRightRoute(
+                                            //                                     page: BuyOzodOctoScreen(
+                                            //                                       walletIndex: selectedWalletIndex,
+                                            //                                       web3client: web3client,
+                                            //                                       selectedNetworkId: selectedNetworkId,
+                                            //                                       contract: uzsoContract!,
+                                            //                                     ),
+                                            //                                   ),
+                                            //                                 );
+                                            //                               },
+                                            //                               color: Colors
+                                            //                                   .blue,
+                                            //                               textColor:
+                                            //                                   whiteColor,
+                                            //                             ),
+                                            //                           ),
+                                            //                         ],
+                                            //                       ),
+                                            //                       const SizedBox(
+                                            //                         height: 20,
+                                            //                       ),
+                                            //                     ],
+                                            //                   ),
+                                            //                 ),
+                                            //               ),
+                                            //               actions: <Widget>[
+                                            //                 TextButton(
+                                            //                   onPressed: () =>
+                                            //                       Navigator.of(
+                                            //                               context)
+                                            //                           .pop(false),
+                                            //                   child: const Text(
+                                            //                     'Ok',
+                                            //                     style: TextStyle(
+                                            //                         color:
+                                            //                             darkPrimaryColor),
+                                            //                   ),
+                                            //                 ),
+                                            //               ],
+                                            //             );
+                                            //           },
+                                            //         );
+                                            //       });
                                           },
-                                          
                                           child: Icon(
                                             CupertinoIcons.money_dollar_circle,
                                             color: darkPrimaryColor,
@@ -1897,8 +1895,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                       ],
                                     ),
-                                  
-                                 ],
+                                  ],
                                 ),
                               ),
                               const SizedBox(height: 20),
@@ -1914,7 +1911,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   gradient: LinearGradient(
                                     begin: Alignment.topLeft,
                                     end: Alignment.bottomRight,
-                                    colors: gasTxsLeft == 0
+                                    colors: gasTxsLeft < 1
                                         ? [
                                             Colors.red,
                                             Colors.orange,
@@ -1962,6 +1959,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     Text(
                                       "${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.start,
+                                      maxLines: 4,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: whiteColor,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text(
+                                      "Gas price: ${estimateGas!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
                                       overflow: TextOverflow.ellipsis,
                                       textAlign: TextAlign.start,
                                       maxLines: 4,
@@ -2213,14 +2226,15 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                   .keys
                                                                   .contains(
                                                                       tx['to'])
-                                                              ? EtherAmount.fromUnitAndValue(
-                                                                      EtherUnit
-                                                                          .wei,
-                                                                      tx[
-                                                                          'value'])
-                                                                  .getValueInUnit(
-                                                                      selectedEtherUnit)
-                                                                  .toString()
+                                                              ? NumberFormat
+                                                                      .compact()
+                                                                  .format(EtherAmount.fromUnitAndValue(
+                                                                          EtherUnit
+                                                                              .wei,
+                                                                          tx[
+                                                                              'value'])
+                                                                      .getValueInUnit(
+                                                                          selectedEtherUnit))
                                                               : "N/A",
                                                           maxLines: 2,
                                                           overflow: TextOverflow

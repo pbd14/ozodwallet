@@ -37,7 +37,13 @@ class WalletScreen extends StatefulWidget {
 class _WalletScreenState extends State<WalletScreen> {
   bool loading = true;
   ScrollController _scrollController = ScrollController();
+  final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
   SharedPreferences? sharedPreferences;
+
+  // Settings
+  bool showSeed = false;
+  String editedName = "Wallet1";
+  final _formKey = GlobalKey<FormState>();
 
   String publicKey = 'Loading';
   String address = 'Loading';
@@ -275,7 +281,504 @@ class _WalletScreenState extends State<WalletScreen> {
     return loading
         ? const LoadingScreen()
         : Scaffold(
+            key: _scaffoldKey,
             backgroundColor: primaryColor,
+            drawer: Drawer(
+              // Add a ListView to the drawer. This ensures the user can scroll
+              // through the options in the drawer if there isn't enough vertical
+              // space to fit everything.
+              elevation: 10,
+              backgroundColor: darkPrimaryColor,
+              child: ListView(
+                // Important: Remove any padding from the ListView.
+                padding: EdgeInsets.zero,
+                children: [
+                  DrawerHeader(
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Wallet Settings",
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.start,
+                          maxLines: 2,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 25,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        SizedBox(
+                          height: 10,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20.0),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                darkPrimaryColor,
+                                darkPrimaryColor,
+                                primaryColor,
+                              ],
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Jazzicon.getIconWidget(
+                                      Jazzicon.getJazziconData(160,
+                                          address: publicKey),
+                                      size: 20),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      selectedWalletName,
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 3,
+                                      textAlign: TextAlign.start,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: secondaryColor,
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Image.network(
+                                    appData!.get('AVAILABLE_ETHER_NETWORKS')[
+                                        selectedNetworkId]['image'],
+                                    width: 20,
+                                  ),
+                                  SizedBox(
+                                    width: 10,
+                                  ),
+                                  Expanded(
+                                    child: Text(
+                                      appData!.get('AVAILABLE_ETHER_NETWORKS')[
+                                          selectedNetworkId]['name'],
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 3,
+                                      textAlign: TextAlign.start,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: secondaryColor,
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(height: 20),
+                  ListTile(
+                    leading: Icon(
+                      CupertinoIcons.plus_square,
+                      color: secondaryColor,
+                    ),
+                    title: Text(
+                      "Create wallet",
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                      maxLines: 2,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: secondaryColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        loading = true;
+                      });
+                      Navigator.push(
+                        context,
+                        SlideRightRoute(
+                          page: CreateWalletScreen(
+                            isWelcomeScreen: false,
+                          ),
+                        ),
+                      );
+                      setState(() {
+                        loading = false;
+                      });
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      CupertinoIcons.arrow_down_square,
+                      color: secondaryColor,
+                    ),
+                    title: Text(
+                      "Import wallet",
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                      maxLines: 2,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: secondaryColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      setState(() {
+                        loading = true;
+                      });
+                      Navigator.push(
+                        context,
+                        SlideRightRoute(
+                          page: ImportWalletScreen(
+                            isWelcomeScreen: false,
+                          ),
+                        ),
+                      );
+                      setState(() {
+                        loading = false;
+                      });
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.key,
+                      color: secondaryColor,
+                    ),
+                    title: Text(
+                      "Export private key",
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                      maxLines: 2,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: secondaryColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (BuildContext context) {
+                            return StatefulBuilder(
+                              builder: (context, StateSetter setState) {
+                                return AlertDialog(
+                                  backgroundColor: darkPrimaryColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                  title: const Text(
+                                    'Private Key',
+                                    style: TextStyle(color: secondaryColor),
+                                  ),
+                                  content: SingleChildScrollView(
+                                    child: Center(
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          Expanded(
+                                            child: CupertinoButton(
+                                              child: showSeed
+                                                  ? Container(
+                                                      width: size.width * 0.8,
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              20),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(20.0),
+                                                        gradient:
+                                                            const LinearGradient(
+                                                          begin:
+                                                              Alignment.topLeft,
+                                                          end: Alignment
+                                                              .bottomRight,
+                                                          colors: [
+                                                            Color.fromARGB(255,
+                                                                255, 190, 99),
+                                                            Color.fromARGB(255,
+                                                                255, 81, 83)
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      child: Text(
+                                                        privateKey,
+                                                        maxLines: 1000,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        textAlign:
+                                                            TextAlign.start,
+                                                        style: GoogleFonts
+                                                            .montserrat(
+                                                          textStyle:
+                                                              const TextStyle(
+                                                            color: whiteColor,
+                                                            fontSize: 20,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : Container(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              20),
+                                                      decoration: BoxDecoration(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(20.0),
+                                                        gradient:
+                                                            const LinearGradient(
+                                                          begin:
+                                                              Alignment.topLeft,
+                                                          end: Alignment
+                                                              .bottomRight,
+                                                          colors: [
+                                                            Color.fromARGB(255,
+                                                                255, 190, 99),
+                                                            Color.fromARGB(255,
+                                                                255, 81, 83)
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      child: Center(
+                                                          child: Icon(
+                                                        CupertinoIcons.eye_fill,
+                                                        color: whiteColor,
+                                                      )),
+                                                    ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  showSeed = !showSeed;
+                                                });
+                                              },
+                                            ),
+                                          ),
+                                          IconButton(
+                                            padding: EdgeInsets.zero,
+                                            onPressed: () async {
+                                              await Clipboard.setData(
+                                                ClipboardData(text: privateKey),
+                                              );
+                                              showNotification(
+                                                  'Copied',
+                                                  'Private key copied',
+                                                  greenColor);
+                                            },
+                                            icon: Icon(
+                                              CupertinoIcons.doc,
+                                              color: secondaryColor,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text(
+                                        'Ok',
+                                        style: TextStyle(color: secondaryColor),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          });
+
+                      // Update the state of the app
+                      // ...
+                      // Then close the drawer
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      CupertinoIcons.pencil_circle,
+                      color: secondaryColor,
+                    ),
+                    title: Text(
+                      "Edit name",
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                      maxLines: 2,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: secondaryColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (BuildContext context) {
+                            return StatefulBuilder(
+                              builder: (context, StateSetter setState) {
+                                return AlertDialog(
+                                  backgroundColor: darkPrimaryColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                  title: const Text(
+                                    'Edit name',
+                                    style: TextStyle(color: secondaryColor),
+                                  ),
+                                  content: SingleChildScrollView(
+                                    child: Form(
+                                      key: _formKey,
+                                      child: Center(
+                                        child: Column(
+                                          children: [
+                                            TextFormField(
+                                              initialValue: selectedWalletName,
+                                              style: const TextStyle(
+                                                  color: secondaryColor),
+                                              validator: (val) {
+                                                if (val!.isEmpty) {
+                                                  return 'Enter wallet name';
+                                                } else {
+                                                  return null;
+                                                }
+                                              },
+                                              keyboardType: TextInputType.name,
+                                              onChanged: (val) {
+                                                setState(() {
+                                                  editedName = val;
+                                                });
+                                              },
+                                              decoration: InputDecoration(
+                                                errorBorder:
+                                                    const OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Colors.red,
+                                                      width: 1.0),
+                                                ),
+                                                focusedBorder:
+                                                    const OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: secondaryColor,
+                                                      width: 1.0),
+                                                ),
+                                                enabledBorder:
+                                                    const OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: secondaryColor,
+                                                      width: 1.0),
+                                                ),
+                                                hintStyle: TextStyle(
+                                                    color: darkPrimaryColor
+                                                        .withOpacity(0.7)),
+                                                hintText: 'Name',
+                                                labelStyle: TextStyle(
+                                                  color: secondaryColor,
+                                                ),
+                                                labelText: "Name",
+                                                border:
+                                                    const OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: secondaryColor,
+                                                      width: 1.0),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 100),
+                                            Center(
+                                              child: RoundedButton(
+                                                pw: 250,
+                                                ph: 45,
+                                                text: 'Edit',
+                                                press: () async {
+                                                  if (_formKey.currentState!
+                                                          .validate() &&
+                                                      editedName != null &&
+                                                      editedName.isNotEmpty) {
+                                                    Navigator.of(context)
+                                                        .pop(true);
+                                                    setState(() {
+                                                      loading = true;
+                                                    });
+                                                    await SafeStorageService()
+                                                        .editWalletName(
+                                                            selectedWalletIndex,
+                                                            editedName);
+                                                    _refresh();
+                                                  }
+                                                },
+                                                color: secondaryColor,
+                                                textColor: darkPrimaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text(
+                                        'Ok',
+                                        style: TextStyle(color: secondaryColor),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          });
+
+                      // Update the state of the app
+                      // ...
+                      // Then close the drawer
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
             body: RefreshIndicator(
               backgroundColor: darkPrimaryColor,
               color: secondaryColor,
@@ -778,7 +1281,10 @@ class _WalletScreenState extends State<WalletScreen> {
                                           width: 30,
                                           child: IconButton(
                                             padding: EdgeInsets.zero,
-                                            onPressed: () async {},
+                                            onPressed: () async {
+                                              _scaffoldKey.currentState!
+                                                  .openDrawer();
+                                            },
                                             icon: Icon(
                                               CupertinoIcons.settings,
                                               color: whiteColor,
@@ -1768,13 +2274,15 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                   .keys
                                                                   .contains(
                                                                       tx['to'])
-                                                              ? EtherAmount.fromUnitAndValue(
-                                                                      EtherUnit
-                                                                          .wei,
-                                                                      tx[
-                                                                          'value'])
-                                                                  .getValueInUnit(
-                                                                      selectedEtherUnit)
+                                                              ? NumberFormat
+                                                                      .compact()
+                                                                  .format(EtherAmount.fromUnitAndValue(
+                                                                          EtherUnit
+                                                                              .wei,
+                                                                          tx[
+                                                                              'value'])
+                                                                      .getValueInUnit(
+                                                                          selectedEtherUnit))
                                                                   .toString()
                                                               : "N/A",
                                                           maxLines: 2,

@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart';
@@ -6,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
@@ -54,6 +57,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
   Client httpClient = Client();
   firestore.DocumentSnapshot? walletFirebase;
   firestore.DocumentSnapshot? appData;
+  TextEditingController textEditingController = TextEditingController();
 
   Future<void> prepare() async {
     appData = await firestore.FirebaseFirestore.instance
@@ -247,45 +251,165 @@ class _SendTxScreenState extends State<SendTxScreen> {
                       const SizedBox(
                         height: 10,
                       ),
-                      TextFormField(
-                        style: const TextStyle(color: secondaryColor),
-                        validator: (val) {
-                          if (val!.isEmpty) {
-                            return 'Enter receiver';
-                          } else {
-                            return null;
-                          }
-                        },
-                        keyboardType: TextInputType.visiblePassword,
-                        onChanged: (val) {
-                          setState(() {
-                            receiverPublicAddress = val;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          errorBorder:  OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.red, width: 1.0),
-                                borderRadius: BorderRadius.circular(20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Expanded(
+                            child: TextFormField(
+                              controller: textEditingController,
+                              style: const TextStyle(color: secondaryColor),
+                              validator: (val) {
+                                if (val!.isEmpty) {
+                                  return 'Enter receiver';
+                                } else {
+                                  return null;
+                                }
+                              },
+                              keyboardType: TextInputType.visiblePassword,
+                              onChanged: (val) {
+                                setState(() {
+                                  receiverPublicAddress = val;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                errorBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.red, width: 1.0),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: secondaryColor, width: 1.0),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: secondaryColor, width: 1.0),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                hintStyle: TextStyle(
+                                    color: darkPrimaryColor.withOpacity(0.7)),
+                                hintText: 'Receiver',
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: secondaryColor, width: 1.0),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                            ),
                           ),
-                          focusedBorder:  OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: secondaryColor, width: 1.0),borderRadius: BorderRadius.circular(20),
+                        IconButton(
+                            onPressed: () {
+                              showDialog(
+                                  barrierDismissible: false,
+                                  context: context,
+                                  builder: (BuildContext context) {
+                                    return StatefulBuilder(
+                                      builder: (context, StateSetter setState) {
+                                        return AlertDialog(
+                                          backgroundColor: darkPrimaryColor,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(20.0),
+                                          ),
+                                          title: const Text(
+                                            'QR Code',
+                                            style: TextStyle(
+                                                color: secondaryColor),
+                                          ),
+                                          content: SingleChildScrollView(
+                                            child: Container(
+                                              margin: EdgeInsets.all(0),
+                                              child: Column(
+                                                children: [
+                                                  Container(
+                                                    height: 300,
+                                                    padding:
+                                                        const EdgeInsets.all(
+                                                            10),
+                                                    decoration: BoxDecoration(
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20.0),
+                                                      gradient:
+                                                          const LinearGradient(
+                                                        begin:
+                                                            Alignment.topLeft,
+                                                        end: Alignment
+                                                            .bottomRight,
+                                                        colors: [
+                                                          darkPrimaryColor,
+                                                          primaryColor
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    child: MobileScanner(
+                                                        allowDuplicates: false,
+                                                        onDetect:
+                                                            (barcode, args) {
+                                                          if (barcode
+                                                                  .rawValue ==
+                                                              null) {
+                                                            showNotification(
+                                                                'Failed',
+                                                                'Failed to find code',
+                                                                Colors.red);
+                                                          } else {
+                                                            setState(() {
+                                                              Iterable<int> bytes = barcode
+                                                                      .rawValue!.runes;
+                                                                      utf8.decode(bytes.toList());
+                                                              
+                                                              textEditingController
+                                                                      .text =
+                                                                  EthereumAddress(Uint8List.fromList(json.decode(utf8.decode(bytes.toList())).cast<int>().toList())).toString();
+                                                              receiverPublicAddress =
+                                                                  EthereumAddress(Uint8List.fromList(json.decode(utf8.decode(bytes.toList())).cast<int>().toList())).toString();
+                                                            });
+                                                            Navigator.of(
+                                                                    context)
+                                                                .pop(true);
+                                                            showNotification(
+                                                                'Success',
+                                                                'Public key found',
+                                                                Colors.green);
+                                                          }
+                                                        }),
+                                                  ),
+                                                  SizedBox(
+                                                    height: 10,
+                                                  ),
+                                                  SizedBox(
+                                                    height: 20,
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          actions: <Widget>[
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.of(context)
+                                                      .pop(false),
+                                              child: const Text(
+                                                'Ok',
+                                                style: TextStyle(
+                                                    color: secondaryColor),
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+                                  });
+                            },
+                            icon: Icon(
+                              CupertinoIcons.qrcode,
+                              color: secondaryColor,
+                            ),
                           ),
-                          enabledBorder:  OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: secondaryColor, width: 1.0),
-                                borderRadius: BorderRadius.circular(20),
-                          ),
-                          hintStyle: TextStyle(
-                              color: darkPrimaryColor.withOpacity(0.7)),
-                          hintText: 'Receiver',
-                          border:  OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: secondaryColor, width: 1.0),
-                                borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
+                        
+                        ],
                       ),
                       const SizedBox(height: 30),
                       Text(
@@ -490,11 +614,11 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 } else if (selectedAsset['symbol'] != 'ETH' &&
                                     val.contains('.')) {
                                   return 'Only integers';
-                                } else if (selectedAsset['symbol'] == 'ETH' && selectedEtherUnit == EtherUnit.wei &&
+                                } else if (selectedAsset['symbol'] == 'ETH' &&
+                                    selectedEtherUnit == EtherUnit.wei &&
                                     val.contains('.')) {
                                   return 'Only integers';
-                                }
-                                else {
+                                } else {
                                   return null;
                                 }
                               },
@@ -735,7 +859,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                     height: 10,
                                                   ),
                                                   Text(
-                                                    amount!,
+                                                    NumberFormat.compact().format(double.parse(amount!)),
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     maxLines: 3,
