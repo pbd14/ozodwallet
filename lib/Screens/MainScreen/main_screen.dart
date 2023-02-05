@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ozodwallet/Screens/HomeScreen/home_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/wallet_screen.dart';
 import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
@@ -35,7 +36,7 @@ class _MainScreenState extends State<MainScreen> {
       HomeScreen(),
       WalletScreen(),
       // LoyaltyScreen(),
-      WalletScreen(),
+      // WalletScreen(),
     ];
   }
 
@@ -58,18 +59,32 @@ class _MainScreenState extends State<MainScreen> {
     return [
       // if (!kIsWeb)
       PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.money_dollar),
+        icon: const Icon(Icons.wallet),
         title: ("Home"),
         activeColorPrimary: secondaryColor,
-        activeColorSecondary: secondaryColor,
+        activeColorSecondary: darkPrimaryColor,
         inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
+        textStyle: GoogleFonts.montserrat(
+          textStyle: const TextStyle(
+            color: darkPrimaryColor,
+            // fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
       PersistentBottomNavBarItem(
         icon: const Icon(CupertinoIcons.suit_diamond_fill),
         title: ("Ethereum"),
         activeColorPrimary: secondaryColor,
-        activeColorSecondary: secondaryColor,
+        activeColorSecondary: darkPrimaryColor,
         inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
+        textStyle: GoogleFonts.montserrat(
+          textStyle: const TextStyle(
+            color: darkPrimaryColor,
+            // fontSize: 20,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ),
       // PersistentBottomNavBarItem(
       //   icon: const Icon(CupertinoIcons.square_grid_3x2_fill),
@@ -78,13 +93,13 @@ class _MainScreenState extends State<MainScreen> {
       //   activeColorSecondary: secondaryColor,
       //   inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
       // ),
-      PersistentBottomNavBarItem(
-        icon: const Icon(CupertinoIcons.person),
-        title: ("Profile"),
-        activeColorPrimary: secondaryColor,
-        activeColorSecondary: secondaryColor,
-        inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
-      ),
+      // PersistentBottomNavBarItem(
+      //   icon: const Icon(CupertinoIcons.person),
+      //   title: ("Profile"),
+      //   activeColorPrimary: secondaryColor,
+      //   activeColorSecondary: secondaryColor,
+      //   inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
+      // ),
     ];
   }
 
@@ -148,6 +163,7 @@ class _MainScreenState extends State<MainScreen> {
                 controller: _controller,
                 screens: _buildScreens(),
                 items: _navBarsItems(),
+                navBarHeight: 60,
                 confineInSafeArea: true,
                 backgroundColor: darkPrimaryColor, // Default is Colors.white.
                 handleAndroidBackButtonPress: true, // Default is true.
@@ -173,7 +189,7 @@ class _MainScreenState extends State<MainScreen> {
                   curve: Curves.ease,
                   duration: Duration(milliseconds: 200),
                 ),
-                navBarStyle: NavBarStyle.style13,
+                navBarStyle: NavBarStyle.style7,
                 margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
               );
   }

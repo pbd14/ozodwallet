@@ -1,4 +1,3 @@
-
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:web3dart/web3dart.dart';
 
@@ -31,7 +30,7 @@ class SafeStorageService {
     for (int i = 1; i <= int.parse(lastWalletIndex!) - 1; i++) {
       String? valuePublicKey = await storage.read(key: 'publicKey${i}');
       String? valueName = await storage.read(key: 'Wallet${i}');
-      wallets.add({i: valueName, 'publicKey':valuePublicKey});
+      wallets.add({i: valueName, 'publicKey': valuePublicKey});
     }
     return wallets;
   }
@@ -42,9 +41,12 @@ class SafeStorageService {
     await storage.write(key: "publicKey${walletIndex}", value: publicKey);
     await storage.write(key: "password${walletIndex}", value: password);
     await storage.write(key: "Wallet${walletIndex}", value: name);
-    await storage.write(key: "walletExists", value: 'true');
     await storage.write(
         key: "lastWalletIndex", value: (int.parse(walletIndex) + 1).toString());
     await storage.write(key: "walletExists", value: 'true');
+  }
+
+  Future<void> editWalletName(String walletIndex, String name) async {
+    await storage.write(key: "Wallet${walletIndex}", value: name);
   }
 }

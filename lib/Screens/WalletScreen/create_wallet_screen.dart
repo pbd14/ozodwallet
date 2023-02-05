@@ -262,7 +262,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                         style: const TextStyle(color: secondaryColor),
                         validator: (val) {
                           if (val!.isEmpty) {
-                            return 'Enter your name';
+                            return 'Enter wallet name';
                           } else {
                             return null;
                           }
