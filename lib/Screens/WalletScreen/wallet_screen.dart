@@ -793,51 +793,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           child: Column(
                             children: [
                               SizedBox(height: size.height * 0.1),
-                              RoundedButton(
-                                pw: 250,
-                                ph: 45,
-                                text: 'Create wallet',
-                                press: () {
-                                  Navigator.push(
-                                    context,
-                                    SlideRightRoute(
-                                      page: CreateWalletScreen(
-                                        isWelcomeScreen: false,
-                                      ),
-                                    ),
-                                  );
-                                },
-                                color: secondaryColor,
-                                textColor: darkPrimaryColor,
-                              ),
-                              const SizedBox(
-                                height: 20,
-                              ),
-                              RoundedButton(
-                                pw: 250,
-                                ph: 45,
-                                text: 'Import wallet',
-                                press: () {
-                                  setState(() {
-                                    loading = true;
-                                  });
-                                  Navigator.push(
-                                    context,
-                                    SlideRightRoute(
-                                      page: ImportWalletScreen(
-                                        isWelcomeScreen: false,
-                                      ),
-                                    ),
-                                  );
-                                  setState(() {
-                                    loading = false;
-                                  });
-                                },
-                                color: darkPrimaryColor,
-                                textColor: secondaryColor,
-                              ),
-                              SizedBox(height: 50),
-
+                              
                               // Blockchain network
                               Container(
                                 margin: EdgeInsets.symmetric(horizontal: 40),

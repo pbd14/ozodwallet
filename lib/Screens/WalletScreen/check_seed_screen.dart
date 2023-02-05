@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hex/hex.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
@@ -81,6 +82,21 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                       SizedBox(
                         height: size.height * 0.1,
                       ),
+                      const SizedBox(
+                        height: 10,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(0.0),
+                        child: Text(
+                          error,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: Colors.red,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
                       Text(
                         "Check seed phrase",
                         overflow: TextOverflow.ellipsis,
@@ -148,24 +164,28 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                               });
                             },
                             decoration: InputDecoration(
-                              errorBorder: const OutlineInputBorder(
+                              errorBorder: OutlineInputBorder(
                                 borderSide:
                                     BorderSide(color: Colors.red, width: 1.0),
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                              focusedBorder: const OutlineInputBorder(
+                              focusedBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
                                     color: darkPrimaryColor, width: 1.0),
+                                borderRadius: BorderRadius.circular(20),
                               ),
-                              enabledBorder: const OutlineInputBorder(
+                              enabledBorder: OutlineInputBorder(
                                 borderSide: BorderSide(
                                     color: darkPrimaryColor, width: 1.0),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                               hintStyle: TextStyle(
                                   color: darkPrimaryColor.withOpacity(0.7)),
                               hintText: 'Seed phrase',
-                              border: const OutlineInputBorder(
+                              border: OutlineInputBorder(
                                 borderSide: BorderSide(
                                     color: darkPrimaryColor, width: 1.0),
+                                borderRadius: BorderRadius.circular(20),
                               ),
                             ),
                           ),
@@ -173,18 +193,6 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                       ),
                       const SizedBox(
                         height: 10,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Text(
-                          error,
-                          style: GoogleFonts.montserrat(
-                            textStyle: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ),
                       ),
                       const SizedBox(height: 50),
                       Center(
@@ -199,72 +207,89 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                             if (_formKey.currentState!.validate()) {
                               if (userMnemonicPhrase == mnemonicPhrase!) {
                                 if (validateMnemonic(mnemonicPhrase!)) {
-                                  final seed = mnemonicToSeed(mnemonicPhrase!);
-                                  final master = await ED25519_HD_KEY
-                                      .getMasterKeyFromSeed(seed);
-                                  final privateKey = HEX.encode(master.key);
-                                  final publicKey =
-                                      EthPrivateKey.fromHex(privateKey).address;
-                                  AndroidOptions _getAndroidOptions() =>
-                                      const AndroidOptions(
-                                        encryptedSharedPreferences: true,
-                                      );
+                                  try {
+                                    final seed =
+                                        mnemonicToSeed(mnemonicPhrase!);
+                                    final master = await ED25519_HD_KEY
+                                        .getMasterKeyFromSeed(seed);
+                                    final privateKey = HEX.encode(master.key);
+                                    final publicKey =
+                                        EthPrivateKey.fromHex(privateKey)
+                                            .address;
+                                    AndroidOptions _getAndroidOptions() =>
+                                        const AndroidOptions(
+                                          encryptedSharedPreferences: true,
+                                        );
 
-                                  final storage = FlutterSecureStorage(
-                                      aOptions: _getAndroidOptions());
-                                  String? lastWalletIndex;
-                                  if (!widget.isWelcomeScreen) {
-                                    lastWalletIndex = await storage.read(
-                                        key: "lastWalletIndex");
-                                  } else {
-                                    lastWalletIndex = "1";
-                                  }
-
-                                  if (lastWalletIndex != null) {
-                                    await SafeStorageService().addNewWallet(
-                                        lastWalletIndex,
-                                        privateKey,
-                                        publicKey.toString(),
-                                        widget.password,
-                                        widget.name);
-
-                                    // ignore: unused_local_variable
-                                    Wallet wallet = Wallet.createNew(
-                                        EthPrivateKey.fromHex(privateKey),
-                                        widget.password,
-                                        Random());
-
-                                    await FirebaseFirestore.instance
-                                        .collection('wallets')
-                                        .doc(publicKey.toString())
-                                        .set({
-                                      'loyalty_programs': [],
-                                      'public_key': publicKey.toString(),
-                                      'assets': [],
-                                    });
-                                    if (widget.isWelcomeScreen) {
-                                      Navigator.pop(context);
-                                      Navigator.pop(context);
+                                    final storage = FlutterSecureStorage(
+                                        aOptions: _getAndroidOptions());
+                                    String? lastWalletIndex;
+                                    if (!widget.isWelcomeScreen) {
+                                      lastWalletIndex = await storage.read(
+                                          key: "lastWalletIndex");
+                                    } else {
+                                      lastWalletIndex = "1";
                                     }
 
-                                    Navigator.pop(context);
-                                    Navigator.pop(context);
-                                  } else {
+                                    if (lastWalletIndex != null) {
+                                      await SafeStorageService().addNewWallet(
+                                          lastWalletIndex,
+                                          privateKey,
+                                          publicKey.toString(),
+                                          widget.password,
+                                          widget.name);
+
+                                      // ignore: unused_local_variable
+                                      Wallet wallet = Wallet.createNew(
+                                          EthPrivateKey.fromHex(privateKey),
+                                          widget.password,
+                                          Random());
+
+                                      await FirebaseFirestore.instance
+                                          .collection('wallets')
+                                          .doc(publicKey.toString())
+                                          .set({
+                                        'loyalty_programs': [],
+                                        'public_key': publicKey.toString(),
+                                        'assets': [],
+                                      });
+                                      if (widget.isWelcomeScreen) {
+                                        Navigator.pop(context);
+                                        Navigator.pop(context);
+                                      }
+
+                                      Navigator.pop(context);
+                                      Navigator.pop(context);
+                                    } else {
+                                      setState(() {
+                                        loading = false;
+                                      });
+                                    }
+                                  } catch (e) {
                                     setState(() {
                                       loading = false;
+                                      error = 'Error. Try again later';
                                     });
+                                    showNotification("Failed",
+                                        'Error. Try again later', Colors.red);
                                   }
                                 } else {
                                   setState(() {
                                     loading = false;
                                     error = 'Failed to create wallet';
                                   });
+                                  showNotification(
+                                      "Failed",
+                                      'Failed to create wallet. Try again later',
+                                      Colors.red);
                                 }
                               } else {
                                 setState(() {
                                   loading = false;
                                   error = 'Seed phrase is not correct';
                                 });
+                                showNotification("Failed",
+                                    'Seed phrase is not correct', Colors.red);
                               }
                             }
                             setState(() {
