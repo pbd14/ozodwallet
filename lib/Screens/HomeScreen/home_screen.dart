@@ -89,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> {
   DocumentSnapshot? uzsoFirebase;
 
   Client httpClient = Client();
-  late Web3Client web3client;
+  Web3Client? web3client;
 
   Future<void> _refresh({bool isLoading = true}) async {
     if (isLoading) {
@@ -108,6 +108,10 @@ class _HomeScreenState extends State<HomeScreen> {
     selectedWalletAssets = [];
     selectedWalletAssetsData = {};
     wallets = [];
+    estimateGas = EtherAmount.zero();
+    gasBalance = EtherAmount.zero();
+    gasTxsLeft = 0;
+    web3client = null;
 
     prepare();
     Completer<void> completer = Completer<void>();
@@ -234,8 +238,14 @@ class _HomeScreenState extends State<HomeScreen> {
     valueTxs = uniqueJsonList.map((item) => jsonDecode(item)).toList();
 
     // Get gas indicator data
-    estimateGas = await web3client.getGasPrice();
-    gasBalance = await web3client.getBalance(walletData['address']);
+    // print("GERGRE");
+    // print(await web3client!.getChainId());
+    // print(await web3client!.getGasPrice());
+    // print(await web3client!.estimateGas(
+    //   sender: EthereumAddress.fromHex(walletData['publicKey']),
+    // ));
+    estimateGas = await web3client!.getGasPrice();;
+    gasBalance = await web3client!.getBalance(walletData['address']);
 
     setState(() {
       walletData['publicKey'] != null
@@ -1328,7 +1338,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                               context,
                                               SlideRightRoute(
                                                 page: SendOzodScreen(
-                                                  web3client: web3client,
+                                                  web3client: web3client!,
                                                   walletIndex:
                                                       selectedWalletIndex,
                                                   networkId: selectedNetworkId,
@@ -1615,7 +1625,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                             SlideRightRoute(
                                                                               page: BuyOzodPaymeScreen(
                                                                                 walletIndex: selectedWalletIndex,
-                                                                                web3client: web3client,
+                                                                                web3client: web3client!,
                                                                               ),
                                                                             ),
                                                                           );
@@ -1659,7 +1669,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                             SlideRightRoute(
                                                                               page: BuyOzodOctoScreen(
                                                                                 walletIndex: selectedWalletIndex,
-                                                                                web3client: web3client,
+                                                                                web3client: web3client!,
                                                                                 selectedNetworkId: selectedNetworkId,
                                                                                 contract: uzsoContract!,
                                                                               ),
@@ -2000,7 +2010,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             SlideRightRoute(
                                                 page: BuyCryptoScreen(
                                               walletIndex: selectedWalletIndex,
-                                              web3client: web3client,
+                                              web3client: web3client!,
                                             )),
                                           );
                                         },

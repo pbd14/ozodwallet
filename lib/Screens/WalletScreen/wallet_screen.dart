@@ -70,6 +70,9 @@ class _WalletScreenState extends State<WalletScreen> {
   DocumentSnapshot? appDataNodes;
   DocumentSnapshot? appDataApi;
   DocumentSnapshot? appData;
+  EtherAmount? estimateGas;
+  EtherAmount? gasBalance;
+  double gasTxsLeft = 0;
 
   Client httpClient = Client();
   late Web3Client web3client;
@@ -88,6 +91,9 @@ class _WalletScreenState extends State<WalletScreen> {
     selectedWalletAssets = [];
     selectedWalletAssetsData = {};
     wallets = [];
+    estimateGas = EtherAmount.zero();
+    gasBalance = EtherAmount.zero();
+    gasTxsLeft = 0;
 
     prepare();
     Completer<void> completer = Completer<void>();
@@ -239,6 +245,11 @@ class _WalletScreenState extends State<WalletScreen> {
     dynamic jsonBody = jsonDecode(response.body);
     List valueTxs = jsonBody['result'];
 
+    // Gas indicator
+    estimateGas = await web3client.getGasPrice();
+    ;
+    gasBalance = await web3client.getBalance(walletData['address']);
+
     setState(() {
       walletData['publicKey'] != null
           ? publicKey = walletData['publicKey']
@@ -258,6 +269,9 @@ class _WalletScreenState extends State<WalletScreen> {
       valueTxs != null
           ? selectedWalletTxs = valueTxs.toList()
           : selectedWalletTxs = [];
+      gasTxsLeft = (gasBalance!.getValueInUnit(EtherUnit.gwei) /
+              estimateGas!.getValueInUnit(EtherUnit.gwei))
+          .toDouble();
       // if (appData != null) {
       //   selectedNetworkId = appData!.get('AVAILABLE_ETHER_NETWORKS')[0];
       //   selectedNetworkName =
@@ -793,7 +807,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           child: Column(
                             children: [
                               SizedBox(height: size.height * 0.1),
-                              
+
                               // Blockchain network
                               Container(
                                 margin: EdgeInsets.symmetric(horizontal: 40),
@@ -2013,6 +2027,120 @@ class _WalletScreenState extends State<WalletScreen> {
                                   ],
                                 ),
                               ),
+                              const SizedBox(height: 20),
+
+                              // Gas Indicator
+                              Container(
+                                margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                                width: size.width * 0.8,
+                                // height: 200,
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  gradient: LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: gasTxsLeft < 1
+                                        ? [
+                                            Colors.red,
+                                            Colors.orange,
+                                          ]
+                                        : [
+                                            Colors.blue,
+                                            Colors.green,
+                                          ],
+                                  ),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Gas Indicator",
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.start,
+                                      maxLines: 2,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: whiteColor,
+                                          fontSize: 25,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
+                                    Text(
+                                      "~ ${NumberFormat.compact().format(gasTxsLeft)} Txs left",
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.start,
+                                      maxLines: 2,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: whiteColor,
+                                          fontSize: 23,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text(
+                                      "${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.start,
+                                      maxLines: 4,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: whiteColor,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 5,
+                                    ),
+                                    Text(
+                                      "Gas price: ${estimateGas!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                      overflow: TextOverflow.ellipsis,
+                                      textAlign: TextAlign.start,
+                                      maxLines: 4,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: whiteColor,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w400,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      height: 20,
+                                    ),
+                                    Center(
+                                      child: RoundedButton(
+                                        pw: 150,
+                                        ph: 35,
+                                        text: 'Top up gas',
+                                        press: () {
+                                          Navigator.push(
+                                            context,
+                                            SlideRightRoute(
+                                                page: BuyCryptoScreen(
+                                              walletIndex: selectedWalletIndex,
+                                              web3client: web3client,
+                                            )),
+                                          );
+                                        },
+                                        color: whiteColor,
+                                        textColor: darkPrimaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
                               SizedBox(
                                 height: 50,
                               ),

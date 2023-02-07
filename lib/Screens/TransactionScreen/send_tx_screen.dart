@@ -298,7 +298,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                               ),
                             ),
                           ),
-                        IconButton(
+                          IconButton(
                             onPressed: () {
                               showDialog(
                                   barrierDismissible: false,
@@ -356,15 +356,31 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                 Colors.red);
                                                           } else {
                                                             setState(() {
-                                                              Iterable<int> bytes = barcode
-                                                                      .rawValue!.runes;
-                                                                      utf8.decode(bytes.toList());
-                                                              
+                                                              Iterable<int>
+                                                                  bytes =
+                                                                  barcode
+                                                                      .rawValue!
+                                                                      .runes;
+                                                              utf8.decode(bytes
+                                                                  .toList());
+
                                                               textEditingController
-                                                                      .text =
-                                                                  EthereumAddress(Uint8List.fromList(json.decode(utf8.decode(bytes.toList())).cast<int>().toList())).toString();
-                                                              receiverPublicAddress =
-                                                                  EthereumAddress(Uint8List.fromList(json.decode(utf8.decode(bytes.toList())).cast<int>().toList())).toString();
+                                                                  .text = EthereumAddress(Uint8List.fromList(json
+                                                                      .decode(utf8
+                                                                          .decode(bytes
+                                                                              .toList()))
+                                                                      .cast<
+                                                                          int>()
+                                                                      .toList()))
+                                                                  .toString();
+                                                              receiverPublicAddress = EthereumAddress(Uint8List.fromList(json
+                                                                      .decode(utf8
+                                                                          .decode(bytes
+                                                                              .toList()))
+                                                                      .cast<
+                                                                          int>()
+                                                                      .toList()))
+                                                                  .toString();
                                                             });
                                                             Navigator.of(
                                                                     context)
@@ -408,7 +424,6 @@ class _SendTxScreenState extends State<SendTxScreen> {
                               color: secondaryColor,
                             ),
                           ),
-                        
                         ],
                       ),
                       const SizedBox(height: 30),
@@ -804,13 +819,21 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                         ? BigInt.from(int.parse(amount!))
                                         : 0),
                               );
+                              // BigInt total = selectedAsset['symbol'] == 'ETH'
+                              //     ? estimateGas +
+                              //         BigInt.from(EtherAmount.fromUnitAndValue(
+                              //           selectedEtherUnit,
+                              //           BigInt.from(int.parse(amount!)),
+                              //         ).getValueInUnit(EtherUnit.gwei))
+                              //     : estimateGas;
                               BigInt total = selectedAsset['symbol'] == 'ETH'
-                                  ? estimateGas +
-                                      BigInt.from(EtherAmount.fromUnitAndValue(
-                                        selectedEtherUnit,
-                                        BigInt.from(int.parse(amount!)),
-                                      ).getValueInUnit(EtherUnit.gwei))
-                                  : estimateGas;
+                                  ? BigInt.from(
+                                      etherGas.getValueInUnit(EtherUnit.gwei) +
+                                          EtherAmount.fromUnitAndValue(
+                                            selectedEtherUnit,
+                                            BigInt.from(int.parse(amount!)),
+                                          ).getValueInUnit(EtherUnit.gwei))
+                                  : etherGas.getValueInUnitBI(EtherUnit.gwei);
                               setState(() {
                                 loading = false;
                               });
@@ -859,7 +882,9 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                     height: 10,
                                                   ),
                                                   Text(
-                                                    NumberFormat.compact().format(double.parse(amount!)),
+                                                    NumberFormat.compact()
+                                                        .format(double.parse(
+                                                            amount!)),
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     maxLines: 3,
@@ -1258,10 +1283,9 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                   size.width *
                                                                       0.2,
                                                               child: Text(
-                                                                "${EtherAmount.fromUnitAndValue(EtherUnit.gwei, total).getValueInUnit(EtherUnit.ether)} " +
+                                                                "${EtherAmount.fromUnitAndValue(EtherUnit.gwei, total).getValueInUnit(selectedEtherUnit)} " +
                                                                     cryptoUnits[
-                                                                        EtherUnit
-                                                                            .ether]!,
+                                                                        selectedEtherUnit]!,
                                                                 overflow:
                                                                     TextOverflow
                                                                         .ellipsis,
@@ -1344,7 +1368,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                             'Success',
                                                             'Transaction made',
                                                             Colors.green);
-
+                                                        
                                                         setState(() {
                                                           loading = false;
                                                         });

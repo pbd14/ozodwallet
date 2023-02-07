@@ -356,15 +356,31 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                 Colors.red);
                                                           } else {
                                                             setState(() {
-                                                              Iterable<int> bytes = barcode
-                                                                      .rawValue!.runes;
-                                                                      utf8.decode(bytes.toList());
-                                                              
+                                                              Iterable<int>
+                                                                  bytes =
+                                                                  barcode
+                                                                      .rawValue!
+                                                                      .runes;
+                                                              utf8.decode(bytes
+                                                                  .toList());
+
                                                               textEditingController
-                                                                      .text =
-                                                                  EthereumAddress(Uint8List.fromList(json.decode(utf8.decode(bytes.toList())).cast<int>().toList())).toString();
-                                                              receiverPublicAddress =
-                                                                  EthereumAddress(Uint8List.fromList(json.decode(utf8.decode(bytes.toList())).cast<int>().toList())).toString();
+                                                                  .text = EthereumAddress(Uint8List.fromList(json
+                                                                      .decode(utf8
+                                                                          .decode(bytes
+                                                                              .toList()))
+                                                                      .cast<
+                                                                          int>()
+                                                                      .toList()))
+                                                                  .toString();
+                                                              receiverPublicAddress = EthereumAddress(Uint8List.fromList(json
+                                                                      .decode(utf8
+                                                                          .decode(bytes
+                                                                              .toList()))
+                                                                      .cast<
+                                                                          int>()
+                                                                      .toList()))
+                                                                  .toString();
                                                             });
                                                             Navigator.of(
                                                                     context)
@@ -616,7 +632,9 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                     height: 10,
                                                   ),
                                                   Text(
-                                                    NumberFormat.compact().format(double.parse(amount!)),
+                                                    NumberFormat.compact()
+                                                        .format(double.parse(
+                                                            amount!)),
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     maxLines: 3,
@@ -825,7 +843,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                     size.width *
                                                                         0.2,
                                                                 child: Text(
-                                                                  "${EtherAmount.fromUnitAndValue(EtherUnit.gwei, estimateGas).getValueInUnit(EtherUnit.ether)} ETH",
+                                                                  "${NumberFormat.compact().format(EtherAmount.fromUnitAndValue(EtherUnit.gwei, estimateGas).getValueInUnit(EtherUnit.gwei))} GWEI",
                                                                   overflow:
                                                                       TextOverflow
                                                                           .ellipsis,
@@ -948,7 +966,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                   size.width *
                                                                       0.2,
                                                               child: Text(
-                                                                "${EtherAmount.fromUnitAndValue(EtherUnit.gwei, estimateGas).getValueInUnit(EtherUnit.ether)} ETH",
+                                                                "${etherGas.getValueInUnit(EtherUnit.gwei)} GWEI",
                                                                 overflow:
                                                                     TextOverflow
                                                                         .ellipsis,
@@ -1037,12 +1055,14 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                       )
                                                               .onError((error,
                                                                   stackTrace) {
+                                                        print("EREGRE");
+                                                        print(error);
                                                         notifTitle = "Error";
                                                         notifBody = error
                                                                     .toString() ==
                                                                 'RPCError: got code -32000 with msg "gas required exceeds allowance (0)".'
                                                             ? "Not enough gas. Buy ether"
-                                                            : "Error";
+                                                            : error.toString();
                                                         notifColor = Colors.red;
 
                                                         return error.toString();
@@ -1082,7 +1102,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                             } else {
                               setState(() {
                                 loading = false;
-                                error = 'Error';
+                                error = 'Error2';
                               });
                             }
                           },
