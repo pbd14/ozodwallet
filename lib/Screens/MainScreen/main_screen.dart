@@ -138,7 +138,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return loading
-        ? const LoadingScreen()
+        ?  LoadingScreen()
         : !walletExists
             ? Scaffold(
                 backgroundColor: primaryColor,

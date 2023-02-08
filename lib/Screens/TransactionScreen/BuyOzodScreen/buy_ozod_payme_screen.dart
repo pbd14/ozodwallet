@@ -80,7 +80,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return loading
-        ? const LoadingScreen()
+        ?  LoadingScreen()
         : Scaffold(
             appBar: AppBar(
               elevation: 0,

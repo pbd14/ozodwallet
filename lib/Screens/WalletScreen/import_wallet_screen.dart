@@ -55,7 +55,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
     return loading
-        ? const LoadingScreen()
+        ? LoadingScreen()
         : Scaffold(
             backgroundColor: darkPrimaryColor,
             body: SingleChildScrollView(

@@ -52,7 +52,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
     return loading
-        ? const LoadingScreen()
+        ?  LoadingScreen()
         : Scaffold(
             backgroundColor: darkPrimaryColor,
             body: SingleChildScrollView(

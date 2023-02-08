@@ -74,6 +74,8 @@ class _WalletScreenState extends State<WalletScreen> {
   EtherAmount? gasBalance;
   double gasTxsLeft = 0;
 
+  List pendingTxs = [];
+
   Client httpClient = Client();
   late Web3Client web3client;
 
@@ -94,6 +96,7 @@ class _WalletScreenState extends State<WalletScreen> {
     estimateGas = EtherAmount.zero();
     gasBalance = EtherAmount.zero();
     gasTxsLeft = 0;
+    pendingTxs = [];
 
     prepare();
     Completer<void> completer = Completer<void>();
@@ -247,7 +250,6 @@ class _WalletScreenState extends State<WalletScreen> {
 
     // Gas indicator
     estimateGas = await web3client.getGasPrice();
-    ;
     gasBalance = await web3client.getBalance(walletData['address']);
 
     setState(() {
@@ -289,11 +291,16 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
     return loading
-        ? const LoadingScreen()
+        ?  LoadingScreen()
         : Scaffold(
             key: _scaffoldKey,
             backgroundColor: primaryColor,
@@ -1551,8 +1558,300 @@ class _WalletScreenState extends State<WalletScreen> {
                               ),
                               const SizedBox(height: 50),
 
-                              // Assets
+                              // Pending Txs
+                              pendingTxs.length != 0
+                                  ? Container(
+                                      width: size.width * 0.8,
+                                      padding: const EdgeInsets.all(10),
+                                      margin: EdgeInsets.only(bottom: 20),
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
+                                        gradient: const LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            Colors.purpleAccent,
+                                            Colors.deepPurple
+                                          ],
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                              "Pending",
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.start,
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  color: darkDarkColor,
+                                                  fontSize: 30,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 30,
+                                          ),
+                                          for (dynamic tx in pendingTxs)
+                                            Container(
+                                              margin:
+                                                  EdgeInsets.only(bottom: 30),
+                                              child: Text(
+                                                tx,
+                                                maxLines: 2,
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: darkDarkColor,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ),
 
+                                              //   Row(
+                                              //     mainAxisAlignment:
+                                              //         MainAxisAlignment
+                                              //             .spaceEvenly,
+                                              //     children: [
+                                              //       // Icons + Date
+                                              //       // Container(
+                                              //       //   width: size.width * 0.1,
+                                              //       //   child: Column(
+                                              //       //     mainAxisAlignment:
+                                              //       //         MainAxisAlignment
+                                              //       //             .center,
+                                              //       //     children: [
+                                              //       //       tx == publicKey
+                                              //       //           ? Icon(
+                                              //       //               CupertinoIcons
+                                              //       //                   .arrow_up_circle_fill,
+                                              //       //               color:
+                                              //       //                   darkDarkColor,
+                                              //       //             )
+                                              //       //           : Icon(
+                                              //       //               CupertinoIcons
+                                              //       //                   .arrow_down_circle_fill,
+                                              //       //               color: Colors
+                                              //       //                   .green,
+                                              //       //             ),
+                                              //       //       Text(
+                                              //       //         "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000))}",
+                                              //       //         overflow: TextOverflow
+                                              //       //             .ellipsis,
+                                              //       //         textAlign:
+                                              //       //             TextAlign.start,
+                                              //       //         style: GoogleFonts
+                                              //       //             .montserrat(
+                                              //       //           textStyle:
+                                              //       //               const TextStyle(
+                                              //       //             color:
+                                              //       //                 darkDarkColor,
+                                              //       //             fontSize: 10,
+                                              //       //             fontWeight:
+                                              //       //                 FontWeight
+                                              //       //                     .w600,
+                                              //       //           ),
+                                              //       //         ),
+                                              //       //       ),
+                                              //       //     ],
+                                              //       //   ),
+                                              //       // ),
+                                              //       Container(
+                                              //         width: size.width * 0.4,
+                                              //         child: Column(
+                                              //           mainAxisAlignment:
+                                              //               MainAxisAlignment
+                                              //                   .center,
+                                              //           crossAxisAlignment:
+                                              //               CrossAxisAlignment
+                                              //                   .start,
+                                              //           children: [
+                                              //             tx['from'] == publicKey
+                                              //                 ? Text(
+                                              //                     "Sent",
+                                              //                     overflow:
+                                              //                         TextOverflow
+                                              //                             .ellipsis,
+                                              //                     textAlign:
+                                              //                         TextAlign
+                                              //                             .start,
+                                              //                     style: GoogleFonts
+                                              //                         .montserrat(
+                                              //                       textStyle:
+                                              //                           const TextStyle(
+                                              //                         color:
+                                              //                             darkDarkColor,
+                                              //                         fontSize:
+                                              //                             25,
+                                              //                         fontWeight:
+                                              //                             FontWeight
+                                              //                                 .w700,
+                                              //                       ),
+                                              //                     ),
+                                              //                   )
+                                              //                 : Text(
+                                              //                     "Received",
+                                              //                     overflow:
+                                              //                         TextOverflow
+                                              //                             .ellipsis,
+                                              //                     textAlign:
+                                              //                         TextAlign
+                                              //                             .start,
+                                              //                     style: GoogleFonts
+                                              //                         .montserrat(
+                                              //                       textStyle:
+                                              //                           const TextStyle(
+                                              //                         color:
+                                              //                             darkDarkColor,
+                                              //                         fontSize:
+                                              //                             25,
+                                              //                         fontWeight:
+                                              //                             FontWeight
+                                              //                                 .w700,
+                                              //                       ),
+                                              //                     ),
+                                              //                   ),
+                                              //             tx['from'] ==
+                                              //                         publicKey &&
+                                              //                     !selectedWalletAssetsData
+                                              //                         .keys
+                                              //                         .contains(
+                                              //                             tx['to'])
+                                              //                 ? Text(
+                                              //                     "To ${tx['to']}",
+                                              //                     overflow:
+                                              //                         TextOverflow
+                                              //                             .ellipsis,
+                                              //                     textAlign:
+                                              //                         TextAlign
+                                              //                             .start,
+                                              //                     maxLines: 2,
+                                              //                     style: GoogleFonts
+                                              //                         .montserrat(
+                                              //                       textStyle:
+                                              //                           const TextStyle(
+                                              //                         color:
+                                              //                             darkDarkColor,
+                                              //                         fontSize:
+                                              //                             10,
+                                              //                         fontWeight:
+                                              //                             FontWeight
+                                              //                                 .w400,
+                                              //                       ),
+                                              //                     ),
+                                              //                   )
+                                              //                 : Text(
+                                              //                     "From ${tx['from']}",
+                                              //                     overflow:
+                                              //                         TextOverflow
+                                              //                             .ellipsis,
+                                              //                     maxLines: 2,
+                                              //                     textAlign:
+                                              //                         TextAlign
+                                              //                             .start,
+                                              //                     style: GoogleFonts
+                                              //                         .montserrat(
+                                              //                       textStyle:
+                                              //                           const TextStyle(
+                                              //                         color:
+                                              //                             darkDarkColor,
+                                              //                         fontSize:
+                                              //                             10,
+                                              //                         fontWeight:
+                                              //                             FontWeight
+                                              //                                 .w400,
+                                              //                       ),
+                                              //                     ),
+                                              //                   ),
+                                              //           ],
+                                              //         ),
+                                              //       ),
+                                              //       Container(
+                                              //         width: size.width * 0.2,
+                                              //         child: Column(
+                                              //           mainAxisAlignment:
+                                              //               MainAxisAlignment
+                                              //                   .center,
+                                              //           children: [
+                                              //             Text(
+                                              //               !selectedWalletAssetsData
+                                              //                       .keys
+                                              //                       .contains(
+                                              //                           tx['to'])
+                                              //                   ? NumberFormat
+                                              //                           .compact()
+                                              //                       .format(EtherAmount.fromUnitAndValue(
+                                              //                               EtherUnit
+                                              //                                   .wei,
+                                              //                               tx[
+                                              //                                   'value'])
+                                              //                           .getValueInUnit(
+                                              //                               selectedEtherUnit))
+                                              //                       .toString()
+                                              //                   : "N/A",
+                                              //               maxLines: 2,
+                                              //               overflow: TextOverflow
+                                              //                   .ellipsis,
+                                              //               textAlign:
+                                              //                   TextAlign.start,
+                                              //               style: GoogleFonts
+                                              //                   .montserrat(
+                                              //                 textStyle:
+                                              //                     const TextStyle(
+                                              //                   color:
+                                              //                       darkDarkColor,
+                                              //                   fontSize: 15,
+                                              //                   fontWeight:
+                                              //                       FontWeight
+                                              //                           .w700,
+                                              //                 ),
+                                              //               ),
+                                              //             ),
+                                              //             Text(
+                                              //               !selectedWalletAssetsData
+                                              //                       .keys
+                                              //                       .contains(
+                                              //                           tx['to'])
+                                              //                   ? cryptoUnits[
+                                              //                           selectedEtherUnit]
+                                              //                       .toString()
+                                              //                   : selectedWalletAssetsData[
+                                              //                       tx['to']],
+                                              //               overflow: TextOverflow
+                                              //                   .ellipsis,
+                                              //               textAlign:
+                                              //                   TextAlign.start,
+                                              //               style: GoogleFonts
+                                              //                   .montserrat(
+                                              //                 textStyle:
+                                              //                     const TextStyle(
+                                              //                   color:
+                                              //                       darkDarkColor,
+                                              //                   fontSize: 20,
+                                              //                   fontWeight:
+                                              //                       FontWeight
+                                              //                           .w400,
+                                              //                 ),
+                                              //               ),
+                                              //             ),
+                                              //           ],
+                                              //         ),
+                                              //       ),
+                                              //     ],
+                                              //   ),
+                                            ),
+                                        ],
+                                      ),
+                                    )
+                                  : Container(),
+
+                              // Assets
                               Container(
                                 width: size.width * 0.8,
                                 padding: const EdgeInsets.all(10),

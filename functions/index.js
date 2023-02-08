@@ -16,7 +16,7 @@ admin.initializeApp();
 
 exports.mintToCustomer = functions
     .runWith({
-        enforceAppCheck: true  // Requests without valid App Check tokens will be rejected.
+        enforceAppCheck: false  // Requests without valid App Check tokens will be rejected.
     })
     .https.onCall(async (data, context) => {
         if (context.app == undefined) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
@@ -38,7 +39,9 @@ class SendTxScreen extends StatefulWidget {
 }
 
 class _SendTxScreenState extends State<SendTxScreen> {
+  Timer? timer;
   bool loading = true;
+  String? loadingString;
   String error = '';
   final _formKey = GlobalKey<FormState>();
   Map<EtherUnit, String> cryptoUnits = {
@@ -97,10 +100,18 @@ class _SendTxScreenState extends State<SendTxScreen> {
   }
 
   @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return loading
-        ? const LoadingScreen()
+        ? LoadingScreen(
+            text: loadingString,
+          )
         : Scaffold(
             appBar: AppBar(
               elevation: 0,
@@ -1325,10 +1336,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                     text: 'CONFIRM',
                                                     press: () async {
                                                       Navigator.of(context)
-                                                          .pop(false);
-                                                      setState(() {
-                                                        loading = true;
-                                                      });
+                                                          .pop(true);
+
                                                       BigInt chainId =
                                                           await widget
                                                               .web3client
@@ -1337,8 +1346,12 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                       if (selectedAsset[
                                                               'symbol'] ==
                                                           'ETH') {
-                                                        widget.web3client
-                                                            .sendTransaction(
+                                                        bool txSuccess = true;
+                                                        String
+                                                            transactionResult =
+                                                            await widget
+                                                                .web3client
+                                                                .sendTransaction(
                                                           walletData[
                                                               'credentials'],
                                                           Transaction(
@@ -1357,21 +1370,18 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                           chainId:
                                                               chainId.toInt(),
                                                         )
-                                                            .catchError((error,
-                                                                stackTrace) {
+                                                                .catchError((error,
+                                                                    stackTrace) {
+                                                          txSuccess = false;
                                                           showNotification(
                                                               'Failed',
                                                               'Failed to make transaction',
                                                               Colors.red);
                                                         });
-                                                        showNotification(
-                                                            'Success',
-                                                            'Transaction made',
-                                                            Colors.green);
-                                                        
-                                                        setState(() {
-                                                          loading = false;
-                                                        });
+                                                        if (txSuccess) {
+                                                          checkTx(
+                                                              transactionResult);
+                                                        }
                                                       } else {
                                                         String notifTitle =
                                                             "Success";
@@ -1404,7 +1414,9 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                           ],
                                                         );
 
-                                                        final transfer =
+                                                        bool txSuccess = true;
+                                                        String
+                                                            transactionResult =
                                                             await widget
                                                                 .web3client
                                                                 .sendTransaction(
@@ -1424,11 +1436,16 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                               : "Servers are overloaded. Try again later";
                                                           notifColor =
                                                               Colors.red;
+                                                          txSuccess = false;
                                                           return error
                                                               .toString();
                                                         });
-                                                        if (await transfer !=
+                                                        if (await transactionResult !=
                                                             null) {
+                                                          if (txSuccess) {
+                                                            checkTx(
+                                                                transactionResult);
+                                                          }
                                                           showNotification(
                                                               notifTitle,
                                                               notifBody,
@@ -1480,5 +1497,50 @@ class _SendTxScreenState extends State<SendTxScreen> {
               ),
             ),
           );
+  }
+
+  void checkTx(String tx) async {
+    setState(() {
+      loadingString = "Pending transaction";
+      loading = true;
+    });
+    print("RGERG");
+    print(tx);
+    try {
+      var timeCounter = 0;
+      timer = Timer.periodic(Duration(seconds: 10), (Timer t) async {
+        timeCounter++;
+        TransactionReceipt? txReceipt =
+            await widget.web3client.getTransactionReceipt(tx);
+        timeCounter++;
+        print("GTEGTER");
+        print(txReceipt);
+        if (timeCounter >= 12) {
+          showNotification('Timeout', 'Timeout. Transaction is still pending',
+              Colors.orange);
+          timer!.cancel();
+          setState(() {
+            loading = false;
+          });
+        }
+        if (txReceipt != null) {
+          timer!.cancel();
+          if (txReceipt.status!) {
+            showNotification('Success', 'Transaction made', Colors.green);
+          } else {
+            showNotification('Not Verified',
+                'Transaction was not verified. Check later', Colors.orange);
+          }
+          setState(() {
+            loading = false;
+          });
+        }
+      });
+    } catch (e) {
+      showNotification('Failed', e.toString(), Colors.red);
+      setState(() {
+        loading = false;
+      });
+    }
   }
 }

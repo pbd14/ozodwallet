@@ -1,9 +1,11 @@
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ozodwallet/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 
 class LoadingScreen extends StatefulWidget {
-  const LoadingScreen({Key? key }) : super(key: key);
+  String? text;
+  LoadingScreen({Key? key, this.text}) : super(key: key);
   @override
   _LoadingScreenState createState() => _LoadingScreenState();
 }
@@ -16,10 +18,32 @@ class _LoadingScreenState extends State<LoadingScreen> {
       body: SafeArea(
         child: Container(
           color: primaryColor,
-          child: const Center(
-            child: SpinKitWave(
-              color: secondaryColor,
-              size: 50.0,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SpinKitWave(
+                  color: secondaryColor,
+                  size: 50.0,
+                ),
+                SizedBox(
+                  height: 10,
+                ),
+                if (widget.text != null)
+                  Text(
+                    widget.text!,
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 5,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.montserrat(
+                      textStyle: const TextStyle(
+                        color: secondaryColor,
+                        fontSize: 25,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+              ],
             ),
           ),
         ),

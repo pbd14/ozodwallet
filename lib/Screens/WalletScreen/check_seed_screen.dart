@@ -59,7 +59,7 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
     return loading
-        ? const LoadingScreen()
+        ?  LoadingScreen()
         : Scaffold(
             appBar: AppBar(
               elevation: 0,

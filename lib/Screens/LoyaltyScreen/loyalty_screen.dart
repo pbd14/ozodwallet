@@ -91,7 +91,7 @@ class _LoyaltyScreenState extends State<LoyaltyScreen> {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
     return loading
-        ? const LoadingScreen()
+        ?  LoadingScreen()
         : Scaffold(
             backgroundColor: primaryColor,
             body: RefreshIndicator(

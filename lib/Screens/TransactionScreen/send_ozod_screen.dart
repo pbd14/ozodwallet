@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
@@ -40,9 +41,11 @@ class SendOzodScreen extends StatefulWidget {
 
 class _SendOzodScreenState extends State<SendOzodScreen> {
   bool loading = true;
+  String? loadingString;
   String error = '';
   final _formKey = GlobalKey<FormState>();
   EtherUnit selectedEtherUnit = EtherUnit.ether;
+  Timer? timer;
 
   String? receiverPublicAddress;
   String? amount;
@@ -96,10 +99,18 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
   }
 
   @override
+  void dispose() {
+    timer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return loading
-        ? const LoadingScreen()
+        ? LoadingScreen(
+            text: loadingString,
+          )
         : Scaffold(
             appBar: AppBar(
               elevation: 0,
@@ -1043,7 +1054,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                           Colors.green;
 
                                                       // ignore: unused_local_variable
-                                                      final transfer =
+                                                      bool txSuccess = true;
+                                                      String transactionResult =
                                                           await widget
                                                               .web3client
                                                               .sendTransaction(
@@ -1055,8 +1067,6 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                       )
                                                               .onError((error,
                                                                   stackTrace) {
-                                                        print("EREGRE");
-                                                        print(error);
                                                         notifTitle = "Error";
                                                         notifBody = error
                                                                     .toString() ==
@@ -1064,14 +1074,17 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                             ? "Not enough gas. Buy ether"
                                                             : error.toString();
                                                         notifColor = Colors.red;
-
+                                                        txSuccess = false;
+                                                        showNotification(
+                                                            notifTitle,
+                                                            notifBody,
+                                                            notifColor);
                                                         return error.toString();
                                                       });
-
-                                                      showNotification(
-                                                          notifTitle,
-                                                          notifBody,
-                                                          notifColor);
+                                                      if (txSuccess) {
+                                                        checkTx(
+                                                            transactionResult);
+                                                      }
                                                     },
                                                     color: secondaryColor,
                                                     textColor: darkPrimaryColor,
@@ -1117,5 +1130,50 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
               ),
             ),
           );
+  }
+
+  void checkTx(String tx) async {
+    setState(() {
+      loadingString = "Pending transaction";
+      loading = true;
+    });
+    print("RGERG");
+    print(tx);
+    try {
+      var timeCounter = 0;
+      timer = Timer.periodic(Duration(seconds: 10), (Timer t) async {
+        timeCounter++;
+        TransactionReceipt? txReceipt =
+            await widget.web3client.getTransactionReceipt(tx);
+        timeCounter++;
+        print("GTEGTER");
+        print(txReceipt);
+        if (timeCounter >= 12) {
+          showNotification('Timeout', 'Timeout. Transaction is still pending',
+              Colors.orange);
+          timer!.cancel();
+          setState(() {
+            loading = false;
+          });
+        }
+        if (txReceipt != null) {
+          timer!.cancel();
+          if (txReceipt.status!) {
+            showNotification('Success', 'Transaction made', Colors.green);
+          } else {
+            showNotification('Not Verified',
+                'Transaction was not verified. Check later', Colors.orange);
+          }
+          setState(() {
+            loading = false;
+          });
+        }
+      });
+    } catch (e) {
+      showNotification('Failed', e.toString(), Colors.red);
+      setState(() {
+        loading = false;
+      });
+    }
   }
 }

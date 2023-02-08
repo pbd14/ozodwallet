@@ -146,7 +146,7 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return loading
-        ? const LoadingScreen()
+        ?  LoadingScreen()
         : Scaffold(
             appBar: AppBar(
               elevation: 0,

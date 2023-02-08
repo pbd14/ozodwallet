@@ -282,7 +282,7 @@ class _HomeScreenState extends State<HomeScreen> {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
     return loading
-        ? const LoadingScreen()
+        ?  LoadingScreen()
         : Scaffold(
             key: _scaffoldKey,
             backgroundColor: primaryColor,
