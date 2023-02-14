@@ -1,5 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_core_web/firebase_core_web.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:ozodwallet/Screens/MainScreen/main_screen.dart';
 import 'package:ozodwallet/Services/languages/applocalizationsdelegate.dart';
@@ -7,11 +9,14 @@ import 'package:ozodwallet/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:ozodwallet/firebase_options.dart';
 import 'Services/languages/locale_constant.dart';
 
 // Firebase app ids
-// android   //1:552861055225:android:2abe6036ba70ff7ea1ca28
-// ios       //1:552861055225:ios:cc1161ad4f0d3d86a1ca28
+// web       1:631128095988:web:d61e719234a144cd51b2a1
+// android   1:631128095988:android:8196f18eab8bdd5551b2a1
+// ios       1:631128095988:ios:61ba2b2aad3e2bb051b2a1
+// macos     1:631128095988:ios:61ba2b2aad3e2bb051b2a1
 
 // SHA1: 19:15:92:FA:6D:EE:79:89:88:63:7A:59:5C:45:75:83:30:26:74:33
 // SHA256: 33:88:C5:61:62:CC:38:A9:CC:FE:3A:37:0A:17:70:2C:4F:86:BF:47:4B:6A:75:DF:3C:88:AD:0D:8D:07:E5:5A
@@ -25,8 +30,22 @@ import 'Services/languages/locale_constant.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // FirebaseFunctions functions = FirebaseFunctions.instance;
-  
-  await Firebase.initializeApp();
+  if (kIsWeb) {
+    print("RGREGR");
+    await Firebase.initializeApp(
+      // name: 'Ozod Mobile Web',
+      // options: DefaultFirebaseOptions.currentPlatform,
+      options: FirebaseOptions(
+        apiKey: 'AIzaSyCDoHs_7O-lZ2PCXW30XBrNkw2IICCsay4',
+        appId: '1:631128095988:web:d61e719234a144cd51b2a1',
+        messagingSenderId: '',
+        projectId: 'ozod-loyalty',
+      ),
+    );
+  } else {
+    await Firebase.initializeApp();
+  }
+
   await FirebaseAppCheck.instance.activate(
     webRecaptchaSiteKey: 'recaptcha-v3-site-key',
     // Default provider for Android is the Play Integrity provider. You can use the "AndroidProvider" enum to choose
