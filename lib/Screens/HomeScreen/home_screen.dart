@@ -1073,8 +1073,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                         return Container(
                                           margin: EdgeInsets.fromLTRB(
                                               10, 0, 10, 10),
-                                          width: size.width * 0.8,
+                                          width: 300,
                                           height: 200,
+                                          
                                           padding: const EdgeInsets.all(15),
                                           decoration: BoxDecoration(
                                             borderRadius:

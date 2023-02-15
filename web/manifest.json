@@ -1,11 +1,12 @@
 {
-    "name": "ozodwallet",
-    "short_name": "ozodwallet",
+    "name": "Ozod Wallet",
+    "short_name": "Ozod",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",
     "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "description": "Ozod Web3 Wallet",
+    "version": "1.0.0",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

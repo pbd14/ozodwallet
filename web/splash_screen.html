@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href='https://fonts.googleapis.com/css?family=Montserrat' rel='stylesheet'>
+    <title>Ozod Wallet</title>
+    <style>
+        div {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        body {
+            background-color: rgb(38, 73, 65);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="loading"></div>
+    
+    <script>
+
+        var loading = document.getElementById("loading");
+        loading.innerHTML = 'LOADING';
+        document.body.appendChild(loading);
+
+        /* make text change every two seconds for a random word */
+        var words = ['OZOD', 'OZOD', 'STABLECOIN', 'CRYPTO', 'UZSO', 'FINANCE', 'LOADING', 'OZOD', 'STABLECOIN', 'CRYPTO', 'UZSO', 'FINANCE', 'LOADING'];
+        var i = 0;
+        setInterval(function () {
+            if (i == words.length) {
+                i = -1
+                loading.style.opacity = 0;
+                setTimeout(function () {
+                    loading.style.opacity = 1;
+                    loading.innerHTML = '<img src="icons/splash.png" alt="Image" style="width: 40vw;"/>'
+                    setTimeout(function () {
+                        loading.style.opacity = 0;
+                        setTimeout(function () {
+                            i = -2;
+                        }, 1000);
+                    }, 2000);
+                }, 1000);
+
+            } else if (i == -1) { }
+            else if (i == -2) {
+                loading.innerHTML = words[0];
+                loading.style.opacity = 1;
+                setTimeout(function () {
+                    i = 1;
+                }, 500);
+            }
+            else {
+                loading.innerHTML = words[i];
+                if (i == words.length - 1) {
+                    i = -1
+                    setTimeout(function () {
+                        i = words.length;
+                    }, 500);
+                } else {
+                    i++;
+                }
+
+            }
+
+        },
+            100);
+
+
+        /* make text appear in the centre */
+        /* use montserrat font, and make text bigger */
+        loading.style.fontFamily = 'Montserrat, sans-serif';
+        loading.style.fontSize = '12vw';
+        loading.style.fontWeight = 'bolder';
+        loading.style.color = 'rgb(231, 180, 92)';
+        loading.style.width = '90vw';
+        /* add a transition to the opacity property */
+        loading.style.transition = 'opacity 1s ease-in-out';
+    </script>
+</body>
+
+</html>

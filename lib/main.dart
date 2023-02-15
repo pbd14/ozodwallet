@@ -1,6 +1,5 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
-import 'package:firebase_core_web/firebase_core_web.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:ozodwallet/Screens/MainScreen/main_screen.dart';
@@ -9,7 +8,6 @@ import 'package:ozodwallet/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:ozodwallet/firebase_options.dart';
 import 'Services/languages/locale_constant.dart';
 
 // Firebase app ids
