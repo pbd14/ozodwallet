@@ -104,7 +104,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
     return loading
-        ?  LoadingScreen()
+        ? LoadingScreen()
         : Scaffold(
             appBar: AppBar(
               elevation: 0,
@@ -312,437 +312,422 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                           const SizedBox(height: 30),
 
                           // Octo
-                         if(!showWeb)
-                          Center(
-                            child: Container(
-                              width: size.width * 0.8,
-                              height: 300,
-                              padding: const EdgeInsets.all(15),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20.0),
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    darkPrimaryColor,
-                                    primaryColor,
-                                  ],
+                          if (!showWeb)
+                            Center(
+                              child: Container(
+                                width: size.width * 0.8,
+                                height: 300,
+                                padding: const EdgeInsets.all(15),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      darkPrimaryColor,
+                                      primaryColor,
+                                    ],
+                                  ),
+                                  // image: DecorationImage(
+                                  //     image: AssetImage(
+                                  //         "assets/images/card.png"),
+                                  //     fit: BoxFit.fill),
                                 ),
-                                // image: DecorationImage(
-                                //     image: AssetImage(
-                                //         "assets/images/card.png"),
-                                //     fit: BoxFit.fill),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      Expanded(
-                                        child: Text(
-                                          "Powered by",
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 3,
-                                          textAlign: TextAlign.start,
-                                          style: GoogleFonts.montserrat(
-                                            textStyle: const TextStyle(
-                                              color: secondaryColor,
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w400,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceEvenly,
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            "Powered by",
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 3,
+                                            textAlign: TextAlign.start,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: secondaryColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Image.asset(
-                                        "assets/images/octo.png",
-                                        width: 80,
-                                      ),
-                                    ],
-                                  ),
-                                  SizedBox(
-                                    height: 10,
-                                  ),
+                                        SizedBox(
+                                          width: 10,
+                                        ),
+                                        Image.asset(
+                                          "assets/images/octo.png",
+                                          width: 80,
+                                        ),
+                                      ],
+                                    ),
+                                    SizedBox(
+                                      height: 10,
+                                    ),
 
-                                  Text(
-                                    "Please press the button below and complete payment through octo",
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 10,
-                                    textAlign: TextAlign.start,
-                                    style: GoogleFonts.montserrat(
-                                      textStyle: const TextStyle(
-                                        color: secondaryColor,
-                                        fontSize: 17,
-                                        fontWeight: FontWeight.w700,
+                                    Text(
+                                      "Please press the button below and complete payment through octo",
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 10,
+                                      textAlign: TextAlign.start,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: secondaryColor,
+                                          fontSize: 17,
+                                          fontWeight: FontWeight.w700,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  // TextFormField(
-                                  //   style:
-                                  //       const TextStyle(color: secondaryColor),
-                                  //   cursorColor: secondaryColor,
-                                  //   validator: (val) {
-                                  //     if (val!.isEmpty) {
-                                  //       return 'Enter your card number';
-                                  //     } else if (val.length < 12) {
-                                  //       return 'Wrong card number';
-                                  //     } else {
-                                  //       return null;
-                                  //     }
-                                  //   },
-                                  //   keyboardType: TextInputType.number,
-                                  //   onChanged: (val) {
-                                  //     setState(() {
-                                  //       cardNumber = val.trim();
-                                  //     });
-                                  //   },
-                                  //   decoration: InputDecoration(
-                                  //     labelText: "Card Number",
-                                  //     labelStyle:
-                                  //         TextStyle(color: secondaryColor),
-                                  //     errorBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: Colors.red, width: 1.0),
-                                  //     ),
-                                  //     focusedBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //     enabledBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //     hintStyle: TextStyle(
-                                  //         color:
-                                  //             secondaryColor.withOpacity(0.7)),
-                                  //     hintText: 'Card number',
-                                  //     border: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //   ),
-                                  // ),
-                                  // SizedBox(
-                                  //   height: 20,
-                                  // ),
-                                  // Row(
-                                  //   mainAxisAlignment:
-                                  //       MainAxisAlignment.spaceEvenly,
-                                  //   children: [
-                                  //     Container(
-                                  //       width: 100,
-                                  //       child: TextFormField(
-                                  //         cursorColor: secondaryColor,
-                                  //         style: const TextStyle(
-                                  //             color: secondaryColor),
-                                  //         validator: (val) {
-                                  //           if (val!.isEmpty) {
-                                  //             return 'Enter expiration date';
-                                  //           } else if (val.length != 2) {
-                                  //             return 'Only 2 numbers';
-                                  //           } else {
-                                  //             return null;
-                                  //           }
-                                  //         },
-                                  //         keyboardType: TextInputType.number,
-                                  //         onChanged: (val) {
-                                  //           setState(() {
-                                  //             cardMonth = val;
-                                  //           });
-                                  //         },
-                                  //         decoration: InputDecoration(
-                                  //           labelText: "Month",
-                                  //           labelStyle: TextStyle(
-                                  //               color: secondaryColor),
-                                  //           errorBorder:
-                                  //               const OutlineInputBorder(
-                                  //             borderSide: BorderSide(
-                                  //                 color: Colors.red,
-                                  //                 width: 1.0),
-                                  //           ),
-                                  //           focusedBorder:
-                                  //               const OutlineInputBorder(
-                                  //             borderSide: BorderSide(
-                                  //                 color: secondaryColor,
-                                  //                 width: 1.0),
-                                  //           ),
-                                  //           enabledBorder:
-                                  //               const OutlineInputBorder(
-                                  //             borderSide: BorderSide(
-                                  //                 color: secondaryColor,
-                                  //                 width: 1.0),
-                                  //           ),
-                                  //           hintStyle: TextStyle(
-                                  //               color: secondaryColor
-                                  //                   .withOpacity(0.7)),
-                                  //           hintText: 'Month',
-                                  //           border: const OutlineInputBorder(
-                                  //             borderSide: BorderSide(
-                                  //                 color: secondaryColor,
-                                  //                 width: 1.0),
-                                  //           ),
-                                  //         ),
-                                  //       ),
-                                  //     ),
-                                  //     SizedBox(
-                                  //       width: 2.5,
-                                  //     ),
-                                  //     Text(
-                                  //       "/",
-                                  //       overflow: TextOverflow.ellipsis,
-                                  //       maxLines: 3,
-                                  //       textAlign: TextAlign.start,
-                                  //       style: GoogleFonts.montserrat(
-                                  //         textStyle: const TextStyle(
-                                  //           color: secondaryColor,
-                                  //           fontSize: 15,
-                                  //           fontWeight: FontWeight.w700,
-                                  //         ),
-                                  //       ),
-                                  //     ),
-                                  //     SizedBox(
-                                  //       width: 2.5,
-                                  //     ),
-                                  //     Container(
-                                  //       width: 100,
-                                  //       child: TextFormField(
-                                  //         cursorColor: secondaryColor,
-                                  //         style: const TextStyle(
-                                  //             color: secondaryColor),
-                                  //         validator: (val) {
-                                  //           if (val!.isEmpty) {
-                                  //             return 'Enter expiration date';
-                                  //           } else if (val.length != 2) {
-                                  //             return 'Only two numbers';
-                                  //           } else {
-                                  //             return null;
-                                  //           }
-                                  //         },
-                                  //         keyboardType: TextInputType.number,
-                                  //         onChanged: (val) {
-                                  //           setState(() {
-                                  //             cardYear = val;
-                                  //           });
-                                  //         },
-                                  //         decoration: InputDecoration(
-                                  //           labelText: "Year",
-                                  //           labelStyle: TextStyle(
-                                  //               color: secondaryColor),
-                                  //           errorBorder:
-                                  //               const OutlineInputBorder(
-                                  //             borderSide: BorderSide(
-                                  //                 color: Colors.red,
-                                  //                 width: 1.0),
-                                  //           ),
-                                  //           focusedBorder:
-                                  //               const OutlineInputBorder(
-                                  //             borderSide: BorderSide(
-                                  //                 color: secondaryColor,
-                                  //                 width: 1.0),
-                                  //           ),
-                                  //           enabledBorder:
-                                  //               const OutlineInputBorder(
-                                  //             borderSide: BorderSide(
-                                  //                 color: secondaryColor,
-                                  //                 width: 1.0),
-                                  //           ),
-                                  //           hintStyle: TextStyle(
-                                  //               color: secondaryColor
-                                  //                   .withOpacity(0.7)),
-                                  //           hintText: 'Year',
-                                  //           border: const OutlineInputBorder(
-                                  //             borderSide: BorderSide(
-                                  //                 color: secondaryColor,
-                                  //                 width: 1.0),
-                                  //           ),
-                                  //         ),
-                                  //       ),
-                                  //     ),
-                                  //   ],
-                                  // ),
-                                  // SizedBox(
-                                  //   height: 20,
-                                  // ),
-                                  // TextFormField(
-                                  //   style:
-                                  //       const TextStyle(color: secondaryColor),
-                                  //   cursorColor: secondaryColor,
-                                  //   validator: (val) {
-                                  //     if (val!.isEmpty) {
-                                  //       return 'Enter name on your card';
-                                  //     } else {
-                                  //       return null;
-                                  //     }
-                                  //   },
-                                  //   keyboardType: TextInputType.name,
-                                  //   onChanged: (val) {
-                                  //     setState(() {
-                                  //       cardholderName = val;
-                                  //     });
-                                  //   },
-                                  //   decoration: InputDecoration(
-                                  //     labelText: "Name",
-                                  //     labelStyle:
-                                  //         TextStyle(color: secondaryColor),
-                                  //     errorBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: Colors.red, width: 1.0),
-                                  //     ),
-                                  //     focusedBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //     enabledBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //     hintStyle: TextStyle(
-                                  //         color:
-                                  //             secondaryColor.withOpacity(0.7)),
-                                  //     hintText: 'Name on card',
-                                  //     border: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //   ),
-                                  // ),
-                                  // SizedBox(
-                                  //   height: 20,
-                                  // ),
-                                  // TextFormField(
-                                  //   style:
-                                  //       const TextStyle(color: secondaryColor),
-                                  //   cursorColor: secondaryColor,
-                                  //   validator: (val) {
-                                  //     if (val!.isEmpty) {
-                                  //       return 'Enter CVC';
-                                  //     } else if (val.length != 3) {
-                                  //       return 'Wrong CVC';
-                                  //     } else {
-                                  //       return null;
-                                  //     }
-                                  //   },
-                                  //   keyboardType: TextInputType.number,
-                                  //   onChanged: (val) {
-                                  //     setState(() {
-                                  //       cvc = val;
-                                  //     });
-                                  //   },
-                                  //   decoration: InputDecoration(
-                                  //     labelText: "CVC",
-                                  //     labelStyle:
-                                  //         TextStyle(color: secondaryColor),
-                                  //     errorBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: Colors.red, width: 1.0),
-                                  //     ),
-                                  //     focusedBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //     enabledBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //     hintStyle: TextStyle(
-                                  //         color:
-                                  //             secondaryColor.withOpacity(0.7)),
-                                  //     hintText: 'CVC',
-                                  //     border: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //   ),
-                                  // ),
-                                  // SizedBox(
-                                  //   height: 20,
-                                  // ),
-                                  // TextFormField(
-                                  //   style:
-                                  //       const TextStyle(color: secondaryColor),
-                                  //   cursorColor: secondaryColor,
-                                  //   validator: (val) {
-                                  //     if (val!.isEmpty) {
-                                  //       return 'Enter Email';
-                                  //     } else {
-                                  //       return null;
-                                  //     }
-                                  //   },
-                                  //   keyboardType: TextInputType.emailAddress,
-                                  //   onChanged: (val) {
-                                  //     setState(() {
-                                  //       email = val;
-                                  //     });
-                                  //   },
-                                  //   decoration: InputDecoration(
-                                  //     labelText: "Email",
-                                  //     labelStyle:
-                                  //         TextStyle(color: secondaryColor),
-                                  //     errorBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: Colors.red, width: 1.0),
-                                  //     ),
-                                  //     focusedBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //     enabledBorder: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //     hintStyle: TextStyle(
-                                  //         color:
-                                  //             secondaryColor.withOpacity(0.7)),
-                                  //     hintText: 'Email',
-                                  //     border: const OutlineInputBorder(
-                                  //       borderSide: BorderSide(
-                                  //           color: secondaryColor, width: 1.0),
-                                  //     ),
-                                  //   ),
-                                  // ),
+                                    // TextFormField(
+                                    //   style:
+                                    //       const TextStyle(color: secondaryColor),
+                                    //   cursorColor: secondaryColor,
+                                    //   validator: (val) {
+                                    //     if (val!.isEmpty) {
+                                    //       return 'Enter your card number';
+                                    //     } else if (val.length < 12) {
+                                    //       return 'Wrong card number';
+                                    //     } else {
+                                    //       return null;
+                                    //     }
+                                    //   },
+                                    //   keyboardType: TextInputType.number,
+                                    //   onChanged: (val) {
+                                    //     setState(() {
+                                    //       cardNumber = val.trim();
+                                    //     });
+                                    //   },
+                                    //   decoration: InputDecoration(
+                                    //     labelText: "Card Number",
+                                    //     labelStyle:
+                                    //         TextStyle(color: secondaryColor),
+                                    //     errorBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: Colors.red, width: 1.0),
+                                    //     ),
+                                    //     focusedBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //     enabledBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //     hintStyle: TextStyle(
+                                    //         color:
+                                    //             secondaryColor.withOpacity(0.7)),
+                                    //     hintText: 'Card number',
+                                    //     border: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //   ),
+                                    // ),
+                                    // SizedBox(
+                                    //   height: 20,
+                                    // ),
+                                    // Row(
+                                    //   mainAxisAlignment:
+                                    //       MainAxisAlignment.spaceEvenly,
+                                    //   children: [
+                                    //     Container(
+                                    //       width: 100,
+                                    //       child: TextFormField(
+                                    //         cursorColor: secondaryColor,
+                                    //         style: const TextStyle(
+                                    //             color: secondaryColor),
+                                    //         validator: (val) {
+                                    //           if (val!.isEmpty) {
+                                    //             return 'Enter expiration date';
+                                    //           } else if (val.length != 2) {
+                                    //             return 'Only 2 numbers';
+                                    //           } else {
+                                    //             return null;
+                                    //           }
+                                    //         },
+                                    //         keyboardType: TextInputType.number,
+                                    //         onChanged: (val) {
+                                    //           setState(() {
+                                    //             cardMonth = val;
+                                    //           });
+                                    //         },
+                                    //         decoration: InputDecoration(
+                                    //           labelText: "Month",
+                                    //           labelStyle: TextStyle(
+                                    //               color: secondaryColor),
+                                    //           errorBorder:
+                                    //               const OutlineInputBorder(
+                                    //             borderSide: BorderSide(
+                                    //                 color: Colors.red,
+                                    //                 width: 1.0),
+                                    //           ),
+                                    //           focusedBorder:
+                                    //               const OutlineInputBorder(
+                                    //             borderSide: BorderSide(
+                                    //                 color: secondaryColor,
+                                    //                 width: 1.0),
+                                    //           ),
+                                    //           enabledBorder:
+                                    //               const OutlineInputBorder(
+                                    //             borderSide: BorderSide(
+                                    //                 color: secondaryColor,
+                                    //                 width: 1.0),
+                                    //           ),
+                                    //           hintStyle: TextStyle(
+                                    //               color: secondaryColor
+                                    //                   .withOpacity(0.7)),
+                                    //           hintText: 'Month',
+                                    //           border: const OutlineInputBorder(
+                                    //             borderSide: BorderSide(
+                                    //                 color: secondaryColor,
+                                    //                 width: 1.0),
+                                    //           ),
+                                    //         ),
+                                    //       ),
+                                    //     ),
+                                    //     SizedBox(
+                                    //       width: 2.5,
+                                    //     ),
+                                    //     Text(
+                                    //       "/",
+                                    //       overflow: TextOverflow.ellipsis,
+                                    //       maxLines: 3,
+                                    //       textAlign: TextAlign.start,
+                                    //       style: GoogleFonts.montserrat(
+                                    //         textStyle: const TextStyle(
+                                    //           color: secondaryColor,
+                                    //           fontSize: 15,
+                                    //           fontWeight: FontWeight.w700,
+                                    //         ),
+                                    //       ),
+                                    //     ),
+                                    //     SizedBox(
+                                    //       width: 2.5,
+                                    //     ),
+                                    //     Container(
+                                    //       width: 100,
+                                    //       child: TextFormField(
+                                    //         cursorColor: secondaryColor,
+                                    //         style: const TextStyle(
+                                    //             color: secondaryColor),
+                                    //         validator: (val) {
+                                    //           if (val!.isEmpty) {
+                                    //             return 'Enter expiration date';
+                                    //           } else if (val.length != 2) {
+                                    //             return 'Only two numbers';
+                                    //           } else {
+                                    //             return null;
+                                    //           }
+                                    //         },
+                                    //         keyboardType: TextInputType.number,
+                                    //         onChanged: (val) {
+                                    //           setState(() {
+                                    //             cardYear = val;
+                                    //           });
+                                    //         },
+                                    //         decoration: InputDecoration(
+                                    //           labelText: "Year",
+                                    //           labelStyle: TextStyle(
+                                    //               color: secondaryColor),
+                                    //           errorBorder:
+                                    //               const OutlineInputBorder(
+                                    //             borderSide: BorderSide(
+                                    //                 color: Colors.red,
+                                    //                 width: 1.0),
+                                    //           ),
+                                    //           focusedBorder:
+                                    //               const OutlineInputBorder(
+                                    //             borderSide: BorderSide(
+                                    //                 color: secondaryColor,
+                                    //                 width: 1.0),
+                                    //           ),
+                                    //           enabledBorder:
+                                    //               const OutlineInputBorder(
+                                    //             borderSide: BorderSide(
+                                    //                 color: secondaryColor,
+                                    //                 width: 1.0),
+                                    //           ),
+                                    //           hintStyle: TextStyle(
+                                    //               color: secondaryColor
+                                    //                   .withOpacity(0.7)),
+                                    //           hintText: 'Year',
+                                    //           border: const OutlineInputBorder(
+                                    //             borderSide: BorderSide(
+                                    //                 color: secondaryColor,
+                                    //                 width: 1.0),
+                                    //           ),
+                                    //         ),
+                                    //       ),
+                                    //     ),
+                                    //   ],
+                                    // ),
+                                    // SizedBox(
+                                    //   height: 20,
+                                    // ),
+                                    // TextFormField(
+                                    //   style:
+                                    //       const TextStyle(color: secondaryColor),
+                                    //   cursorColor: secondaryColor,
+                                    //   validator: (val) {
+                                    //     if (val!.isEmpty) {
+                                    //       return 'Enter name on your card';
+                                    //     } else {
+                                    //       return null;
+                                    //     }
+                                    //   },
+                                    //   keyboardType: TextInputType.name,
+                                    //   onChanged: (val) {
+                                    //     setState(() {
+                                    //       cardholderName = val;
+                                    //     });
+                                    //   },
+                                    //   decoration: InputDecoration(
+                                    //     labelText: "Name",
+                                    //     labelStyle:
+                                    //         TextStyle(color: secondaryColor),
+                                    //     errorBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: Colors.red, width: 1.0),
+                                    //     ),
+                                    //     focusedBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //     enabledBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //     hintStyle: TextStyle(
+                                    //         color:
+                                    //             secondaryColor.withOpacity(0.7)),
+                                    //     hintText: 'Name on card',
+                                    //     border: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //   ),
+                                    // ),
+                                    // SizedBox(
+                                    //   height: 20,
+                                    // ),
+                                    // TextFormField(
+                                    //   style:
+                                    //       const TextStyle(color: secondaryColor),
+                                    //   cursorColor: secondaryColor,
+                                    //   validator: (val) {
+                                    //     if (val!.isEmpty) {
+                                    //       return 'Enter CVC';
+                                    //     } else if (val.length != 3) {
+                                    //       return 'Wrong CVC';
+                                    //     } else {
+                                    //       return null;
+                                    //     }
+                                    //   },
+                                    //   keyboardType: TextInputType.number,
+                                    //   onChanged: (val) {
+                                    //     setState(() {
+                                    //       cvc = val;
+                                    //     });
+                                    //   },
+                                    //   decoration: InputDecoration(
+                                    //     labelText: "CVC",
+                                    //     labelStyle:
+                                    //         TextStyle(color: secondaryColor),
+                                    //     errorBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: Colors.red, width: 1.0),
+                                    //     ),
+                                    //     focusedBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //     enabledBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //     hintStyle: TextStyle(
+                                    //         color:
+                                    //             secondaryColor.withOpacity(0.7)),
+                                    //     hintText: 'CVC',
+                                    //     border: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //   ),
+                                    // ),
+                                    // SizedBox(
+                                    //   height: 20,
+                                    // ),
+                                    // TextFormField(
+                                    //   style:
+                                    //       const TextStyle(color: secondaryColor),
+                                    //   cursorColor: secondaryColor,
+                                    //   validator: (val) {
+                                    //     if (val!.isEmpty) {
+                                    //       return 'Enter Email';
+                                    //     } else {
+                                    //       return null;
+                                    //     }
+                                    //   },
+                                    //   keyboardType: TextInputType.emailAddress,
+                                    //   onChanged: (val) {
+                                    //     setState(() {
+                                    //       email = val;
+                                    //     });
+                                    //   },
+                                    //   decoration: InputDecoration(
+                                    //     labelText: "Email",
+                                    //     labelStyle:
+                                    //         TextStyle(color: secondaryColor),
+                                    //     errorBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: Colors.red, width: 1.0),
+                                    //     ),
+                                    //     focusedBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //     enabledBorder: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //     hintStyle: TextStyle(
+                                    //         color:
+                                    //             secondaryColor.withOpacity(0.7)),
+                                    //     hintText: 'Email',
+                                    //     border: const OutlineInputBorder(
+                                    //       borderSide: BorderSide(
+                                    //           color: secondaryColor, width: 1.0),
+                                    //     ),
+                                    //   ),
+                                    // ),
 
-                                  SizedBox(
-                                    height: 30,
-                                  ),
-                                  RoundedButton(
-                                    pw: 250,
-                                    ph: 45,
-                                    text: 'Buy UZSO',
-                                    press: () async {
-                                      if (_formKey.currentState!.validate()) {
-                                        String notificationTitle = "Success";
-                                        String notificationBody =
-                                            "Payment made";
-                                        Color notificaitonColor = Colors.green;
-                                        bool paymentMade = false;
-                                        setState(() {
-                                          loading1 = true;
-                                        });
+                                    SizedBox(
+                                      height: 30,
+                                    ),
+                                    RoundedButton(
+                                      pw: 250,
+                                      ph: 45,
+                                      text: 'Buy UZSO',
+                                      press: () async {
+                                        if (_formKey.currentState!.validate()) {
+                                          String notificationTitle = "Success";
+                                          String notificationBody =
+                                              "Payment made";
+                                          Color notificaitonColor =
+                                              Colors.green;
+                                          bool paymentMade = false;
+                                          setState(() {
+                                            loading1 = true;
+                                          });
 
-                                        Map preparePaymentResult =
-                                            await preparePayment();
-                                        if (preparePaymentResult['error'] !=
-                                            0) {
-                                          notificationTitle = "Failed";
-                                          notificationBody =
-                                              "Error. Try later again";
-                                          notificaitonColor = Colors.red;
-                                          endPayment(
-                                              notificationTitle,
-                                              notificationBody,
-                                              notificaitonColor,
-                                              paymentMade);
-                                        } else {
-                                          octoPaymentId = preparePaymentResult[
-                                              'octo_payment_UUID'];
-                                          Map payResult =
-                                              await pay(octoPaymentId!);
-                                          if (payResult['error'] != 0 &&
-                                              payResult['error'] != 5) {
+                                          Map preparePaymentResult =
+                                              await preparePayment();
+                                          if (preparePaymentResult['error'] !=
+                                              0) {
                                             notificationTitle = "Failed";
                                             notificationBody =
                                                 "Error. Try later again";
@@ -753,64 +738,82 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                                 notificaitonColor,
                                                 paymentMade);
                                           } else {
-                                            webViewController =
-                                                WebViewController()
-                                                  ..setJavaScriptMode(
-                                                      JavaScriptMode
-                                                          .unrestricted)
-                                                  ..setBackgroundColor(
-                                                      const Color(0x00000000))
-                                                  ..setNavigationDelegate(
-                                                    NavigationDelegate(
-                                                      onProgress:
-                                                          (int progress) {
-                                                        // Update loading bar.
-                                                      },
-                                                      onPageStarted:
-                                                          (String url) {},
-                                                      onPageFinished:
-                                                          (String url) {},
-                                                      onWebResourceError:
-                                                          (WebResourceError
-                                                              error) {},
-                                                      onNavigationRequest:
-                                                          (NavigationRequest
-                                                              request) {
-                                                        if (request.url.startsWith(
-                                                            'https://www.youtube.com/')) {
+                                            octoPaymentId =
+                                                preparePaymentResult[
+                                                    'octo_payment_UUID'];
+                                            Map payResult =
+                                                await pay(octoPaymentId!);
+                                            if (payResult['error'] != 0 &&
+                                                payResult['error'] != 5) {
+                                              notificationTitle = "Failed";
+                                              notificationBody =
+                                                  "Error. Try later again";
+                                              notificaitonColor = Colors.red;
+                                              endPayment(
+                                                  notificationTitle,
+                                                  notificationBody,
+                                                  notificaitonColor,
+                                                  paymentMade);
+                                            } else {
+                                              webViewController =
+                                                  WebViewController()
+                                                    ..setJavaScriptMode(
+                                                        JavaScriptMode
+                                                            .unrestricted)
+                                                    ..setBackgroundColor(
+                                                        const Color(0x00000000))
+                                                    ..setNavigationDelegate(
+                                                      NavigationDelegate(
+                                                        onProgress:
+                                                            (int progress) {
+                                                          // Update loading bar.
+                                                        },
+                                                        onPageStarted:
+                                                            (String url) {},
+                                                        onPageFinished:
+                                                            (String url) {},
+                                                        onWebResourceError:
+                                                            (WebResourceError
+                                                                error) {},
+                                                        onNavigationRequest:
+                                                            (NavigationRequest
+                                                                request) {
+                                                          if (request.url
+                                                              .startsWith(
+                                                                  'https://www.youtube.com/')) {
+                                                            return NavigationDecision
+                                                                .prevent;
+                                                          }
                                                           return NavigationDecision
-                                                              .prevent;
-                                                        }
-                                                        return NavigationDecision
-                                                            .navigate;
-                                                      },
-                                                    ),
-                                                  )
-                                                  ..loadRequest(Uri.parse(
-                                                      payResult['error'] == 5
-                                                          ? preparePaymentResult[
-                                                              'octo_pay_url']
-                                                          : payResult['data']
-                                                              ['redirectUrl']));
-                                            setState(() {
-                                              showWeb = true;
-                                              loading1 = false;
-                                            });
+                                                              .navigate;
+                                                        },
+                                                      ),
+                                                    )
+                                                    ..loadRequest(Uri.parse(
+                                                        payResult['error'] == 5
+                                                            ? preparePaymentResult[
+                                                                'octo_pay_url']
+                                                            : payResult['data'][
+                                                                'redirectUrl']));
+                                              setState(() {
+                                                showWeb = true;
+                                                loading1 = false;
+                                              });
+                                            }
                                           }
-                                        }
 
-                                        setState(() {
-                                          loading1 = false;
-                                        });
-                                      }
-                                    },
-                                    color: secondaryColor,
-                                    textColor: darkPrimaryColor,
-                                  ),
-                                ],
+                                          setState(() {
+                                            loading1 = false;
+                                          });
+                                        }
+                                      },
+                                      color: secondaryColor,
+                                      textColor: darkPrimaryColor,
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
-                          ),
 
                           // WEB PAGE
 
@@ -894,10 +897,13 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                                   BigInt.from(pow(10, 18)))
                                               .toString(),
                                           'paymentId': paymentId,
-                                          'blockchainNetwork': widget.selectedNetworkId,
+                                          'blockchainNetwork':
+                                              widget.selectedNetworkId,
                                         });
                                         switch (resp.data) {
                                           case "ERROR":
+                                            print('VGERREVER');
+                                            print(resp);
                                             notificationTitle = "Error";
                                             notificationBody =
                                                 "Servers are overloaded. Try again later";
@@ -926,7 +932,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                           "web3Transaction": resp.data,
                                         });
                                       } on FirebaseFunctionsException {
-                                      
+                                         print('VGERREVE1');
                                         notificationTitle = "Error";
                                         notificationBody =
                                             "Servers are overloaded. Please try again later";
@@ -1104,9 +1110,10 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
 
   void endPayment(String notificationTitle, String notificationBody,
       Color notificaitonColor, bool paymentMade) {
-    showNotification(notificationTitle,notificationBody,notificaitonColor); 
+    showNotification(notificationTitle, notificationBody, notificaitonColor);
     if (paymentMade) {
-      Navigator.pop(context);
+      
+      // Navigator.pop(context);
     }
     setState(() {
       loading = false;

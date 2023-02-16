@@ -25,6 +25,12 @@ import 'Services/languages/locale_constant.dart';
 // SHA-1 //85:62:C9:57:DC:0B:27:CF:22:6C:C8:84:74:BD:C1:B7:0C:46:CF:95
 // SHA-256 //54:A8:97:A4:60:18:36:88:6B:65:0E:F0:D5:96:17:0A:14:B2:E5:30:30:C6:F3:4F:53:E2:7B:25:08:B9:D5:72
 
+
+// Google recaptcha
+// Site key 6LdDv4YkAAAAAFCYjHfRbYyYKg8Xci89hWdVuLg-
+// Secret key 6LdDv4YkAAAAAL2sVGCBBBjUG7BZIJfbTtZiWmwx
+
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // FirebaseFunctions functions = FirebaseFunctions.instance;

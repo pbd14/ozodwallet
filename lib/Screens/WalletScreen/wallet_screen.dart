@@ -1005,7 +1005,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
                               // Wallet
                               Container(
-                                width: size.width * 0.8,
+                                width: 300,
                                 height: 200,
                                 padding: const EdgeInsets.all(15),
                                 decoration: BoxDecoration(
@@ -1022,20 +1022,20 @@ class _WalletScreenState extends State<WalletScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Container(
-                                      width: size.width * 0.8 - 20,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.start,
-                                        children: [
-                                          Jazzicon.getIconWidget(
-                                              Jazzicon.getJazziconData(160,
-                                                  address: publicKey),
-                                              size: 25),
-                                          SizedBox(
-                                            width: 10,
-                                          ),
-                                          DropdownButtonHideUnderline(
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Jazzicon.getIconWidget(
+                                            Jazzicon.getJazziconData(160,
+                                                address: publicKey),
+                                            size: 20),
+                                        SizedBox(
+                                          width: 5,
+                                        ),
+                                        Container(
+                                          width: 240,
+                                          child: DropdownButtonHideUnderline(
                                             child: DropdownButton<int>(
                                               borderRadius:
                                                   BorderRadius.circular(20.0),
@@ -1055,15 +1055,18 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 });
                                                 _refresh();
                                               },
-                                              hint: Text(
-                                                selectedWalletName,
-                                                overflow: TextOverflow.ellipsis,
-                                                textAlign: TextAlign.start,
-                                                style: GoogleFonts.montserrat(
-                                                  textStyle: const TextStyle(
-                                                    color: whiteColor,
-                                                    fontSize: 25,
-                                                    fontWeight: FontWeight.w700,
+                                              hint: Container(
+                                                width: 200,
+                                                child: Text(
+                                                  selectedWalletName,
+                                                  overflow: TextOverflow.ellipsis,
+                                                  textAlign: TextAlign.start,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: const TextStyle(
+                                                      color: whiteColor,
+                                                      fontSize: 20,
+                                                      fontWeight: FontWeight.w700,
+                                                    ),
                                                   ),
                                                 ),
                                               ),
@@ -1084,23 +1087,26 @@ class _WalletScreenState extends State<WalletScreen> {
                                                         SizedBox(
                                                           width: 10,
                                                         ),
-                                                        Text(
-                                                          wallet[
-                                                              wallets.indexOf(
-                                                                      wallet) +
-                                                                  1],
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          style: GoogleFonts
-                                                              .montserrat(
-                                                            textStyle:
-                                                                const TextStyle(
-                                                              color:
-                                                                  secondaryColor,
-                                                              fontSize: 25,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
+                                                        Container(
+                                                          width: 180,
+                                                          child: Text(
+                                                            wallet[
+                                                                wallets.indexOf(
+                                                                        wallet) +
+                                                                    1],
+                                                            overflow: TextOverflow
+                                                                .ellipsis,
+                                                            style: GoogleFonts
+                                                                .montserrat(
+                                                              textStyle:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    secondaryColor,
+                                                                fontSize: 25,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
                                                             ),
                                                           ),
                                                         ),
@@ -1110,8 +1116,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                               ],
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                     Row(
                                       mainAxisAlignment:
@@ -1883,14 +1889,11 @@ class _WalletScreenState extends State<WalletScreen> {
                                         ),
                                       ),
                                     ),
-                                    SizedBox(
-                                      height: 30,
-                                    ),
                                     if (selectedWalletAssets.isNotEmpty)
                                       for (dynamic asset
                                           in selectedWalletAssets)
                                         Container(
-                                          margin: EdgeInsets.only(bottom: 30),
+                                          margin: EdgeInsets.symmetric(vertical: 30),
                                           child: Row(
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceEvenly,
