@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -299,8 +300,12 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget build(BuildContext context) {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
+    if (kIsWeb) {
+      size = Size(600, size.height);
+    }
+
     return loading
-        ?  LoadingScreen()
+        ? LoadingScreen()
         : Scaffold(
             key: _scaffoldKey,
             backgroundColor: primaryColor,
@@ -811,400 +816,319 @@ class _WalletScreenState extends State<WalletScreen> {
                     delegate: SliverChildListDelegate(
                       [
                         Center(
-                          child: Column(
-                            children: [
-                              SizedBox(height: size.height * 0.1),
+                          child: Container(
+                            constraints: BoxConstraints(
+                                maxWidth: kIsWeb ? 600 : double.infinity),
+                            child: Column(
+                              children: [
+                                SizedBox(height: size.height * 0.1),
 
-                              // Blockchain network
-                              Container(
-                                margin: EdgeInsets.symmetric(horizontal: 40),
-                                child: DropdownButtonHideUnderline(
-                                  child: DropdownButtonFormField<String>(
-                                    decoration: InputDecoration(
-                                      errorBorder: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(40.0),
-                                        borderSide: BorderSide(
-                                            color: Colors.red, width: 1.0),
-                                      ),
-                                      focusedBorder: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(40.0),
-                                        borderSide: BorderSide(
-                                            color: secondaryColor, width: 1.0),
-                                      ),
-                                      enabledBorder: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(40.0),
-                                        borderSide: BorderSide(
-                                            color: secondaryColor, width: 1.0),
-                                      ),
-                                      hintStyle: TextStyle(
-                                          color: darkPrimaryColor
-                                              .withOpacity(0.7)),
-                                      hintText: 'Network',
-                                      border: OutlineInputBorder(
-                                        borderRadius:
-                                            BorderRadius.circular(40.0),
-                                        borderSide: BorderSide(
-                                            color: secondaryColor, width: 1.0),
-                                      ),
-                                    ),
-                                    isDense: true,
-                                    menuMaxHeight: 200,
-                                    borderRadius: BorderRadius.circular(40.0),
-                                    dropdownColor: darkPrimaryColor,
-                                    // focusColor: whiteColor,
-                                    iconEnabledColor: secondaryColor,
-                                    alignment: Alignment.centerLeft,
-                                    onChanged: (networkId) async {
-                                      setState(() {
-                                        loading = true;
-                                      });
-                                      await sharedPreferences!.setString(
-                                          "selectedNetworkId",
-                                          appData!
-                                              .get('AVAILABLE_ETHER_NETWORKS')[
-                                                  networkId]['id']
-                                              .toString());
-                                      await sharedPreferences!.setString(
-                                          "selectedNetworkName",
-                                          appData!
-                                              .get('AVAILABLE_ETHER_NETWORKS')[
-                                                  networkId]['name']
-                                              .toString());
-                                      setState(() {
-                                        selectedNetworkId = appData!.get(
-                                                'AVAILABLE_ETHER_NETWORKS')[
-                                            networkId]['id'];
-                                        selectedNetworkName = appData!.get(
-                                                'AVAILABLE_ETHER_NETWORKS')[
-                                            networkId]['name'];
-                                      });
-                                      _refresh();
-                                    },
-                                    hint: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: [
-                                        Image.network(
-                                          appData!.get(
-                                                  'AVAILABLE_ETHER_NETWORKS')[
-                                              selectedNetworkId]['image'],
-                                          width: 30,
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        Container(
-                                          // width: size.width * 0.6 - 20,
-                                          child: Text(
-                                            selectedNetworkName,
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.center,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: secondaryColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    items: [
-                                      for (String networkId in appData!
-                                          .get('AVAILABLE_ETHER_NETWORKS')
-                                          .keys)
-                                        DropdownMenuItem<String>(
-                                          value: networkId,
-                                          child: Container(
-                                            margin: EdgeInsets.symmetric(
-                                                vertical: 10),
-                                            child: Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                Image.network(
-                                                  appData!.get(
-                                                          'AVAILABLE_ETHER_NETWORKS')[
-                                                      networkId]['image'],
-                                                  width: 30,
-                                                ),
-                                                SizedBox(
-                                                  width: 5,
-                                                ),
-                                                // Image + symbol
-                                                Text(
-                                                  appData!.get(
-                                                          'AVAILABLE_ETHER_NETWORKS')[
-                                                      networkId]['name'],
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines: 2,
-                                                  style: GoogleFonts.montserrat(
-                                                    textStyle: const TextStyle(
-                                                      color: secondaryColor,
-                                                      fontSize: 20,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(height: 20),
-
-                              if (appData!.get('AVAILABLE_ETHER_NETWORKS')[
-                                  selectedNetworkId]['is_testnet'])
+                                // Blockchain network
                                 Container(
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                        color: Colors.red, width: 1.0),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  padding: EdgeInsets.all(15),
                                   margin: EdgeInsets.symmetric(horizontal: 40),
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        CupertinoIcons
-                                            .exclamationmark_circle_fill,
-                                        color: Colors.red,
-                                      ),
-                                      SizedBox(
-                                        width: 5,
-                                      ),
-                                      Expanded(
-                                        child: Text(
-                                          "This is a test blockchain network. Assets in this chain do not have real value",
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 5,
-                                          textAlign: TextAlign.start,
-                                          style: GoogleFonts.montserrat(
-                                            textStyle: const TextStyle(
-                                              overflow: TextOverflow.ellipsis,
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButtonFormField<String>(
+                                      decoration: InputDecoration(
+                                        errorBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(40.0),
+                                          borderSide: BorderSide(
+                                              color: Colors.red, width: 1.0),
+                                        ),
+                                        focusedBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(40.0),
+                                          borderSide: BorderSide(
                                               color: secondaryColor,
-                                              fontSize: 15,
-                                              fontWeight: FontWeight.w300,
-                                            ),
-                                          ),
+                                              width: 1.0),
+                                        ),
+                                        enabledBorder: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(40.0),
+                                          borderSide: BorderSide(
+                                              color: secondaryColor,
+                                              width: 1.0),
+                                        ),
+                                        hintStyle: TextStyle(
+                                            color: darkPrimaryColor
+                                                .withOpacity(0.7)),
+                                        hintText: 'Network',
+                                        border: OutlineInputBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(40.0),
+                                          borderSide: BorderSide(
+                                              color: secondaryColor,
+                                              width: 1.0),
                                         ),
                                       ),
-                                    ],
+                                      isDense: true,
+                                      menuMaxHeight: 200,
+                                      borderRadius: BorderRadius.circular(40.0),
+                                      dropdownColor: darkPrimaryColor,
+                                      // focusColor: whiteColor,
+                                      iconEnabledColor: secondaryColor,
+                                      alignment: Alignment.centerLeft,
+                                      onChanged: (networkId) async {
+                                        setState(() {
+                                          loading = true;
+                                        });
+                                        await sharedPreferences!.setString(
+                                            "selectedNetworkId",
+                                            appData!
+                                                .get('AVAILABLE_ETHER_NETWORKS')[
+                                                    networkId]['id']
+                                                .toString());
+                                        await sharedPreferences!.setString(
+                                            "selectedNetworkName",
+                                            appData!
+                                                .get('AVAILABLE_ETHER_NETWORKS')[
+                                                    networkId]['name']
+                                                .toString());
+                                        setState(() {
+                                          selectedNetworkId = appData!.get(
+                                                  'AVAILABLE_ETHER_NETWORKS')[
+                                              networkId]['id'];
+                                          selectedNetworkName = appData!.get(
+                                                  'AVAILABLE_ETHER_NETWORKS')[
+                                              networkId]['name'];
+                                        });
+                                        _refresh();
+                                      },
+                                      hint: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          Image.network(
+                                            appData!.get(
+                                                    'AVAILABLE_ETHER_NETWORKS')[
+                                                selectedNetworkId]['image'],
+                                            width: 30,
+                                          ),
+                                          SizedBox(
+                                            width: 5,
+                                          ),
+                                          Container(
+                                            // width: size.width * 0.6 - 20,
+                                            child: Text(
+                                              selectedNetworkName,
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.center,
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  color: secondaryColor,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      items: [
+                                        for (String networkId in appData!
+                                            .get('AVAILABLE_ETHER_NETWORKS')
+                                            .keys)
+                                          DropdownMenuItem<String>(
+                                            value: networkId,
+                                            child: Container(
+                                              margin: EdgeInsets.symmetric(
+                                                  vertical: 10),
+                                              child: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: [
+                                                  Image.network(
+                                                    appData!.get(
+                                                            'AVAILABLE_ETHER_NETWORKS')[
+                                                        networkId]['image'],
+                                                    width: 30,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  // Image + symbol
+                                                  Text(
+                                                    appData!.get(
+                                                            'AVAILABLE_ETHER_NETWORKS')[
+                                                        networkId]['name'],
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 2,
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      textStyle:
+                                                          const TextStyle(
+                                                        color: secondaryColor,
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
                                   ),
                                 ),
-                              SizedBox(height: 20),
+                                SizedBox(height: 20),
 
-                              // Wallet
-                              Container(
-                                width: 300,
-                                height: 200,
-                                padding: const EdgeInsets.all(15),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Colors.blue,
-                                      Colors.green,
-                                    ],
-                                  ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
+                                if (appData!.get('AVAILABLE_ETHER_NETWORKS')[
+                                    selectedNetworkId]['is_testnet'])
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      border: Border.all(
+                                          color: Colors.red, width: 1.0),
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                    padding: EdgeInsets.all(15),
+                                    margin:
+                                        EdgeInsets.symmetric(horizontal: 40),
+                                    child: Row(
                                       children: [
-                                        Jazzicon.getIconWidget(
-                                            Jazzicon.getJazziconData(160,
-                                                address: publicKey),
-                                            size: 20),
+                                        Icon(
+                                          CupertinoIcons
+                                              .exclamationmark_circle_fill,
+                                          color: Colors.red,
+                                        ),
                                         SizedBox(
                                           width: 5,
                                         ),
-                                        Container(
-                                          width: 240,
-                                          child: DropdownButtonHideUnderline(
-                                            child: DropdownButton<int>(
-                                              borderRadius:
-                                                  BorderRadius.circular(20.0),
-                                              dropdownColor: darkPrimaryColor,
-                                              focusColor: whiteColor,
-                                              iconEnabledColor: whiteColor,
-                                              alignment: Alignment.centerLeft,
-                                              onChanged: (walletIndex) async {
-                                                await sharedPreferences!
-                                                    .setString(
-                                                        "selectedWalletIndex",
-                                                        walletIndex.toString());
-                                                setState(() {
-                                                  selectedWalletIndex =
-                                                      walletIndex.toString();
-                                                  loading = true;
-                                                });
-                                                _refresh();
-                                              },
-                                              hint: Container(
-                                                width: 200,
-                                                child: Text(
-                                                  selectedWalletName,
-                                                  overflow: TextOverflow.ellipsis,
-                                                  textAlign: TextAlign.start,
-                                                  style: GoogleFonts.montserrat(
-                                                    textStyle: const TextStyle(
-                                                      color: whiteColor,
-                                                      fontSize: 20,
-                                                      fontWeight: FontWeight.w700,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              items: [
-                                                for (Map wallet in wallets)
-                                                  DropdownMenuItem<int>(
-                                                    value: wallets
-                                                            .indexOf(wallet) +
-                                                        1,
-                                                    child: Row(
-                                                      children: [
-                                                        Jazzicon.getIconWidget(
-                                                            Jazzicon.getJazziconData(
-                                                                160,
-                                                                address: wallet[
-                                                                    'publicKey']),
-                                                            size: 15),
-                                                        SizedBox(
-                                                          width: 10,
-                                                        ),
-                                                        Container(
-                                                          width: 180,
-                                                          child: Text(
-                                                            wallet[
-                                                                wallets.indexOf(
-                                                                        wallet) +
-                                                                    1],
-                                                            overflow: TextOverflow
-                                                                .ellipsis,
-                                                            style: GoogleFonts
-                                                                .montserrat(
-                                                              textStyle:
-                                                                  const TextStyle(
-                                                                color:
-                                                                    secondaryColor,
-                                                                fontSize: 25,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                              ],
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
                                         Expanded(
                                           child: Text(
-                                            selectedWalletBalance
-                                                .getValueInUnit(
-                                                    selectedEtherUnit)
-                                                .toString(),
+                                            "This is a test blockchain network. Assets in this chain do not have real value",
                                             overflow: TextOverflow.ellipsis,
-                                            maxLines: 2,
+                                            maxLines: 5,
                                             textAlign: TextAlign.start,
                                             style: GoogleFonts.montserrat(
                                               textStyle: const TextStyle(
-                                                color: whiteColor,
-                                                fontSize: 30,
-                                                fontWeight: FontWeight.w700,
+                                                overflow: TextOverflow.ellipsis,
+                                                color: secondaryColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w300,
                                               ),
                                             ),
                                           ),
                                         ),
-                                        Container(
-                                          width: 100,
-                                          child: DropdownButtonHideUnderline(
-                                            child: Align(
-                                              alignment: Alignment.centerRight,
-                                              child: DropdownButton<EtherUnit>(
+                                      ],
+                                    ),
+                                  ),
+                                SizedBox(height: 20),
+
+                                // Wallet
+                                Container(
+                                  width: 300,
+                                  height: 200,
+                                  padding: const EdgeInsets.all(15),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color.fromRGBO(177, 255, 232, 1),
+                                        Color.fromRGBO(238, 238, 255, 1),
+                                        Color.fromRGBO(255, 173, 239, 1),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          Jazzicon.getIconWidget(
+                                              Jazzicon.getJazziconData(160,
+                                                  address: publicKey),
+                                              size: 20),
+                                          SizedBox(
+                                            width: 5,
+                                          ),
+                                          Container(
+                                            width: 240,
+                                            child: DropdownButtonHideUnderline(
+                                              child: DropdownButton<int>(
                                                 borderRadius:
                                                     BorderRadius.circular(20.0),
                                                 dropdownColor: darkPrimaryColor,
-                                                focusColor: whiteColor,
-                                                iconEnabledColor: whiteColor,
+                                                focusColor: darkColor,
+                                                iconEnabledColor: darkColor,
                                                 alignment: Alignment.centerLeft,
-                                                onChanged: (unit) async {
+                                                onChanged: (walletIndex) async {
                                                   await sharedPreferences!
                                                       .setString(
-                                                          "selectedEtherUnit",
-                                                          cryptoUnits[unit]
+                                                          "selectedWalletIndex",
+                                                          walletIndex
                                                               .toString());
                                                   setState(() {
-                                                    selectedEtherUnit = unit!;
+                                                    selectedWalletIndex =
+                                                        walletIndex.toString();
+                                                    loading = true;
                                                   });
+                                                  _refresh();
                                                 },
-                                                hint: Text(
-                                                  cryptoUnits[
-                                                      selectedEtherUnit]!,
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  maxLines: 2,
-                                                  style: GoogleFonts.montserrat(
-                                                    textStyle: const TextStyle(
-                                                      color: whiteColor,
-                                                      fontSize: 22,
-                                                      fontWeight:
-                                                          FontWeight.w700,
+                                                hint: Container(
+                                                  width: 200,
+                                                  child: Text(
+                                                    selectedWalletName,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    textAlign: TextAlign.start,
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      textStyle:
+                                                          const TextStyle(
+                                                        color: darkColor,
+                                                        fontSize: 20,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
                                                     ),
                                                   ),
                                                 ),
                                                 items: [
-                                                  for (EtherUnit unit
-                                                      in cryptoUnits.keys)
-                                                    DropdownMenuItem<EtherUnit>(
-                                                      value: unit,
+                                                  for (Map wallet in wallets)
+                                                    DropdownMenuItem<int>(
+                                                      value: wallets
+                                                              .indexOf(wallet) +
+                                                          1,
                                                       child: Row(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .start,
-                                                        children: <Widget>[
-                                                          Text(
-                                                            cryptoUnits[unit]!,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            style: GoogleFonts
-                                                                .montserrat(
-                                                              textStyle:
-                                                                  const TextStyle(
-                                                                color:
-                                                                    secondaryColor,
-                                                                fontSize: 20,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
+                                                        children: [
+                                                          Jazzicon.getIconWidget(
+                                                              Jazzicon.getJazziconData(
+                                                                  160,
+                                                                  address: wallet[
+                                                                      'publicKey']),
+                                                              size: 15),
+                                                          SizedBox(
+                                                            width: 10,
+                                                          ),
+                                                          Container(
+                                                            width: 180,
+                                                            child: Text(
+                                                              wallet[wallets
+                                                                      .indexOf(
+                                                                          wallet) +
+                                                                  1],
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: GoogleFonts
+                                                                  .montserrat(
+                                                                textStyle:
+                                                                    const TextStyle(
+                                                                  color:
+                                                                      secondaryColor,
+                                                                  fontSize: 25,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                ),
                                                               ),
                                                             ),
                                                           ),
@@ -1215,258 +1139,1100 @@ class _WalletScreenState extends State<WalletScreen> {
                                               ),
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                    Spacer(),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Expanded(
-                                          child: Text(
-                                            publicKey,
-                                            maxLines: 2,
+                                        ],
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              selectedWalletBalance
+                                                  .getValueInUnit(
+                                                      selectedEtherUnit)
+                                                  .toString(),
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 2,
+                                              textAlign: TextAlign.start,
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  color: darkColor,
+                                                  fontSize: 30,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 100,
+                                            child: DropdownButtonHideUnderline(
+                                              child: Align(
+                                                alignment:
+                                                    Alignment.centerRight,
+                                                child:
+                                                    DropdownButton<EtherUnit>(
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                          20.0),
+                                                  dropdownColor:
+                                                      darkPrimaryColor,
+                                                  focusColor: darkColor,
+                                                  iconEnabledColor: darkColor,
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  onChanged: (unit) async {
+                                                    await sharedPreferences!
+                                                        .setString(
+                                                            "selectedEtherUnit",
+                                                            cryptoUnits[unit]
+                                                                .toString());
+                                                    setState(() {
+                                                      selectedEtherUnit = unit!;
+                                                    });
+                                                  },
+                                                  hint: Text(
+                                                    cryptoUnits[
+                                                        selectedEtherUnit]!,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    maxLines: 2,
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      textStyle:
+                                                          const TextStyle(
+                                                        color: darkColor,
+                                                        fontSize: 22,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  items: [
+                                                    for (EtherUnit unit
+                                                        in cryptoUnits.keys)
+                                                      DropdownMenuItem<
+                                                          EtherUnit>(
+                                                        value: unit,
+                                                        child: Row(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .start,
+                                                          children: <Widget>[
+                                                            Text(
+                                                              cryptoUnits[
+                                                                  unit]!,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              style: GoogleFonts
+                                                                  .montserrat(
+                                                                textStyle:
+                                                                    const TextStyle(
+                                                                  color:
+                                                                      secondaryColor,
+                                                                  fontSize: 20,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Spacer(),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Expanded(
+                                            child: Text(
+                                              publicKey,
+                                              maxLines: 2,
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.start,
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  color: darkColor,
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 30,
+                                            child: IconButton(
+                                              padding: EdgeInsets.zero,
+                                              onPressed: () async {
+                                                await Clipboard.setData(
+                                                    ClipboardData(
+                                                        text: publicKey));
+
+                                                showNotification(
+                                                    'Copied',
+                                                    'Public key copied',
+                                                    greenColor);
+                                              },
+                                              icon: Icon(
+                                                CupertinoIcons.doc,
+                                                color: darkColor,
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            width: 30,
+                                            child: IconButton(
+                                              padding: EdgeInsets.zero,
+                                              onPressed: () async {
+                                                _scaffoldKey.currentState!
+                                                    .openDrawer();
+                                              },
+                                              icon: Icon(
+                                                CupertinoIcons.settings,
+                                                color: darkColor,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(height: 20),
+
+                                // Buttons
+                                Container(
+                                  width: size.width * 0.8,
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: [
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          RawMaterialButton(
+                                            constraints: const BoxConstraints(
+                                                minWidth: 70, minHeight: 60),
+                                            fillColor: secondaryColor,
+                                            shape: CircleBorder(),
+                                            onPressed: () {
+                                              setState(() {
+                                                loading = true;
+                                              });
+                                              Navigator.push(
+                                                context,
+                                                SlideRightRoute(
+                                                  page: SendTxScreen(
+                                                    web3client: web3client,
+                                                    walletIndex:
+                                                        selectedWalletIndex,
+                                                    networkId:
+                                                        selectedNetworkId,
+                                                    walletAssets:
+                                                        selectedWalletAssets,
+                                                  ),
+                                                ),
+                                              );
+                                              setState(() {
+                                                loading = false;
+                                              });
+                                            },
+                                            child: Icon(
+                                              CupertinoIcons.arrow_up,
+                                              color: darkPrimaryColor,
+                                            ),
+                                          ),
+                                          Text(
+                                            "Send",
                                             overflow: TextOverflow.ellipsis,
                                             textAlign: TextAlign.start,
                                             style: GoogleFonts.montserrat(
                                               textStyle: const TextStyle(
-                                                color: whiteColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w400,
+                                                color: secondaryColor,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w700,
                                               ),
                                             ),
                                           ),
-                                        ),
-                                        Container(
-                                          width: 30,
-                                          child: IconButton(
-                                            padding: EdgeInsets.zero,
-                                            onPressed: () async {
-                                              await Clipboard.setData(
-                                                  ClipboardData(
-                                                      text: publicKey));
-
-                                              showNotification(
-                                                  'Copied',
-                                                  'Public key copied',
-                                                  greenColor);
+                                        ],
+                                      ),
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          RawMaterialButton(
+                                            constraints: const BoxConstraints(
+                                                minWidth: 70, minHeight: 60),
+                                            fillColor: secondaryColor,
+                                            shape: CircleBorder(),
+                                            onPressed: () {
+                                              showDialog(
+                                                  barrierDismissible: false,
+                                                  context: context,
+                                                  builder:
+                                                      (BuildContext context) {
+                                                    return StatefulBuilder(
+                                                      builder: (context,
+                                                          StateSetter
+                                                              setState) {
+                                                        return AlertDialog(
+                                                          backgroundColor:
+                                                              darkPrimaryColor,
+                                                          shape:
+                                                              RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20.0),
+                                                          ),
+                                                          title: const Text(
+                                                            'QR Code',
+                                                            style: TextStyle(
+                                                                color:
+                                                                    secondaryColor),
+                                                          ),
+                                                          content:
+                                                              SingleChildScrollView(
+                                                            child: Container(
+                                                              margin: EdgeInsets
+                                                                  .all(10),
+                                                              child: Column(
+                                                                children: [
+                                                                  Container(
+                                                                    padding:
+                                                                        const EdgeInsets.all(
+                                                                            20),
+                                                                    decoration:
+                                                                        BoxDecoration(
+                                                                      borderRadius:
+                                                                          BorderRadius.circular(
+                                                                              20.0),
+                                                                      gradient:
+                                                                          const LinearGradient(
+                                                                        begin: Alignment
+                                                                            .topLeft,
+                                                                        end: Alignment
+                                                                            .bottomRight,
+                                                                        colors: [
+                                                                          darkPrimaryColor,
+                                                                          primaryColor
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                    child:
+                                                                        QrImage(
+                                                                      data: EthereumAddress.fromHex(
+                                                                              publicKey)
+                                                                          .addressBytes
+                                                                          .toString(),
+                                                                      foregroundColor:
+                                                                          secondaryColor,
+                                                                    ),
+                                                                  ),
+                                                                  SizedBox(
+                                                                    height: 10,
+                                                                  ),
+                                                                  Row(
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .spaceBetween,
+                                                                    children: [
+                                                                      Expanded(
+                                                                        child:
+                                                                            Text(
+                                                                          publicKey,
+                                                                          overflow:
+                                                                              TextOverflow.ellipsis,
+                                                                          maxLines:
+                                                                              10,
+                                                                          textAlign:
+                                                                              TextAlign.start,
+                                                                          style:
+                                                                              GoogleFonts.montserrat(
+                                                                            textStyle:
+                                                                                const TextStyle(
+                                                                              color: secondaryColor,
+                                                                              fontSize: 15,
+                                                                              fontWeight: FontWeight.w500,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      Container(
+                                                                        width:
+                                                                            30,
+                                                                        child:
+                                                                            IconButton(
+                                                                          padding:
+                                                                              EdgeInsets.zero,
+                                                                          onPressed:
+                                                                              () async {
+                                                                            await Clipboard.setData(ClipboardData(text: publicKey));
+                                                                            showNotification(
+                                                                                'Copied',
+                                                                                'Public key copied',
+                                                                                greenColor);
+                                                                          },
+                                                                          icon:
+                                                                              Icon(
+                                                                            CupertinoIcons.doc,
+                                                                            color:
+                                                                                secondaryColor,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                  SizedBox(
+                                                                    height: 20,
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          actions: <Widget>[
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop(
+                                                                          false),
+                                                              child: const Text(
+                                                                'Ok',
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        secondaryColor),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    );
+                                                  });
                                             },
-                                            icon: Icon(
-                                              CupertinoIcons.doc,
-                                              color: whiteColor,
+                                            child: Icon(
+                                              CupertinoIcons.arrow_down,
+                                              color: darkPrimaryColor,
                                             ),
                                           ),
-                                        ),
-                                        Container(
-                                          width: 30,
-                                          child: IconButton(
-                                            padding: EdgeInsets.zero,
-                                            onPressed: () async {
-                                              _scaffoldKey.currentState!
-                                                  .openDrawer();
+                                          Text(
+                                            "Receive",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: secondaryColor,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      ),
+                                      Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          RawMaterialButton(
+                                            constraints: const BoxConstraints(
+                                                minWidth: 70, minHeight: 60),
+                                            fillColor: secondaryColor,
+                                            shape: CircleBorder(),
+                                            onPressed: () {
+                                              if (kIsWeb) {
+                                                showNotification(
+                                                    'Coming soon',
+                                                    'Not supported for web',
+                                                    Colors.orange);
+                                              } else {
+                                                setState(() {
+                                                  loading = true;
+                                                });
+                                                Navigator.push(
+                                                  context,
+                                                  SlideRightRoute(
+                                                    page: BuyCryptoScreen(
+                                                      web3client: web3client,
+                                                      walletIndex:
+                                                          selectedWalletIndex,
+                                                    ),
+                                                  ),
+                                                );
+                                                setState(() {
+                                                  loading = false;
+                                                });
+                                              }
                                             },
-                                            icon: Icon(
-                                              CupertinoIcons.settings,
-                                              color: whiteColor,
+                                            child: Icon(
+                                              CupertinoIcons.money_dollar,
+                                              color: darkPrimaryColor,
                                             ),
                                           ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
+                                          Text(
+                                            "Buy",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: secondaryColor,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w700,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
                                 ),
-                              ),
-                              SizedBox(height: 20),
+                                const SizedBox(height: 20),
 
-                              // Buttons
-                              Container(
-                                width: size.width * 0.8,
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceEvenly,
-                                  children: [
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        RawMaterialButton(
-                                          constraints: const BoxConstraints(
-                                              minWidth: 70, minHeight: 60),
-                                          fillColor: secondaryColor,
-                                          shape: CircleBorder(),
-                                          onPressed: () {
-                                            setState(() {
-                                              loading = true;
-                                            });
-                                            Navigator.push(
-                                              context,
-                                              SlideRightRoute(
-                                                page: SendTxScreen(
-                                                  web3client: web3client,
-                                                  walletIndex:
-                                                      selectedWalletIndex,
-                                                  networkId: selectedNetworkId,
-                                                  walletAssets:
-                                                      selectedWalletAssets,
+                                // Pending Txs
+                                pendingTxs.length != 0
+                                    ? Container(
+                                        width: size.width * 0.8,
+                                        padding: const EdgeInsets.all(10),
+                                        margin: EdgeInsets.only(bottom: 20),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                          gradient: const LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              Colors.purpleAccent,
+                                              Colors.deepPurple
+                                            ],
+                                          ),
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Align(
+                                              alignment: Alignment.centerLeft,
+                                              child: Text(
+                                                "Pending",
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: darkDarkColor,
+                                                    fontSize: 30,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
                                                 ),
                                               ),
-                                            );
-                                            setState(() {
-                                              loading = false;
-                                            });
-                                          },
-                                          child: Icon(
-                                            CupertinoIcons.arrow_up,
-                                            color: darkPrimaryColor,
+                                            ),
+                                            SizedBox(
+                                              height: 30,
+                                            ),
+                                            for (dynamic tx in pendingTxs)
+                                              Container(
+                                                margin:
+                                                    EdgeInsets.only(bottom: 30),
+                                                child: Text(
+                                                  tx,
+                                                  maxLines: 2,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  textAlign: TextAlign.start,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: const TextStyle(
+                                                      color: darkDarkColor,
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
+                                        ),
+                                      )
+                                    : Container(),
+
+                                // Gas Indicator
+                                Container(
+                                  margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                                  width: size.width * 0.8,
+                                  // height: 200,
+                                  padding: const EdgeInsets.all(15),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: gasTxsLeft < 1
+                                          ? [
+                                              Colors.red,
+                                              Colors.orange,
+                                            ]
+                                          : [
+                                              Colors.blue,
+                                              Colors.green,
+                                            ],
+                                    ),
+                                  ),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "Gas Indicator",
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.start,
+                                        maxLines: 2,
+                                        style: GoogleFonts.montserrat(
+                                          textStyle: const TextStyle(
+                                            color: whiteColor,
+                                            fontSize: 25,
+                                            fontWeight: FontWeight.w700,
                                           ),
                                         ),
-                                        Text(
-                                          "Send",
+                                      ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      Text(
+                                        "~ ${NumberFormat.compact().format(gasTxsLeft)} Txs left",
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.start,
+                                        maxLines: 2,
+                                        style: GoogleFonts.montserrat(
+                                          textStyle: const TextStyle(
+                                            color: whiteColor,
+                                            fontSize: 23,
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 5,
+                                      ),
+                                      Text(
+                                        "${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.start,
+                                        maxLines: 4,
+                                        style: GoogleFonts.montserrat(
+                                          textStyle: const TextStyle(
+                                            color: whiteColor,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 5,
+                                      ),
+                                      Text(
+                                        "Gas price: ${estimateGas!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                        overflow: TextOverflow.ellipsis,
+                                        textAlign: TextAlign.start,
+                                        maxLines: 4,
+                                        style: GoogleFonts.montserrat(
+                                          textStyle: const TextStyle(
+                                            color: whiteColor,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 20,
+                                      ),
+                                      Center(
+                                        child: RoundedButton(
+                                          pw: 150,
+                                          ph: 35,
+                                          text: 'Top up gas',
+                                          press: () {
+                                            if (kIsWeb) {
+                                              showNotification(
+                                                  'Coming soon',
+                                                  'Not supported for web',
+                                                  Colors.orange);
+                                            } else {
+                                              Navigator.push(
+                                                context,
+                                                SlideRightRoute(
+                                                    page: BuyCryptoScreen(
+                                                  walletIndex:
+                                                      selectedWalletIndex,
+                                                  web3client: web3client,
+                                                )),
+                                              );
+                                            }
+                                          },
+                                          color: whiteColor,
+                                          textColor: darkPrimaryColor,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 50,
+                                ),
+
+                                // Assets
+                                Container(
+                                  width: size.width * 0.8,
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color.fromRGBO(9, 32, 63, 1.0),
+                                        Color.fromRGBO(83, 120, 149, 1.0),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Align(
+                                        alignment: Alignment.centerLeft,
+                                        child: Text(
+                                          "Assets",
                                           overflow: TextOverflow.ellipsis,
                                           textAlign: TextAlign.start,
                                           style: GoogleFonts.montserrat(
                                             textStyle: const TextStyle(
-                                              color: secondaryColor,
-                                              fontSize: 20,
+                                              color: whiteColor,
+                                              fontSize: 30,
                                               fontWeight: FontWeight.w700,
                                             ),
                                           ),
                                         ),
-                                      ],
-                                    ),
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        RawMaterialButton(
-                                          constraints: const BoxConstraints(
-                                              minWidth: 70, minHeight: 60),
-                                          fillColor: secondaryColor,
-                                          shape: CircleBorder(),
-                                          onPressed: () {
-                                            showDialog(
-                                                barrierDismissible: false,
-                                                context: context,
-                                                builder:
-                                                    (BuildContext context) {
-                                                  return StatefulBuilder(
-                                                    builder: (context,
-                                                        StateSetter setState) {
-                                                      return AlertDialog(
-                                                        backgroundColor:
-                                                            darkPrimaryColor,
-                                                        shape:
-                                                            RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      20.0),
+                                      ),
+                                      if (selectedWalletAssets.isNotEmpty)
+                                        for (dynamic asset
+                                            in selectedWalletAssets)
+                                          Container(
+                                            margin: EdgeInsets.symmetric(
+                                                vertical: 30),
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceEvenly,
+                                              children: [
+                                                Jazzicon.getIconWidget(
+                                                    Jazzicon.getJazziconData(
+                                                        160,
+                                                        address:
+                                                            asset['address']),
+                                                    size: 25),
+                                                Container(
+                                                  width: 90,
+                                                  child: Column(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      // Image.network('')
+                                                      Text(
+                                                        (asset['balance'] /
+                                                                BigInt.from(pow(
+                                                                    10, 18)))
+                                                            .toString(),
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        maxLines: 3,
+                                                        textAlign:
+                                                            TextAlign.start,
+                                                        style: GoogleFonts
+                                                            .montserrat(
+                                                          textStyle:
+                                                              const TextStyle(
+                                                            color: whiteColor,
+                                                            fontSize: 20,
+                                                            fontWeight:
+                                                                FontWeight.w600,
+                                                          ),
                                                         ),
-                                                        title: const Text(
-                                                          'QR Code',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  secondaryColor),
-                                                        ),
-                                                        content:
-                                                            SingleChildScrollView(
-                                                          child: Container(
-                                                            margin:
-                                                                EdgeInsets.all(
-                                                                    10),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                                Container(
+                                                  width: 90,
+                                                  child: Text(
+                                                    asset['symbol'],
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    textAlign: TextAlign.start,
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      textStyle:
+                                                          const TextStyle(
+                                                        color: whiteColor,
+                                                        fontSize: 15,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () {
+                                                    showDialog(
+                                                      barrierDismissible: false,
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return AlertDialog(
+                                                          backgroundColor:
+                                                              darkPrimaryColor,
+                                                          shape:
+                                                              RoundedRectangleBorder(
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        20.0),
+                                                          ),
+                                                          // title: Text(
+                                                          //     Languages.of(context).profileScreenSignOut),
+                                                          // content: Text(
+                                                          //     Languages.of(context)!.profileScreenWantToLeave),
+                                                          title: Text(
+                                                            'Remove asset?',
+                                                            style: TextStyle(
+                                                                color:
+                                                                    secondaryColor),
+                                                          ),
+                                                          content: Text(
+                                                            'Your asset will still exist on blockchain',
+                                                            style: TextStyle(
+                                                                color:
+                                                                    secondaryColor),
+                                                          ),
+                                                          actions: <Widget>[
+                                                            TextButton(
+                                                              onPressed:
+                                                                  () async {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop(true);
+                                                                setState(() {
+                                                                  loading =
+                                                                      true;
+                                                                });
+                                                                await FirebaseFirestore
+                                                                    .instance
+                                                                    .collection(
+                                                                        'wallets')
+                                                                    .doc(
+                                                                        address)
+                                                                    .update({
+                                                                  'assets':
+                                                                      FieldValue
+                                                                          .arrayRemove([
+                                                                    asset[
+                                                                        'asset']
+                                                                  ])
+                                                                });
+                                                                _refresh();
+                                                              },
+                                                              child: const Text(
+                                                                'Yes',
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        secondaryColor),
+                                                              ),
+                                                            ),
+                                                            TextButton(
+                                                              onPressed: () =>
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop(
+                                                                          false),
+                                                              child: const Text(
+                                                                'No',
+                                                                style: TextStyle(
+                                                                    color: Colors
+                                                                        .red),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    );
+                                                  },
+                                                  icon: Icon(
+                                                    CupertinoIcons.trash,
+                                                    color: Colors.red,
+                                                    // size: 5,
+                                                  ),
+                                                )
+                                              ],
+                                            ),
+                                          ),
+                                      SizedBox(
+                                        height: 10,
+                                      ),
+                                      RoundedButton(
+                                        pw: 150,
+                                        ph: 45,
+                                        text: 'Import',
+                                        press: () {
+                                          final _formKey =
+                                              GlobalKey<FormState>();
+                                          showDialog(
+                                              barrierDismissible: false,
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return StatefulBuilder(
+                                                  builder: (context,
+                                                      StateSetter setState) {
+                                                    return AlertDialog(
+                                                      backgroundColor:
+                                                          darkPrimaryColor,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(20.0),
+                                                      ),
+                                                      title: const Text(
+                                                        'Import assets',
+                                                        style: TextStyle(
+                                                            color:
+                                                                secondaryColor),
+                                                      ),
+                                                      content:
+                                                          SingleChildScrollView(
+                                                        child: Container(
+                                                          margin:
+                                                              EdgeInsets.all(
+                                                                  10),
+                                                          child: Form(
+                                                            key: _formKey,
                                                             child: Column(
                                                               children: [
-                                                                Container(
-                                                                  padding:
-                                                                      const EdgeInsets
-                                                                          .all(20),
+                                                                TextFormField(
+                                                                  style: const TextStyle(
+                                                                      color:
+                                                                          secondaryColor),
+                                                                  validator:
+                                                                      (val) {
+                                                                    if (val!
+                                                                        .isEmpty) {
+                                                                      return 'Enter contract address';
+                                                                    } else {
+                                                                      return null;
+                                                                    }
+                                                                  },
+                                                                  keyboardType:
+                                                                      TextInputType
+                                                                          .name,
+                                                                  onChanged:
+                                                                      (val) {
+                                                                    setState(
+                                                                        () {
+                                                                      importingAssetContractAddress =
+                                                                          val;
+                                                                    });
+                                                                  },
                                                                   decoration:
-                                                                      BoxDecoration(
-                                                                    borderRadius:
-                                                                        BorderRadius.circular(
-                                                                            20.0),
-                                                                    gradient:
-                                                                        const LinearGradient(
-                                                                      begin: Alignment
-                                                                          .topLeft,
-                                                                      end: Alignment
-                                                                          .bottomRight,
-                                                                      colors: [
-                                                                        darkPrimaryColor,
-                                                                        primaryColor
-                                                                      ],
+                                                                      InputDecoration(
+                                                                    labelText:
+                                                                        "Contract address",
+                                                                    labelStyle:
+                                                                        TextStyle(
+                                                                            color:
+                                                                                secondaryColor),
+                                                                    errorBorder:
+                                                                        const OutlineInputBorder(
+                                                                      borderSide: BorderSide(
+                                                                          color: Colors
+                                                                              .red,
+                                                                          width:
+                                                                              1.0),
                                                                     ),
-                                                                  ),
-                                                                  child:
-                                                                      QrImage(
-                                                                    data: EthereumAddress.fromHex(
-                                                                            publicKey)
-                                                                        .addressBytes
-                                                                        .toString(),
-                                                                    foregroundColor:
-                                                                        secondaryColor,
+                                                                    focusedBorder:
+                                                                        const OutlineInputBorder(
+                                                                      borderSide: BorderSide(
+                                                                          color:
+                                                                              secondaryColor,
+                                                                          width:
+                                                                              1.0),
+                                                                    ),
+                                                                    enabledBorder:
+                                                                        const OutlineInputBorder(
+                                                                      borderSide: BorderSide(
+                                                                          color:
+                                                                              secondaryColor,
+                                                                          width:
+                                                                              1.0),
+                                                                    ),
+                                                                    hintStyle: TextStyle(
+                                                                        color: darkPrimaryColor
+                                                                            .withOpacity(0.7)),
+                                                                    hintText:
+                                                                        'Contract address',
+                                                                    border:
+                                                                        const OutlineInputBorder(
+                                                                      borderSide: BorderSide(
+                                                                          color:
+                                                                              secondaryColor,
+                                                                          width:
+                                                                              1.0),
+                                                                    ),
                                                                   ),
                                                                 ),
                                                                 SizedBox(
-                                                                  height: 10,
+                                                                  height: 20,
                                                                 ),
-                                                                Row(
-                                                                  mainAxisAlignment:
-                                                                      MainAxisAlignment
-                                                                          .spaceBetween,
-                                                                  children: [
-                                                                    Expanded(
-                                                                      child:
-                                                                          Text(
-                                                                        publicKey,
-                                                                        overflow:
-                                                                            TextOverflow.ellipsis,
-                                                                        maxLines:
-                                                                            10,
-                                                                        textAlign:
-                                                                            TextAlign.start,
-                                                                        style: GoogleFonts
-                                                                            .montserrat(
-                                                                          textStyle:
-                                                                              const TextStyle(
+                                                                TextFormField(
+                                                                  style: const TextStyle(
+                                                                      color:
+                                                                          secondaryColor),
+                                                                  validator:
+                                                                      (val) {
+                                                                    if (val!
+                                                                        .isEmpty) {
+                                                                      return 'Enter symbol';
+                                                                    } else if (val
+                                                                            .length >
+                                                                        10) {
+                                                                      return 'Maximum 10 symbols';
+                                                                    } else {
+                                                                      return null;
+                                                                    }
+                                                                  },
+                                                                  keyboardType:
+                                                                      TextInputType
+                                                                          .name,
+                                                                  onChanged:
+                                                                      (val) {
+                                                                    setState(
+                                                                        () {
+                                                                      importingAssetContractSymbol =
+                                                                          val;
+                                                                    });
+                                                                  },
+                                                                  decoration:
+                                                                      InputDecoration(
+                                                                    labelText:
+                                                                        "Symbol",
+                                                                    labelStyle:
+                                                                        TextStyle(
                                                                             color:
-                                                                                secondaryColor,
-                                                                            fontSize:
-                                                                                15,
-                                                                            fontWeight:
-                                                                                FontWeight.w500,
-                                                                          ),
-                                                                        ),
-                                                                      ),
+                                                                                secondaryColor),
+                                                                    errorBorder:
+                                                                        const OutlineInputBorder(
+                                                                      borderSide: BorderSide(
+                                                                          color: Colors
+                                                                              .red,
+                                                                          width:
+                                                                              1.0),
                                                                     ),
-                                                                    Container(
-                                                                      width: 30,
-                                                                      child:
-                                                                          IconButton(
-                                                                        padding:
-                                                                            EdgeInsets.zero,
-                                                                        onPressed:
-                                                                            () async {
-                                                                          await Clipboard.setData(
-                                                                              ClipboardData(text: publicKey));
-                                                                          showNotification(
-                                                                              'Copied',
-                                                                              'Public key copied',
-                                                                              greenColor);
-                                                                        },
-                                                                        icon:
-                                                                            Icon(
-                                                                          CupertinoIcons
-                                                                              .doc,
+                                                                    focusedBorder:
+                                                                        const OutlineInputBorder(
+                                                                      borderSide: BorderSide(
                                                                           color:
                                                                               secondaryColor,
-                                                                        ),
-                                                                      ),
+                                                                          width:
+                                                                              1.0),
                                                                     ),
-                                                                  ],
+                                                                    enabledBorder:
+                                                                        const OutlineInputBorder(
+                                                                      borderSide: BorderSide(
+                                                                          color:
+                                                                              secondaryColor,
+                                                                          width:
+                                                                              1.0),
+                                                                    ),
+                                                                    hintStyle: TextStyle(
+                                                                        color: darkPrimaryColor
+                                                                            .withOpacity(0.7)),
+                                                                    hintText:
+                                                                        'Symbol',
+                                                                    border:
+                                                                        const OutlineInputBorder(
+                                                                      borderSide: BorderSide(
+                                                                          color:
+                                                                              secondaryColor,
+                                                                          width:
+                                                                              1.0),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                SizedBox(
+                                                                  height: 20,
+                                                                ),
+                                                                Center(
+                                                                  child:
+                                                                      RoundedButton(
+                                                                    pw: 250,
+                                                                    ph: 45,
+                                                                    text:
+                                                                        'CONTINUE',
+                                                                    press:
+                                                                        () async {
+                                                                      setState(
+                                                                          () {
+                                                                        loading =
+                                                                            true;
+                                                                      });
+                                                                      if (_formKey
+                                                                          .currentState!
+                                                                          .validate()) {
+                                                                        ;
+                                                                        final response =
+                                                                            await httpClient.get(Uri.parse("${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${importingAssetContractAddress}&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+                                                                        if (int.parse(jsonDecode(response.body)['status'].toString()) ==
+                                                                            1) {
+                                                                          await FirebaseFirestore
+                                                                              .instance
+                                                                              .collection('wallets')
+                                                                              .doc(publicKey.toString())
+                                                                              .update({
+                                                                            'assets':
+                                                                                FieldValue.arrayUnion([
+                                                                              {
+                                                                                "address": importingAssetContractAddress,
+                                                                                "symbol": importingAssetContractSymbol,
+                                                                                "network": selectedNetworkId,
+                                                                                "decimals": 18,
+                                                                              }
+                                                                            ])
+                                                                          });
+                                                                        } else {
+                                                                          showNotification(
+                                                                              'Failed',
+                                                                              'Wrong contract',
+                                                                              Colors.red);
+                                                                        }
+                                                                        Navigator.of(context)
+                                                                            .pop(true);
+                                                                      } else {
+                                                                        setState(
+                                                                            () {
+                                                                          loading =
+                                                                              false;
+                                                                        });
+                                                                      }
+                                                                      _refresh();
+                                                                    },
+                                                                    color:
+                                                                        secondaryColor,
+                                                                    textColor:
+                                                                        darkPrimaryColor,
+                                                                  ),
                                                                 ),
                                                                 SizedBox(
                                                                   height: 20,
@@ -1475,1261 +2241,324 @@ class _WalletScreenState extends State<WalletScreen> {
                                                             ),
                                                           ),
                                                         ),
-                                                        actions: <Widget>[
-                                                          TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop(false),
-                                                            child: const Text(
-                                                              'Ok',
-                                                              style: TextStyle(
-                                                                  color:
-                                                                      secondaryColor),
-                                                            ),
+                                                      ),
+                                                      actions: <Widget>[
+                                                        TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.of(
+                                                                      context)
+                                                                  .pop(false),
+                                                          child: const Text(
+                                                            'Cancel',
+                                                            style: TextStyle(
+                                                                color:
+                                                                    secondaryColor),
                                                           ),
-                                                        ],
-                                                      );
-                                                    },
-                                                  );
-                                                });
-                                          },
-                                          child: Icon(
-                                            CupertinoIcons.arrow_down,
-                                            color: darkPrimaryColor,
-                                          ),
-                                        ),
-                                        Text(
-                                          "Receive",
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.start,
-                                          style: GoogleFonts.montserrat(
-                                            textStyle: const TextStyle(
-                                              color: secondaryColor,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        )
-                                      ],
-                                    ),
-                                    Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        RawMaterialButton(
-                                          constraints: const BoxConstraints(
-                                              minWidth: 70, minHeight: 60),
-                                          fillColor: secondaryColor,
-                                          shape: CircleBorder(),
-                                          onPressed: () {
-                                            setState(() {
-                                              loading = true;
-                                            });
-                                            Navigator.push(
-                                              context,
-                                              SlideRightRoute(
-                                                page: BuyCryptoScreen(
-                                                  web3client: web3client,
-                                                  walletIndex:
-                                                      selectedWalletIndex,
-                                                ),
-                                              ),
-                                            );
-                                            setState(() {
-                                              loading = false;
-                                            });
-                                          },
-                                          child: Icon(
-                                            CupertinoIcons.money_dollar,
-                                            color: darkPrimaryColor,
-                                          ),
-                                        ),
-                                        Text(
-                                          "Buy",
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.start,
-                                          style: GoogleFonts.montserrat(
-                                            textStyle: const TextStyle(
-                                              color: secondaryColor,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 50),
-
-                              // Pending Txs
-                              pendingTxs.length != 0
-                                  ? Container(
-                                      width: size.width * 0.8,
-                                      padding: const EdgeInsets.all(10),
-                                      margin: EdgeInsets.only(bottom: 20),
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                        gradient: const LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            Colors.purpleAccent,
-                                            Colors.deepPurple
-                                          ],
-                                        ),
+                                                        ),
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              });
+                                        },
+                                        color: secondaryColor,
+                                        textColor: darkPrimaryColor,
                                       ),
-                                      child: Column(
-                                        children: [
-                                          Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(
-                                              "Pending",
-                                              overflow: TextOverflow.ellipsis,
-                                              textAlign: TextAlign.start,
-                                              style: GoogleFonts.montserrat(
-                                                textStyle: const TextStyle(
-                                                  color: darkDarkColor,
-                                                  fontSize: 30,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 20),
+
+                                // Txs
+                                selectedWalletTxs.length != 0
+                                    ? Container(
+                                        width: size.width * 0.8,
+                                        padding: const EdgeInsets.all(10),
+                                        decoration: BoxDecoration(
+                                          borderRadius:
+                                              BorderRadius.circular(20.0),
+                                          gradient: const LinearGradient(
+                                            begin: Alignment.topLeft,
+                                            end: Alignment.bottomRight,
+                                            colors: [
+                                              whiteColor,
+                                              Color.fromARGB(
+                                                  255, 220, 225, 234),
+                                              Color.fromRGBO(134, 147, 171, 1.0)
+                                            ],
                                           ),
-                                          SizedBox(
-                                            height: 30,
-                                          ),
-                                          for (dynamic tx in pendingTxs)
-                                            Container(
-                                              margin:
-                                                  EdgeInsets.only(bottom: 30),
+                                        ),
+                                        child: Column(
+                                          children: [
+                                            Align(
+                                              alignment: Alignment.centerLeft,
                                               child: Text(
-                                                tx,
-                                                maxLines: 2,
+                                                "Activity",
                                                 overflow: TextOverflow.ellipsis,
                                                 textAlign: TextAlign.start,
                                                 style: GoogleFonts.montserrat(
                                                   textStyle: const TextStyle(
                                                     color: darkDarkColor,
-                                                    fontSize: 15,
+                                                    fontSize: 30,
                                                     fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
                                               ),
-
-                                              //   Row(
-                                              //     mainAxisAlignment:
-                                              //         MainAxisAlignment
-                                              //             .spaceEvenly,
-                                              //     children: [
-                                              //       // Icons + Date
-                                              //       // Container(
-                                              //       //   width: size.width * 0.1,
-                                              //       //   child: Column(
-                                              //       //     mainAxisAlignment:
-                                              //       //         MainAxisAlignment
-                                              //       //             .center,
-                                              //       //     children: [
-                                              //       //       tx == publicKey
-                                              //       //           ? Icon(
-                                              //       //               CupertinoIcons
-                                              //       //                   .arrow_up_circle_fill,
-                                              //       //               color:
-                                              //       //                   darkDarkColor,
-                                              //       //             )
-                                              //       //           : Icon(
-                                              //       //               CupertinoIcons
-                                              //       //                   .arrow_down_circle_fill,
-                                              //       //               color: Colors
-                                              //       //                   .green,
-                                              //       //             ),
-                                              //       //       Text(
-                                              //       //         "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000))}",
-                                              //       //         overflow: TextOverflow
-                                              //       //             .ellipsis,
-                                              //       //         textAlign:
-                                              //       //             TextAlign.start,
-                                              //       //         style: GoogleFonts
-                                              //       //             .montserrat(
-                                              //       //           textStyle:
-                                              //       //               const TextStyle(
-                                              //       //             color:
-                                              //       //                 darkDarkColor,
-                                              //       //             fontSize: 10,
-                                              //       //             fontWeight:
-                                              //       //                 FontWeight
-                                              //       //                     .w600,
-                                              //       //           ),
-                                              //       //         ),
-                                              //       //       ),
-                                              //       //     ],
-                                              //       //   ),
-                                              //       // ),
-                                              //       Container(
-                                              //         width: size.width * 0.4,
-                                              //         child: Column(
-                                              //           mainAxisAlignment:
-                                              //               MainAxisAlignment
-                                              //                   .center,
-                                              //           crossAxisAlignment:
-                                              //               CrossAxisAlignment
-                                              //                   .start,
-                                              //           children: [
-                                              //             tx['from'] == publicKey
-                                              //                 ? Text(
-                                              //                     "Sent",
-                                              //                     overflow:
-                                              //                         TextOverflow
-                                              //                             .ellipsis,
-                                              //                     textAlign:
-                                              //                         TextAlign
-                                              //                             .start,
-                                              //                     style: GoogleFonts
-                                              //                         .montserrat(
-                                              //                       textStyle:
-                                              //                           const TextStyle(
-                                              //                         color:
-                                              //                             darkDarkColor,
-                                              //                         fontSize:
-                                              //                             25,
-                                              //                         fontWeight:
-                                              //                             FontWeight
-                                              //                                 .w700,
-                                              //                       ),
-                                              //                     ),
-                                              //                   )
-                                              //                 : Text(
-                                              //                     "Received",
-                                              //                     overflow:
-                                              //                         TextOverflow
-                                              //                             .ellipsis,
-                                              //                     textAlign:
-                                              //                         TextAlign
-                                              //                             .start,
-                                              //                     style: GoogleFonts
-                                              //                         .montserrat(
-                                              //                       textStyle:
-                                              //                           const TextStyle(
-                                              //                         color:
-                                              //                             darkDarkColor,
-                                              //                         fontSize:
-                                              //                             25,
-                                              //                         fontWeight:
-                                              //                             FontWeight
-                                              //                                 .w700,
-                                              //                       ),
-                                              //                     ),
-                                              //                   ),
-                                              //             tx['from'] ==
-                                              //                         publicKey &&
-                                              //                     !selectedWalletAssetsData
-                                              //                         .keys
-                                              //                         .contains(
-                                              //                             tx['to'])
-                                              //                 ? Text(
-                                              //                     "To ${tx['to']}",
-                                              //                     overflow:
-                                              //                         TextOverflow
-                                              //                             .ellipsis,
-                                              //                     textAlign:
-                                              //                         TextAlign
-                                              //                             .start,
-                                              //                     maxLines: 2,
-                                              //                     style: GoogleFonts
-                                              //                         .montserrat(
-                                              //                       textStyle:
-                                              //                           const TextStyle(
-                                              //                         color:
-                                              //                             darkDarkColor,
-                                              //                         fontSize:
-                                              //                             10,
-                                              //                         fontWeight:
-                                              //                             FontWeight
-                                              //                                 .w400,
-                                              //                       ),
-                                              //                     ),
-                                              //                   )
-                                              //                 : Text(
-                                              //                     "From ${tx['from']}",
-                                              //                     overflow:
-                                              //                         TextOverflow
-                                              //                             .ellipsis,
-                                              //                     maxLines: 2,
-                                              //                     textAlign:
-                                              //                         TextAlign
-                                              //                             .start,
-                                              //                     style: GoogleFonts
-                                              //                         .montserrat(
-                                              //                       textStyle:
-                                              //                           const TextStyle(
-                                              //                         color:
-                                              //                             darkDarkColor,
-                                              //                         fontSize:
-                                              //                             10,
-                                              //                         fontWeight:
-                                              //                             FontWeight
-                                              //                                 .w400,
-                                              //                       ),
-                                              //                     ),
-                                              //                   ),
-                                              //           ],
-                                              //         ),
-                                              //       ),
-                                              //       Container(
-                                              //         width: size.width * 0.2,
-                                              //         child: Column(
-                                              //           mainAxisAlignment:
-                                              //               MainAxisAlignment
-                                              //                   .center,
-                                              //           children: [
-                                              //             Text(
-                                              //               !selectedWalletAssetsData
-                                              //                       .keys
-                                              //                       .contains(
-                                              //                           tx['to'])
-                                              //                   ? NumberFormat
-                                              //                           .compact()
-                                              //                       .format(EtherAmount.fromUnitAndValue(
-                                              //                               EtherUnit
-                                              //                                   .wei,
-                                              //                               tx[
-                                              //                                   'value'])
-                                              //                           .getValueInUnit(
-                                              //                               selectedEtherUnit))
-                                              //                       .toString()
-                                              //                   : "N/A",
-                                              //               maxLines: 2,
-                                              //               overflow: TextOverflow
-                                              //                   .ellipsis,
-                                              //               textAlign:
-                                              //                   TextAlign.start,
-                                              //               style: GoogleFonts
-                                              //                   .montserrat(
-                                              //                 textStyle:
-                                              //                     const TextStyle(
-                                              //                   color:
-                                              //                       darkDarkColor,
-                                              //                   fontSize: 15,
-                                              //                   fontWeight:
-                                              //                       FontWeight
-                                              //                           .w700,
-                                              //                 ),
-                                              //               ),
-                                              //             ),
-                                              //             Text(
-                                              //               !selectedWalletAssetsData
-                                              //                       .keys
-                                              //                       .contains(
-                                              //                           tx['to'])
-                                              //                   ? cryptoUnits[
-                                              //                           selectedEtherUnit]
-                                              //                       .toString()
-                                              //                   : selectedWalletAssetsData[
-                                              //                       tx['to']],
-                                              //               overflow: TextOverflow
-                                              //                   .ellipsis,
-                                              //               textAlign:
-                                              //                   TextAlign.start,
-                                              //               style: GoogleFonts
-                                              //                   .montserrat(
-                                              //                 textStyle:
-                                              //                     const TextStyle(
-                                              //                   color:
-                                              //                       darkDarkColor,
-                                              //                   fontSize: 20,
-                                              //                   fontWeight:
-                                              //                       FontWeight
-                                              //                           .w400,
-                                              //                 ),
-                                              //               ),
-                                              //             ),
-                                              //           ],
-                                              //         ),
-                                              //       ),
-                                              //     ],
-                                              //   ),
                                             ),
-                                        ],
-                                      ),
-                                    )
-                                  : Container(),
-
-                              // Assets
-                              Container(
-                                width: size.width * 0.8,
-                                padding: const EdgeInsets.all(10),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      Color.fromRGBO(9, 32, 63, 1.0),
-                                      Color.fromRGBO(83, 120, 149, 1.0),
-                                    ],
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: Text(
-                                        "Assets",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
-                                            color: whiteColor,
-                                            fontSize: 30,
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    if (selectedWalletAssets.isNotEmpty)
-                                      for (dynamic asset
-                                          in selectedWalletAssets)
-                                        Container(
-                                          margin: EdgeInsets.symmetric(vertical: 30),
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceEvenly,
-                                            children: [
-                                              Jazzicon.getIconWidget(
-                                                  Jazzicon.getJazziconData(160,
-                                                      address:
-                                                          asset['address']),
-                                                  size: 25),
+                                            SizedBox(
+                                              height: 30,
+                                            ),
+                                            for (dynamic tx
+                                                in selectedWalletTxs.take(5))
                                               Container(
-                                                width: 90,
-                                                child: Column(
+                                                margin:
+                                                    EdgeInsets.only(bottom: 30),
+                                                child: Row(
                                                   mainAxisAlignment:
-                                                      MainAxisAlignment.center,
+                                                      MainAxisAlignment
+                                                          .spaceEvenly,
                                                   children: [
-                                                    // Image.network('')
-                                                    Text(
-                                                      (asset['balance'] /
-                                                              BigInt.from(
-                                                                  pow(10, 18)))
-                                                          .toString(),
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      maxLines: 3,
-                                                      textAlign:
-                                                          TextAlign.start,
-                                                      style: GoogleFonts
-                                                          .montserrat(
-                                                        textStyle:
-                                                            const TextStyle(
-                                                          color: whiteColor,
-                                                          fontSize: 20,
-                                                          fontWeight:
-                                                              FontWeight.w600,
-                                                        ),
+                                                    // Icons + Date
+                                                    Container(
+                                                      width: size.width * 0.1,
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          tx['from'] ==
+                                                                  publicKey
+                                                              ? Icon(
+                                                                  CupertinoIcons
+                                                                      .arrow_up_circle_fill,
+                                                                  color:
+                                                                      darkDarkColor,
+                                                                )
+                                                              : Icon(
+                                                                  CupertinoIcons
+                                                                      .arrow_down_circle_fill,
+                                                                  color: Colors
+                                                                      .green,
+                                                                ),
+                                                          Text(
+                                                            "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000))}",
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            textAlign:
+                                                                TextAlign.start,
+                                                            style: GoogleFonts
+                                                                .montserrat(
+                                                              textStyle:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    darkDarkColor,
+                                                                fontSize: 10,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w600,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width: size.width * 0.4,
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          tx['from'] ==
+                                                                  publicKey
+                                                              ? Text(
+                                                                  "Sent",
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          darkDarkColor,
+                                                                      fontSize:
+                                                                          25,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                    ),
+                                                                  ),
+                                                                )
+                                                              : Text(
+                                                                  "Received",
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          darkDarkColor,
+                                                                      fontSize:
+                                                                          25,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                          tx['from'] ==
+                                                                      publicKey &&
+                                                                  !selectedWalletAssetsData
+                                                                      .keys
+                                                                      .contains(
+                                                                          tx['to'])
+                                                              ? Text(
+                                                                  "To ${tx['to']}",
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  maxLines: 2,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          darkDarkColor,
+                                                                      fontSize:
+                                                                          10,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w400,
+                                                                    ),
+                                                                  ),
+                                                                )
+                                                              : Text(
+                                                                  "From ${tx['from']}",
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  maxLines: 2,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          darkDarkColor,
+                                                                      fontSize:
+                                                                          10,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w400,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width: size.width * 0.2,
+                                                      child: Column(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .center,
+                                                        children: [
+                                                          Text(
+                                                            !selectedWalletAssetsData
+                                                                    .keys
+                                                                    .contains(tx[
+                                                                        'to'])
+                                                                ? NumberFormat
+                                                                        .compact()
+                                                                    .format(EtherAmount.fromUnitAndValue(
+                                                                            EtherUnit
+                                                                                .wei,
+                                                                            tx[
+                                                                                'value'])
+                                                                        .getValueInUnit(
+                                                                            selectedEtherUnit))
+                                                                    .toString()
+                                                                : "N/A",
+                                                            maxLines: 2,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            textAlign:
+                                                                TextAlign.start,
+                                                            style: GoogleFonts
+                                                                .montserrat(
+                                                              textStyle:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    darkDarkColor,
+                                                                fontSize: 15,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          Text(
+                                                            !selectedWalletAssetsData
+                                                                    .keys
+                                                                    .contains(tx[
+                                                                        'to'])
+                                                                ? cryptoUnits[
+                                                                        selectedEtherUnit]
+                                                                    .toString()
+                                                                : selectedWalletAssetsData[
+                                                                    tx['to']],
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
+                                                            textAlign:
+                                                                TextAlign.start,
+                                                            style: GoogleFonts
+                                                                .montserrat(
+                                                              textStyle:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    darkDarkColor,
+                                                                fontSize: 20,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w400,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
                                                       ),
                                                     ),
                                                   ],
                                                 ),
                                               ),
-                                              Container(
-                                                width: 90,
-                                                child: Text(
-                                                  asset['symbol'],
-                                                  overflow:
-                                                      TextOverflow.ellipsis,
-                                                  textAlign: TextAlign.start,
-                                                  style: GoogleFonts.montserrat(
-                                                    textStyle: const TextStyle(
-                                                      color: whiteColor,
-                                                      fontSize: 15,
-                                                      fontWeight:
-                                                          FontWeight.w700,
-                                                    ),
-                                                  ),
-                                                ),
-                                              ),
-                                              IconButton(
-                                                onPressed: () {
-                                                  showDialog(
-                                                    barrierDismissible: false,
-                                                    context: context,
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return AlertDialog(
-                                                        backgroundColor:
-                                                            darkPrimaryColor,
-                                                        shape:
-                                                            RoundedRectangleBorder(
-                                                          borderRadius:
-                                                              BorderRadius
-                                                                  .circular(
-                                                                      20.0),
-                                                        ),
-                                                        // title: Text(
-                                                        //     Languages.of(context).profileScreenSignOut),
-                                                        // content: Text(
-                                                        //     Languages.of(context)!.profileScreenWantToLeave),
-                                                        title: Text(
-                                                          'Remove asset?',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  secondaryColor),
-                                                        ),
-                                                        content: Text(
-                                                          'Your asset will still exist on blockchain',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  secondaryColor),
-                                                        ),
-                                                        actions: <Widget>[
-                                                          TextButton(
-                                                            onPressed:
-                                                                () async {
-                                                              Navigator.of(
-                                                                      context)
-                                                                  .pop(true);
-                                                              setState(() {
-                                                                loading = true;
-                                                              });
-                                                              await FirebaseFirestore
-                                                                  .instance
-                                                                  .collection(
-                                                                      'wallets')
-                                                                  .doc(address)
-                                                                  .update({
-                                                                'assets': FieldValue
-                                                                    .arrayRemove([
-                                                                  asset['asset']
-                                                                ])
-                                                              });
-                                                              _refresh();
-                                                            },
-                                                            child: const Text(
-                                                              'Yes',
-                                                              style: TextStyle(
-                                                                  color:
-                                                                      secondaryColor),
-                                                            ),
-                                                          ),
-                                                          TextButton(
-                                                            onPressed: () =>
-                                                                Navigator.of(
-                                                                        context)
-                                                                    .pop(false),
-                                                            child: const Text(
-                                                              'No',
-                                                              style: TextStyle(
-                                                                  color: Colors
-                                                                      .red),
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      );
-                                                    },
-                                                  );
-                                                },
-                                                icon: Icon(
-                                                  CupertinoIcons.trash,
-                                                  color: Colors.red,
-                                                  // size: 5,
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    RoundedButton(
-                                      pw: 150,
-                                      ph: 45,
-                                      text: 'Import',
-                                      press: () {
-                                        final _formKey = GlobalKey<FormState>();
-                                        showDialog(
-                                            barrierDismissible: false,
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return StatefulBuilder(
-                                                builder: (context,
-                                                    StateSetter setState) {
-                                                  return AlertDialog(
-                                                    backgroundColor:
-                                                        darkPrimaryColor,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20.0),
-                                                    ),
-                                                    title: const Text(
-                                                      'Import assets',
-                                                      style: TextStyle(
-                                                          color:
-                                                              secondaryColor),
-                                                    ),
-                                                    content:
-                                                        SingleChildScrollView(
-                                                      child: Container(
-                                                        margin:
-                                                            EdgeInsets.all(10),
-                                                        child: Form(
-                                                          key: _formKey,
-                                                          child: Column(
-                                                            children: [
-                                                              TextFormField(
-                                                                style: const TextStyle(
-                                                                    color:
-                                                                        secondaryColor),
-                                                                validator:
-                                                                    (val) {
-                                                                  if (val!
-                                                                      .isEmpty) {
-                                                                    return 'Enter contract address';
-                                                                  } else {
-                                                                    return null;
-                                                                  }
-                                                                },
-                                                                keyboardType:
-                                                                    TextInputType
-                                                                        .name,
-                                                                onChanged:
-                                                                    (val) {
-                                                                  setState(() {
-                                                                    importingAssetContractAddress =
-                                                                        val;
-                                                                  });
-                                                                },
-                                                                decoration:
-                                                                    InputDecoration(
-                                                                  labelText:
-                                                                      "Contract address",
-                                                                  labelStyle:
-                                                                      TextStyle(
-                                                                          color:
-                                                                              secondaryColor),
-                                                                  errorBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color: Colors
-                                                                            .red,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  focusedBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  enabledBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  hintStyle: TextStyle(
-                                                                      color: darkPrimaryColor
-                                                                          .withOpacity(
-                                                                              0.7)),
-                                                                  hintText:
-                                                                      'Contract address',
-                                                                  border:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                height: 20,
-                                                              ),
-                                                              TextFormField(
-                                                                style: const TextStyle(
-                                                                    color:
-                                                                        secondaryColor),
-                                                                validator:
-                                                                    (val) {
-                                                                  if (val!
-                                                                      .isEmpty) {
-                                                                    return 'Enter symbol';
-                                                                  } else if (val
-                                                                          .length >
-                                                                      10) {
-                                                                    return 'Maximum 10 symbols';
-                                                                  } else {
-                                                                    return null;
-                                                                  }
-                                                                },
-                                                                keyboardType:
-                                                                    TextInputType
-                                                                        .name,
-                                                                onChanged:
-                                                                    (val) {
-                                                                  setState(() {
-                                                                    importingAssetContractSymbol =
-                                                                        val;
-                                                                  });
-                                                                },
-                                                                decoration:
-                                                                    InputDecoration(
-                                                                  labelText:
-                                                                      "Symbol",
-                                                                  labelStyle:
-                                                                      TextStyle(
-                                                                          color:
-                                                                              secondaryColor),
-                                                                  errorBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color: Colors
-                                                                            .red,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  focusedBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  enabledBorder:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                  hintStyle: TextStyle(
-                                                                      color: darkPrimaryColor
-                                                                          .withOpacity(
-                                                                              0.7)),
-                                                                  hintText:
-                                                                      'Symbol',
-                                                                  border:
-                                                                      const OutlineInputBorder(
-                                                                    borderSide: BorderSide(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        width:
-                                                                            1.0),
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                height: 20,
-                                                              ),
-                                                              Center(
-                                                                child:
-                                                                    RoundedButton(
-                                                                  pw: 250,
-                                                                  ph: 45,
-                                                                  text:
-                                                                      'CONTINUE',
-                                                                  press:
-                                                                      () async {
-                                                                    setState(
-                                                                        () {
-                                                                      loading =
-                                                                          true;
-                                                                    });
-                                                                    if (_formKey
-                                                                        .currentState!
-                                                                        .validate()) {
-                                                                      ;
-                                                                      final response =
-                                                                          await httpClient
-                                                                              .get(Uri.parse("${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${importingAssetContractAddress}&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
-                                                                      if (int.parse(
-                                                                              jsonDecode(response.body)['status'].toString()) ==
-                                                                          1) {
-                                                                        await FirebaseFirestore
-                                                                            .instance
-                                                                            .collection('wallets')
-                                                                            .doc(publicKey.toString())
-                                                                            .update({
-                                                                          'assets':
-                                                                              FieldValue.arrayUnion([
-                                                                            {
-                                                                              "address": importingAssetContractAddress,
-                                                                              "symbol": importingAssetContractSymbol,
-                                                                              "network": selectedNetworkId,
-                                                                              "decimals": 18,
-                                                                            }
-                                                                          ])
-                                                                        });
-                                                                      } else {
-                                                                        showNotification(
-                                                                            'Failed',
-                                                                            'Wrong contract',
-                                                                            Colors.red);
-                                                                      }
-                                                                      Navigator.of(
-                                                                              context)
-                                                                          .pop(
-                                                                              true);
-                                                                    } else {
-                                                                      setState(
-                                                                          () {
-                                                                        loading =
-                                                                            false;
-                                                                      });
-                                                                    }
-                                                                    _refresh();
-                                                                  },
-                                                                  color:
-                                                                      secondaryColor,
-                                                                  textColor:
-                                                                      darkPrimaryColor,
-                                                                ),
-                                                              ),
-                                                              SizedBox(
-                                                                height: 20,
-                                                              ),
-                                                            ],
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                                    actions: <Widget>[
-                                                      TextButton(
-                                                        onPressed: () =>
-                                                            Navigator.of(
-                                                                    context)
-                                                                .pop(false),
-                                                        child: const Text(
-                                                          'Cancel',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  secondaryColor),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
-                                            });
-                                      },
-                                      color: secondaryColor,
-                                      textColor: darkPrimaryColor,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 20),
-
-                              // Gas Indicator
-                              Container(
-                                margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
-                                width: size.width * 0.8,
-                                // height: 200,
-                                padding: const EdgeInsets.all(15),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  gradient: LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: gasTxsLeft < 1
-                                        ? [
-                                            Colors.red,
-                                            Colors.orange,
-                                          ]
-                                        : [
-                                            Colors.blue,
-                                            Colors.green,
-                                          ],
-                                  ),
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Gas Indicator",
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.start,
-                                      maxLines: 2,
-                                      style: GoogleFonts.montserrat(
-                                        textStyle: const TextStyle(
-                                          color: whiteColor,
-                                          fontSize: 25,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 10,
-                                    ),
-                                    Text(
-                                      "~ ${NumberFormat.compact().format(gasTxsLeft)} Txs left",
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.start,
-                                      maxLines: 2,
-                                      style: GoogleFonts.montserrat(
-                                        textStyle: const TextStyle(
-                                          color: whiteColor,
-                                          fontSize: 23,
-                                          fontWeight: FontWeight.w700,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text(
-                                      "${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.start,
-                                      maxLines: 4,
-                                      style: GoogleFonts.montserrat(
-                                        textStyle: const TextStyle(
-                                          color: whiteColor,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 5,
-                                    ),
-                                    Text(
-                                      "Gas price: ${estimateGas!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
-                                      overflow: TextOverflow.ellipsis,
-                                      textAlign: TextAlign.start,
-                                      maxLines: 4,
-                                      style: GoogleFonts.montserrat(
-                                        textStyle: const TextStyle(
-                                          color: whiteColor,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      height: 20,
-                                    ),
-                                    Center(
-                                      child: RoundedButton(
-                                        pw: 150,
-                                        ph: 35,
-                                        text: 'Top up gas',
-                                        press: () {
-                                          Navigator.push(
-                                            context,
-                                            SlideRightRoute(
-                                                page: BuyCryptoScreen(
-                                              walletIndex: selectedWalletIndex,
-                                              web3client: web3client,
-                                            )),
-                                          );
-                                        },
-                                        color: whiteColor,
-                                        textColor: darkPrimaryColor,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              SizedBox(
-                                height: 50,
-                              ),
-
-                              // Txs
-                              selectedWalletTxs.length != 0
-                                  ? Container(
-                                      width: size.width * 0.8,
-                                      padding: const EdgeInsets.all(10),
-                                      decoration: BoxDecoration(
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                        gradient: const LinearGradient(
-                                          begin: Alignment.topLeft,
-                                          end: Alignment.bottomRight,
-                                          colors: [
-                                            whiteColor,
-                                            Color.fromARGB(255, 220, 225, 234),
-                                            Color.fromRGBO(134, 147, 171, 1.0)
                                           ],
                                         ),
-                                      ),
-                                      child: Column(
-                                        children: [
-                                          Align(
-                                            alignment: Alignment.centerLeft,
-                                            child: Text(
-                                              "Activity",
-                                              overflow: TextOverflow.ellipsis,
-                                              textAlign: TextAlign.start,
-                                              style: GoogleFonts.montserrat(
-                                                textStyle: const TextStyle(
-                                                  color: darkDarkColor,
-                                                  fontSize: 30,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 30,
-                                          ),
-                                          for (dynamic tx
-                                              in selectedWalletTxs.take(5))
-                                            Container(
-                                              margin:
-                                                  EdgeInsets.only(bottom: 30),
-                                              child: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceEvenly,
-                                                children: [
-                                                  // Icons + Date
-                                                  Container(
-                                                    width: size.width * 0.1,
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        tx['from'] == publicKey
-                                                            ? Icon(
-                                                                CupertinoIcons
-                                                                    .arrow_up_circle_fill,
-                                                                color:
-                                                                    darkDarkColor,
-                                                              )
-                                                            : Icon(
-                                                                CupertinoIcons
-                                                                    .arrow_down_circle_fill,
-                                                                color: Colors
-                                                                    .green,
-                                                              ),
-                                                        Text(
-                                                          "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000))}",
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          textAlign:
-                                                              TextAlign.start,
-                                                          style: GoogleFonts
-                                                              .montserrat(
-                                                            textStyle:
-                                                                const TextStyle(
-                                                              color:
-                                                                  darkDarkColor,
-                                                              fontSize: 10,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Container(
-                                                    width: size.width * 0.4,
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        tx['from'] == publicKey
-                                                            ? Text(
-                                                                "Sent",
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                style: GoogleFonts
-                                                                    .montserrat(
-                                                                  textStyle:
-                                                                      const TextStyle(
-                                                                    color:
-                                                                        darkDarkColor,
-                                                                    fontSize:
-                                                                        25,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w700,
-                                                                  ),
-                                                                ),
-                                                              )
-                                                            : Text(
-                                                                "Received",
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                style: GoogleFonts
-                                                                    .montserrat(
-                                                                  textStyle:
-                                                                      const TextStyle(
-                                                                    color:
-                                                                        darkDarkColor,
-                                                                    fontSize:
-                                                                        25,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w700,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                        tx['from'] ==
-                                                                    publicKey &&
-                                                                !selectedWalletAssetsData
-                                                                    .keys
-                                                                    .contains(
-                                                                        tx['to'])
-                                                            ? Text(
-                                                                "To ${tx['to']}",
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                maxLines: 2,
-                                                                style: GoogleFonts
-                                                                    .montserrat(
-                                                                  textStyle:
-                                                                      const TextStyle(
-                                                                    color:
-                                                                        darkDarkColor,
-                                                                    fontSize:
-                                                                        10,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w400,
-                                                                  ),
-                                                                ),
-                                                              )
-                                                            : Text(
-                                                                "From ${tx['from']}",
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                maxLines: 2,
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                style: GoogleFonts
-                                                                    .montserrat(
-                                                                  textStyle:
-                                                                      const TextStyle(
-                                                                    color:
-                                                                        darkDarkColor,
-                                                                    fontSize:
-                                                                        10,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w400,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  Container(
-                                                    width: size.width * 0.2,
-                                                    child: Column(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Text(
-                                                          !selectedWalletAssetsData
-                                                                  .keys
-                                                                  .contains(
-                                                                      tx['to'])
-                                                              ? NumberFormat
-                                                                      .compact()
-                                                                  .format(EtherAmount.fromUnitAndValue(
-                                                                          EtherUnit
-                                                                              .wei,
-                                                                          tx[
-                                                                              'value'])
-                                                                      .getValueInUnit(
-                                                                          selectedEtherUnit))
-                                                                  .toString()
-                                                              : "N/A",
-                                                          maxLines: 2,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          textAlign:
-                                                              TextAlign.start,
-                                                          style: GoogleFonts
-                                                              .montserrat(
-                                                            textStyle:
-                                                                const TextStyle(
-                                                              color:
-                                                                  darkDarkColor,
-                                                              fontSize: 15,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                        Text(
-                                                          !selectedWalletAssetsData
-                                                                  .keys
-                                                                  .contains(
-                                                                      tx['to'])
-                                                              ? cryptoUnits[
-                                                                      selectedEtherUnit]
-                                                                  .toString()
-                                                              : selectedWalletAssetsData[
-                                                                  tx['to']],
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          textAlign:
-                                                              TextAlign.start,
-                                                          style: GoogleFonts
-                                                              .montserrat(
-                                                            textStyle:
-                                                                const TextStyle(
-                                                              color:
-                                                                  darkDarkColor,
-                                                              fontSize: 20,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w400,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                        ],
-                                      ),
-                                    )
-                                  : Container(),
-                              SizedBox(
-                                height: 100,
-                              ),
-                            ],
+                                      )
+                                    : Container(),
+                                SizedBox(
+                                  height: 100,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ],

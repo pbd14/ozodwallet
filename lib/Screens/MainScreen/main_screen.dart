@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ozodwallet/Screens/HomeScreen/home_screen.dart';
@@ -137,8 +138,9 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
+    Size size = MediaQuery.of(context).size;
     return loading
-        ?  LoadingScreen()
+        ? LoadingScreen()
         : !walletExists
             ? Scaffold(
                 backgroundColor: primaryColor,
@@ -190,7 +192,12 @@ class _MainScreenState extends State<MainScreen> {
                   duration: Duration(milliseconds: 200),
                 ),
                 navBarStyle: NavBarStyle.style7,
-                margin: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                margin: kIsWeb
+                    ? size.width >= 600
+                        ? EdgeInsets.fromLTRB(
+                            (size.width - 600)/2 + 20, 0, (size.width - 600)/2 + 20, 20)
+                        : EdgeInsets.fromLTRB(20, 0, 20, 20)
+                    : const EdgeInsets.fromLTRB(20, 0, 20, 20),
               );
   }
 }
