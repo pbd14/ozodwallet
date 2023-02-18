@@ -300,7 +300,7 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget build(BuildContext context) {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
-    if (kIsWeb) {
+    if (kIsWeb && size.width <=600) {
       size = Size(600, size.height);
     }
 
@@ -308,7 +308,7 @@ class _WalletScreenState extends State<WalletScreen> {
         ? LoadingScreen()
         : Scaffold(
             key: _scaffoldKey,
-            backgroundColor: primaryColor,
+            backgroundColor: darkPrimaryColor,
             drawer: Drawer(
               // Add a ListView to the drawer. This ensures the user can scroll
               // through the options in the drawer if there isn't enough vertical

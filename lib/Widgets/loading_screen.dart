@@ -14,16 +14,16 @@ class _LoadingScreenState extends State<LoadingScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: darkPrimaryColor,
       body: SafeArea(
         child: Container(
-          color: primaryColor,
+          color: darkPrimaryColor,
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SpinKitWave(
-                  color: secondaryColor,
+                  color: lightPrimaryColor,
                   size: 50.0,
                 ),
                 SizedBox(
@@ -37,7 +37,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     textAlign: TextAlign.center,
                     style: GoogleFonts.montserrat(
                       textStyle: const TextStyle(
-                        color: secondaryColor,
+                        color: lightPrimaryColor,
                         fontSize: 25,
                         fontWeight: FontWeight.w700,
                       ),

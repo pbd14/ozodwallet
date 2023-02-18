@@ -45,11 +45,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Map<String, Map> cardsData = {
     'goerli': {
       'image': "assets/images/card_ethereum.png",
-      'color': darkColor,
+      'color': whiteColor,
     },
     'mainnet': {
       'image': "assets/images/card_ethereum.png",
-      'color': darkColor,
+      'color': whiteColor,
     },
     'polygon_mumbai': {
       'image': "assets/images/card_polygon.png",
@@ -283,14 +283,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
-    if (kIsWeb) {
+    if (kIsWeb && size.width <=600) {
       size = Size(600, size.height);
     }
     return loading
         ? LoadingScreen()
         : Scaffold(
             key: _scaffoldKey,
-            backgroundColor: primaryColor,
+            backgroundColor: darkPrimaryColor,
             drawer: Drawer(
               // Add a ListView to the drawer. This ensures the user can scroll
               // through the options in the drawer if there isn't enough vertical
@@ -987,7 +987,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                             style: GoogleFonts.montserrat(
                                               textStyle: const TextStyle(
                                                 overflow: TextOverflow.ellipsis,
-                                                color: secondaryColor,
+                                                color: Colors.red,
                                                 fontSize: 15,
                                                 fontWeight: FontWeight.w300,
                                               ),
@@ -1045,10 +1045,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                             EdgeInsets.fromLTRB(10, 0, 10, 10),
                                         width: 300,
                                         height: 200,
-                                        padding: const EdgeInsets.all(15),
+                                        // padding: const EdgeInsets.all(15),
                                         decoration: BoxDecoration(
                                           borderRadius:
-                                              BorderRadius.circular(20.0),
+                                              BorderRadius.circular(10.0),
                                           // gradient: const LinearGradient(
                                           //   begin: Alignment.topLeft,
                                           //   end: Alignment.bottomRight,
@@ -1060,7 +1060,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           image: DecorationImage(
                                             image: AssetImage(cardsData[
                                                 selectedNetworkId]!['image']),
-                                            fit: BoxFit.fitHeight,
+                                            fit: BoxFit.contain,
                                           ),
                                         ),
                                         child: Column(
@@ -1331,7 +1331,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   decoration: BoxDecoration(
                                                     borderRadius:
                                                         BorderRadius.circular(
-                                                            20.0),
+                                                            10.0),
                                                     // gradient: const LinearGradient(
                                                     //   begin: Alignment.topLeft,
                                                     //   end: Alignment.bottomRight,

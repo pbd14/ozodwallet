@@ -64,7 +64,7 @@ class _MainScreenState extends State<MainScreen> {
         title: ("Home"),
         activeColorPrimary: secondaryColor,
         activeColorSecondary: darkPrimaryColor,
-        inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
+        inactiveColorPrimary: darkPrimaryColor,
         textStyle: GoogleFonts.montserrat(
           textStyle: const TextStyle(
             color: darkPrimaryColor,
@@ -78,7 +78,7 @@ class _MainScreenState extends State<MainScreen> {
         title: ("Ethereum"),
         activeColorPrimary: secondaryColor,
         activeColorSecondary: darkPrimaryColor,
-        inactiveColorPrimary: const Color.fromRGBO(200, 200, 200, 1.0),
+        inactiveColorPrimary: darkPrimaryColor,
         textStyle: GoogleFonts.montserrat(
           textStyle: const TextStyle(
             color: darkPrimaryColor,
@@ -167,7 +167,7 @@ class _MainScreenState extends State<MainScreen> {
                 items: _navBarsItems(),
                 navBarHeight: 60,
                 confineInSafeArea: true,
-                backgroundColor: darkPrimaryColor, // Default is Colors.white.
+                backgroundColor: lightPrimaryColor, // Default is Colors.white.
                 handleAndroidBackButtonPress: true, // Default is true.
                 resizeToAvoidBottomInset:
                     true, // This needs to be true if you want to move up the screen when keyboard appears. Default is true.
@@ -176,7 +176,7 @@ class _MainScreenState extends State<MainScreen> {
                     true, // Recommended to set 'resizeToAvoidBottomInset' as true while using this argument. Default is true.
                 decoration: NavBarDecoration(
                   borderRadius: BorderRadius.circular(40.0),
-                  colorBehindNavBar: primaryColor,
+                  colorBehindNavBar: darkPrimaryColor,
                 ),
                 popAllScreensOnTapOfSelectedTab: true,
                 popActionScreens: PopActionScreensType.all,
