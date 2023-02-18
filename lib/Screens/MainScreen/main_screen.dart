@@ -143,7 +143,7 @@ class _MainScreenState extends State<MainScreen> {
         ? LoadingScreen()
         : !walletExists
             ? Scaffold(
-                backgroundColor: primaryColor,
+                backgroundColor: darkPrimaryColor,
                 body: Container(
                   margin: const EdgeInsets.all(20),
                   child: Center(

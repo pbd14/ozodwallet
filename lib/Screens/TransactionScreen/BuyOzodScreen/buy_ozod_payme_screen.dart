@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
@@ -79,6 +80,9 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+    if (kIsWeb && size.width >= 600) {
+      size = Size(600, size.height);
+    }
     return loading
         ?  LoadingScreen()
         : Scaffold(
@@ -93,258 +97,125 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
             ),
             backgroundColor: darkPrimaryColor,
             body: SingleChildScrollView(
-              child: Container(
-                margin: const EdgeInsets.all(20),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: size.height * 0.05,
-                      ),
-                      Text(
-                        "Buy UZSO via PayMe",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 45,
-                            fontWeight: FontWeight.w700,
-                          ),
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  constraints: BoxConstraints(
+                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: size.height * 0.05,
                         ),
-                      ),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20.0),
-                          gradient: LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              primaryColor,
-                              darkPrimaryColor,
-                            ],
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Jazzicon.getIconWidget(
-                                Jazzicon.getJazziconData(160,
-                                    address: walletData['publicKey']),
-                                size: 25),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Expanded(
-                              child: Text(
-                                walletData['name'],
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 3,
-                                textAlign: TextAlign.start,
-                                style: GoogleFonts.montserrat(
-                                  textStyle: const TextStyle(
-                                    color: secondaryColor,
-                                    fontSize: 25,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 50,
-                      ),
-                      Text(
-                        "Amount",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 35,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-
-                      // Amount
-                      Container(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: secondaryColor, width: 1.0),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
-                        padding: EdgeInsets.all(10),
-                        margin: EdgeInsets.only(
-                            left: size.width * 0.1, right: size.width * 0.1),
-                        child: Column(
-                          children: [
-                            TextFormField(
-                              cursorColor: secondaryColor,
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.montserrat(
-                                textStyle: const TextStyle(
-                                  overflow: TextOverflow.ellipsis,
-                                  color: secondaryColor,
-                                  fontSize: 60,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              validator: (val) {
-                                if (val!.isEmpty) {
-                                  return 'Enter amount';
-                                } else if (double.parse(val) < 1) {
-                                  return 'Min 1 UZS0';
-                                } else if (double.parse(val) > 1000) {
-                                  return 'Max 1000 UZS0';
-                                } else {
-                                  return null;
-                                }
-                              },
-                              keyboardType: TextInputType.number,
-                              onChanged: (val) {
-                                setState(() {
-                                  amount =
-                                      val.isNotEmpty ? double.parse(val) : 0;
-                                });
-                              },
-                              decoration: InputDecoration(
-                                  errorBorder: const OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.red, width: 1.0),
-                                  ),
-                                  hintStyle: TextStyle(
-                                    color: secondaryColor.withOpacity(0.7),
-                                  ),
-                                  hintText: "0.0",
-                                  border: InputBorder.none),
-                            ),
-                            Text(
-                              "UZSO",
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 3,
-                              textAlign: TextAlign.end,
-                              style: GoogleFonts.montserrat(
-                                textStyle: const TextStyle(
-                                  color: secondaryColor,
-                                  fontSize: 30,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 50),
-
-                      // Cost
-                      Text(
-                        "Cost",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 35,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.all(10),
-                        child: Text(
-                          (amount * 1000).toString() + " UZS",
+                        Text(
+                          "Buy UZSO via PayMe",
                           overflow: TextOverflow.ellipsis,
-                          maxLines: 5,
+                          maxLines: 3,
                           textAlign: TextAlign.start,
                           style: GoogleFonts.montserrat(
                             textStyle: const TextStyle(
-                              overflow: TextOverflow.ellipsis,
                               color: secondaryColor,
-                              fontSize: 40,
+                              fontSize: 45,
                               fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 50),
-
-                      // Pay Me
-                      Center(
-                        child: Container(
-                          width: size.width * 0.8,
-                          height: 400,
-                          padding: const EdgeInsets.all(15),
+                        const SizedBox(
+                          height: 30,
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20.0),
-                            gradient: const LinearGradient(
+                            gradient: LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                darkPrimaryColor,
                                 primaryColor,
+                                darkPrimaryColor,
                               ],
                             ),
-                            // image: DecorationImage(
-                            //     image: AssetImage(
-                            //         "assets/images/card.png"),
-                            //     fit: BoxFit.fill),
                           ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      "Powered by",
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 3,
-                                      textAlign: TextAlign.start,
-                                      style: GoogleFonts.montserrat(
-                                        textStyle: const TextStyle(
-                                          color: secondaryColor,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w400,
-                                        ),
-                                      ),
+                              Jazzicon.getIconWidget(
+                                  Jazzicon.getJazziconData(160,
+                                      address: walletData['publicKey']),
+                                  size: 25),
+                              SizedBox(
+                                width: 10,
+                              ),
+                              Expanded(
+                                child: Text(
+                                  walletData['name'],
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 3,
+                                  textAlign: TextAlign.start,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: const TextStyle(
+                                      color: secondaryColor,
+                                      fontSize: 25,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
-                                  SizedBox(
-                                    width: 10,
-                                  ),
-                                  Image.asset(
-                                    "assets/images/payme.png",
-                                    width: 80,
-                                  ),
-                                ],
+                                ),
                               ),
-                              SizedBox(
-                                height: 10,
-                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 50,
+                        ),
+                        Text(
+                          "Amount",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                          textAlign: TextAlign.start,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 35,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+
+                        // Amount
+                        Container(
+                          decoration: BoxDecoration(
+                            border: Border.all(color: secondaryColor, width: 1.0),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          padding: EdgeInsets.all(10),
+                          margin: EdgeInsets.only(
+                              left: size.width * 0.1, right: size.width * 0.1),
+                          child: Column(
+                            children: [
                               TextFormField(
-                                style: const TextStyle(color: secondaryColor),
                                 cursorColor: secondaryColor,
+                                textAlign: TextAlign.center,
+                                style: GoogleFonts.montserrat(
+                                  textStyle: const TextStyle(
+                                    overflow: TextOverflow.ellipsis,
+                                    color: secondaryColor,
+                                    fontSize: 60,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
                                 validator: (val) {
                                   if (val!.isEmpty) {
-                                    return 'Enter your card number';
-                                  } else if (val.length < 12) {
-                                    return 'Wrong card number';
+                                    return 'Enter amount';
+                                  } else if (double.parse(val) < 1) {
+                                    return 'Min 1 UZS0';
+                                  } else if (double.parse(val) > 1000) {
+                                    return 'Max 1000 UZS0';
                                   } else {
                                     return null;
                                   }
@@ -352,200 +223,322 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                 keyboardType: TextInputType.number,
                                 onChanged: (val) {
                                   setState(() {
-                                    cardNumber = val.trim();
+                                    amount =
+                                        val.isNotEmpty ? double.parse(val) : 0;
                                   });
                                 },
                                 decoration: InputDecoration(
-                                  labelText: "Card Number",
-                                  labelStyle: TextStyle(color: secondaryColor),
-                                  errorBorder: const OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: Colors.red, width: 1.0),
-                                  ),
-                                  focusedBorder: const OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: secondaryColor, width: 1.0),
-                                  ),
-                                  enabledBorder: const OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: secondaryColor, width: 1.0),
-                                  ),
-                                  hintStyle: TextStyle(
-                                      color: secondaryColor.withOpacity(0.7)),
-                                  hintText: 'Card number',
-                                  border: const OutlineInputBorder(
-                                    borderSide: BorderSide(
-                                        color: secondaryColor, width: 1.0),
+                                    errorBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.red, width: 1.0),
+                                    ),
+                                    hintStyle: TextStyle(
+                                      color: secondaryColor.withOpacity(0.7),
+                                    ),
+                                    hintText: "0.0",
+                                    border: InputBorder.none),
+                              ),
+                              Text(
+                                "UZSO",
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 3,
+                                textAlign: TextAlign.end,
+                                style: GoogleFonts.montserrat(
+                                  textStyle: const TextStyle(
+                                    color: secondaryColor,
+                                    fontSize: 30,
+                                    fontWeight: FontWeight.w700,
                                   ),
                                 ),
                               ),
-                              SizedBox(
-                                height: 20,
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 50),
+
+                        // Cost
+                        Text(
+                          "Cost",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                          textAlign: TextAlign.start,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 35,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: EdgeInsets.all(10),
+                          child: Text(
+                            (amount * 1000).toString() + " UZS",
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 5,
+                            textAlign: TextAlign.start,
+                            style: GoogleFonts.montserrat(
+                              textStyle: const TextStyle(
+                                overflow: TextOverflow.ellipsis,
+                                color: secondaryColor,
+                                fontSize: 40,
+                                fontWeight: FontWeight.w700,
                               ),
-                              Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: [
-                                  Container(
-                                    width: 100,
-                                    child: TextFormField(
-                                      cursorColor: secondaryColor,
-                                      style: const TextStyle(
-                                          color: secondaryColor),
-                                      validator: (val) {
-                                        if (val!.isEmpty) {
-                                          return 'Enter expiration date';
-                                        } else if (val.length != 2) {
-                                          return 'Only 2 numbers';
-                                        } else {
-                                          return null;
-                                        }
-                                      },
-                                      keyboardType: TextInputType.number,
-                                      onChanged: (val) {
-                                        setState(() {
-                                          cardMonth = val;
-                                        });
-                                      },
-                                      decoration: InputDecoration(
-                                        labelText: "Month",
-                                        labelStyle:
-                                            TextStyle(color: secondaryColor),
-                                        errorBorder: const OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Colors.red, width: 1.0),
-                                        ),
-                                        focusedBorder: const OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: secondaryColor,
-                                              width: 1.0),
-                                        ),
-                                        enabledBorder: const OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: secondaryColor,
-                                              width: 1.0),
-                                        ),
-                                        hintStyle: TextStyle(
-                                            color: secondaryColor
-                                                .withOpacity(0.7)),
-                                        hintText: 'Month',
-                                        border: const OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: secondaryColor,
-                                              width: 1.0),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 2.5,
-                                  ),
-                                  Text(
-                                    "/",
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 3,
-                                    textAlign: TextAlign.start,
-                                    style: GoogleFonts.montserrat(
-                                      textStyle: const TextStyle(
-                                        color: secondaryColor,
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.w700,
-                                      ),
-                                    ),
-                                  ),
-                                  SizedBox(
-                                    width: 2.5,
-                                  ),
-                                  Container(
-                                    width: 100,
-                                    child: TextFormField(
-                                      cursorColor: secondaryColor,
-                                      style: const TextStyle(
-                                          color: secondaryColor),
-                                      validator: (val) {
-                                        if (val!.isEmpty) {
-                                          return 'Enter expiration date';
-                                        } else if (val.length != 2) {
-                                          return 'Only two numbers';
-                                        } else {
-                                          return null;
-                                        }
-                                      },
-                                      keyboardType: TextInputType.number,
-                                      onChanged: (val) {
-                                        setState(() {
-                                          cardYear = val;
-                                        });
-                                      },
-                                      decoration: InputDecoration(
-                                        labelText: "Year",
-                                        labelStyle:
-                                            TextStyle(color: secondaryColor),
-                                        errorBorder: const OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: Colors.red, width: 1.0),
-                                        ),
-                                        focusedBorder: const OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: secondaryColor,
-                                              width: 1.0),
-                                        ),
-                                        enabledBorder: const OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: secondaryColor,
-                                              width: 1.0),
-                                        ),
-                                        hintStyle: TextStyle(
-                                            color: secondaryColor
-                                                .withOpacity(0.7)),
-                                        hintText: 'Year',
-                                        border: const OutlineInputBorder(
-                                          borderSide: BorderSide(
-                                              color: secondaryColor,
-                                              width: 1.0),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 50),
+
+                        // Pay Me
+                        Center(
+                          child: Container(
+                            width: size.width * 0.8,
+                            height: 400,
+                            padding: const EdgeInsets.all(15),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20.0),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  darkPrimaryColor,
+                                  primaryColor,
                                 ],
                               ),
-                              SizedBox(
-                                height: 30,
-                              ),
-                              RoundedButton(
-                                pw: 250,
-                                ph: 45,
-                                text: 'Buy UZSO',
-                                press: () async {
-                                  if (_formKey.currentState!.validate()) {
-                                    String notificationTitle = "Success";
-                                    String notificationBody = "Payment made";
-                                    Color notificaitonColor = Colors.green;
-                                    bool paymentMade = false;
-                                    setState(() {
-                                      loading = true;
-                                    });
-
-                                    // Create card
-                                    String cardToken = await cardsCreate();
-                                    if (cardToken.isEmpty) {
-                                      notificationTitle = "Failed";
-                                      notificationBody =
-                                          "Wrong card credentials";
-                                      notificaitonColor = Colors.red;
-                                      endPayment(
-                                          notificationTitle,
-                                          notificationBody,
-                                          notificaitonColor,
-                                          paymentMade);
+                              // image: DecorationImage(
+                              //     image: AssetImage(
+                              //         "assets/images/card.png"),
+                              //     fit: BoxFit.fill),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        "Powered by",
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 3,
+                                        textAlign: TextAlign.start,
+                                        style: GoogleFonts.montserrat(
+                                          textStyle: const TextStyle(
+                                            color: secondaryColor,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w400,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 10,
+                                    ),
+                                    Image.asset(
+                                      "assets/images/payme.png",
+                                      width: 80,
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 10,
+                                ),
+                                TextFormField(
+                                  style: const TextStyle(color: secondaryColor),
+                                  cursorColor: secondaryColor,
+                                  validator: (val) {
+                                    if (val!.isEmpty) {
+                                      return 'Enter your card number';
+                                    } else if (val.length < 12) {
+                                      return 'Wrong card number';
                                     } else {
-                                      // Get Verif code
-                                      Map cardGetVerify =
-                                          await cardsGetVerifyCode(cardToken);
-                                      if (!cardGetVerify['sent']) {
+                                      return null;
+                                    }
+                                  },
+                                  keyboardType: TextInputType.number,
+                                  onChanged: (val) {
+                                    setState(() {
+                                      cardNumber = val.trim();
+                                    });
+                                  },
+                                  decoration: InputDecoration(
+                                    labelText: "Card Number",
+                                    labelStyle: TextStyle(color: secondaryColor),
+                                    errorBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: Colors.red, width: 1.0),
+                                    ),
+                                    focusedBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: secondaryColor, width: 1.0),
+                                    ),
+                                    enabledBorder: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: secondaryColor, width: 1.0),
+                                    ),
+                                    hintStyle: TextStyle(
+                                        color: secondaryColor.withOpacity(0.7)),
+                                    hintText: 'Card number',
+                                    border: const OutlineInputBorder(
+                                      borderSide: BorderSide(
+                                          color: secondaryColor, width: 1.0),
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 20,
+                                ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceEvenly,
+                                  children: [
+                                    Container(
+                                      width: 100,
+                                      child: TextFormField(
+                                        cursorColor: secondaryColor,
+                                        style: const TextStyle(
+                                            color: secondaryColor),
+                                        validator: (val) {
+                                          if (val!.isEmpty) {
+                                            return 'Enter expiration date';
+                                          } else if (val.length != 2) {
+                                            return 'Only 2 numbers';
+                                          } else {
+                                            return null;
+                                          }
+                                        },
+                                        keyboardType: TextInputType.number,
+                                        onChanged: (val) {
+                                          setState(() {
+                                            cardMonth = val;
+                                          });
+                                        },
+                                        decoration: InputDecoration(
+                                          labelText: "Month",
+                                          labelStyle:
+                                              TextStyle(color: secondaryColor),
+                                          errorBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Colors.red, width: 1.0),
+                                          ),
+                                          focusedBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: secondaryColor,
+                                                width: 1.0),
+                                          ),
+                                          enabledBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: secondaryColor,
+                                                width: 1.0),
+                                          ),
+                                          hintStyle: TextStyle(
+                                              color: secondaryColor
+                                                  .withOpacity(0.7)),
+                                          hintText: 'Month',
+                                          border: const OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: secondaryColor,
+                                                width: 1.0),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 2.5,
+                                    ),
+                                    Text(
+                                      "/",
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 3,
+                                      textAlign: TextAlign.start,
+                                      style: GoogleFonts.montserrat(
+                                        textStyle: const TextStyle(
+                                          color: secondaryColor,
+                                          fontSize: 15,
+                                          fontWeight: FontWeight.w700,
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 2.5,
+                                    ),
+                                    Container(
+                                      width: 100,
+                                      child: TextFormField(
+                                        cursorColor: secondaryColor,
+                                        style: const TextStyle(
+                                            color: secondaryColor),
+                                        validator: (val) {
+                                          if (val!.isEmpty) {
+                                            return 'Enter expiration date';
+                                          } else if (val.length != 2) {
+                                            return 'Only two numbers';
+                                          } else {
+                                            return null;
+                                          }
+                                        },
+                                        keyboardType: TextInputType.number,
+                                        onChanged: (val) {
+                                          setState(() {
+                                            cardYear = val;
+                                          });
+                                        },
+                                        decoration: InputDecoration(
+                                          labelText: "Year",
+                                          labelStyle:
+                                              TextStyle(color: secondaryColor),
+                                          errorBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: Colors.red, width: 1.0),
+                                          ),
+                                          focusedBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: secondaryColor,
+                                                width: 1.0),
+                                          ),
+                                          enabledBorder: const OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: secondaryColor,
+                                                width: 1.0),
+                                          ),
+                                          hintStyle: TextStyle(
+                                              color: secondaryColor
+                                                  .withOpacity(0.7)),
+                                          hintText: 'Year',
+                                          border: const OutlineInputBorder(
+                                            borderSide: BorderSide(
+                                                color: secondaryColor,
+                                                width: 1.0),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(
+                                  height: 30,
+                                ),
+                                RoundedButton(
+                                  pw: 250,
+                                  ph: 45,
+                                  text: 'Buy UZSO',
+                                  press: () async {
+                                    if (_formKey.currentState!.validate()) {
+                                      String notificationTitle = "Success";
+                                      String notificationBody = "Payment made";
+                                      Color notificaitonColor = Colors.green;
+                                      bool paymentMade = false;
+                                      setState(() {
+                                        loading = true;
+                                      });
+
+                                      // Create card
+                                      String cardToken = await cardsCreate();
+                                      if (cardToken.isEmpty) {
                                         notificationTitle = "Failed";
                                         notificationBody =
-                                            "Failed to send code";
+                                            "Wrong card credentials";
                                         notificaitonColor = Colors.red;
                                         endPayment(
                                             notificationTitle,
@@ -553,167 +546,164 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                             notificaitonColor,
                                             paymentMade);
                                       } else {
-                                        String verifCode = "";
-                                        // Get code
-                                        showDialog(
-                                            barrierDismissible: false,
-                                            context: context,
-                                            builder: (BuildContext context) {
-                                              return StatefulBuilder(
-                                                builder: (context,
-                                                    StateSetter setState) {
-                                                  return AlertDialog(
-                                                    backgroundColor:
-                                                        darkPrimaryColor,
-                                                    shape:
-                                                        RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20.0),
-                                                    ),
-                                                    title: const Text(
-                                                      'Enter code',
-                                                      style: TextStyle(
-                                                          color:
-                                                              secondaryColor),
-                                                    ),
-                                                    content:
-                                                        SingleChildScrollView(
-                                                      child: Container(
-                                                        margin:
-                                                            EdgeInsets.all(10),
-                                                        child: Column(
-                                                          children: [
-                                                            Text(
-                                                              "Enter the code that was sent to your phone ${cardGetVerify['phone']}",
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                              maxLines: 1000,
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .start,
-                                                              style: GoogleFonts
-                                                                  .montserrat(
-                                                                textStyle:
-                                                                    const TextStyle(
-                                                                  color:
-                                                                      secondaryColor,
-                                                                  fontSize: 20,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w400,
+                                        // Get Verif code
+                                        Map cardGetVerify =
+                                            await cardsGetVerifyCode(cardToken);
+                                        if (!cardGetVerify['sent']) {
+                                          notificationTitle = "Failed";
+                                          notificationBody =
+                                              "Failed to send code";
+                                          notificaitonColor = Colors.red;
+                                          endPayment(
+                                              notificationTitle,
+                                              notificationBody,
+                                              notificaitonColor,
+                                              paymentMade);
+                                        } else {
+                                          String verifCode = "";
+                                          // Get code
+                                          showDialog(
+                                              barrierDismissible: false,
+                                              context: context,
+                                              builder: (BuildContext context) {
+                                                return StatefulBuilder(
+                                                  builder: (context,
+                                                      StateSetter setState) {
+                                                    return AlertDialog(
+                                                      backgroundColor:
+                                                          darkPrimaryColor,
+                                                      shape:
+                                                          RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.circular(
+                                                                20.0),
+                                                      ),
+                                                      title: const Text(
+                                                        'Enter code',
+                                                        style: TextStyle(
+                                                            color:
+                                                                secondaryColor),
+                                                      ),
+                                                      content:
+                                                          SingleChildScrollView(
+                                                        child: Container(
+                                                          margin:
+                                                              EdgeInsets.all(10),
+                                                          child: Column(
+                                                            children: [
+                                                              Text(
+                                                                "Enter the code that was sent to your phone ${cardGetVerify['phone']}",
+                                                                overflow:
+                                                                    TextOverflow
+                                                                        .ellipsis,
+                                                                maxLines: 1000,
+                                                                textAlign:
+                                                                    TextAlign
+                                                                        .start,
+                                                                style: GoogleFonts
+                                                                    .montserrat(
+                                                                  textStyle:
+                                                                      const TextStyle(
+                                                                    color:
+                                                                        secondaryColor,
+                                                                    fontSize: 20,
+                                                                    fontWeight:
+                                                                        FontWeight
+                                                                            .w400,
+                                                                  ),
                                                                 ),
                                                               ),
-                                                            ),
-                                                            const SizedBox(
-                                                              height: 20,
-                                                            ),
-                                                            TextFormField(
-                                                              cursorColor:
-                                                                  secondaryColor,
-                                                              style: const TextStyle(
-                                                                  color:
-                                                                      secondaryColor),
-                                                              validator: (val) {
-                                                                if (val!
-                                                                    .isEmpty) {
-                                                                  return 'Enter code';
-                                                                } else {
-                                                                  return null;
-                                                                }
-                                                              },
-                                                              keyboardType:
-                                                                  TextInputType
-                                                                      .number,
-                                                              onChanged: (val) {
-                                                                setState(() {
-                                                                  verifCode =
-                                                                      val;
-                                                                });
-                                                              },
-                                                              decoration:
-                                                                  InputDecoration(
-                                                                labelText:
-                                                                    "Code",
-                                                                labelStyle:
-                                                                    TextStyle(
-                                                                        color:
-                                                                            secondaryColor),
-                                                                errorBorder:
-                                                                    const OutlineInputBorder(
-                                                                  borderSide: BorderSide(
-                                                                      color: Colors
-                                                                          .red,
-                                                                      width:
-                                                                          1.0),
-                                                                ),
-                                                                focusedBorder:
-                                                                    const OutlineInputBorder(
-                                                                  borderSide:
-                                                                      BorderSide(
+                                                              const SizedBox(
+                                                                height: 20,
+                                                              ),
+                                                              TextFormField(
+                                                                cursorColor:
+                                                                    secondaryColor,
+                                                                style: const TextStyle(
+                                                                    color:
+                                                                        secondaryColor),
+                                                                validator: (val) {
+                                                                  if (val!
+                                                                      .isEmpty) {
+                                                                    return 'Enter code';
+                                                                  } else {
+                                                                    return null;
+                                                                  }
+                                                                },
+                                                                keyboardType:
+                                                                    TextInputType
+                                                                        .number,
+                                                                onChanged: (val) {
+                                                                  setState(() {
+                                                                    verifCode =
+                                                                        val;
+                                                                  });
+                                                                },
+                                                                decoration:
+                                                                    InputDecoration(
+                                                                  labelText:
+                                                                      "Code",
+                                                                  labelStyle:
+                                                                      TextStyle(
                                                                           color:
-                                                                              secondaryColor,
-                                                                          width:
-                                                                              1.0),
-                                                                ),
-                                                                enabledBorder:
-                                                                    const OutlineInputBorder(
-                                                                  borderSide:
-                                                                      BorderSide(
-                                                                          color:
-                                                                              secondaryColor,
-                                                                          width:
-                                                                              1.0),
-                                                                ),
-                                                                hintStyle: TextStyle(
-                                                                    color: secondaryColor
-                                                                        .withOpacity(
-                                                                            0.7)),
-                                                                hintText:
-                                                                    'Code',
-                                                                border:
-                                                                    const OutlineInputBorder(
-                                                                  borderSide:
-                                                                      BorderSide(
-                                                                          color:
-                                                                              secondaryColor,
-                                                                          width:
-                                                                              1.0),
+                                                                              secondaryColor),
+                                                                  errorBorder:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide: BorderSide(
+                                                                        color: Colors
+                                                                            .red,
+                                                                        width:
+                                                                            1.0),
+                                                                  ),
+                                                                  focusedBorder:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide:
+                                                                        BorderSide(
+                                                                            color:
+                                                                                secondaryColor,
+                                                                            width:
+                                                                                1.0),
+                                                                  ),
+                                                                  enabledBorder:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide:
+                                                                        BorderSide(
+                                                                            color:
+                                                                                secondaryColor,
+                                                                            width:
+                                                                                1.0),
+                                                                  ),
+                                                                  hintStyle: TextStyle(
+                                                                      color: secondaryColor
+                                                                          .withOpacity(
+                                                                              0.7)),
+                                                                  hintText:
+                                                                      'Code',
+                                                                  border:
+                                                                      const OutlineInputBorder(
+                                                                    borderSide:
+                                                                        BorderSide(
+                                                                            color:
+                                                                                secondaryColor,
+                                                                            width:
+                                                                                1.0),
+                                                                  ),
                                                                 ),
                                                               ),
-                                                            ),
-                                                          ],
+                                                            ],
+                                                          ),
                                                         ),
                                                       ),
-                                                    ),
-                                                    actions: <Widget>[
-                                                      TextButton(
-                                                        onPressed: () async {
-                                                          setState(() {
-                                                            loading = true;
-                                                          });
-                                                          Navigator.of(context)
-                                                              .pop(false);
-                                                          if (verifCode
-                                                              .isEmpty) {
-                                                            notificationTitle =
-                                                                "Failed";
-                                                            notificationBody =
-                                                                "Wrong SMS code";
-                                                            notificaitonColor =
-                                                                Colors.red;
-                                                            endPayment(
-                                                                notificationTitle,
-                                                                notificationBody,
-                                                                notificaitonColor,
-                                                                paymentMade);
-                                                          } else {
-                                                            bool cardVerify =
-                                                                await cardsVerify(
-                                                                    cardToken,
-                                                                    verifCode);
-                                                            if (!cardVerify) {
+                                                      actions: <Widget>[
+                                                        TextButton(
+                                                          onPressed: () async {
+                                                            setState(() {
+                                                              loading = true;
+                                                            });
+                                                            Navigator.of(context)
+                                                                .pop(false);
+                                                            if (verifCode
+                                                                .isEmpty) {
                                                               notificationTitle =
                                                                   "Failed";
                                                               notificationBody =
@@ -726,15 +716,15 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                   notificaitonColor,
                                                                   paymentMade);
                                                             } else {
-                                                              String receiptId =
-                                                                  await receiptsCreate(
-                                                                      cardToken);
-                                                              if (receiptId
-                                                                  .isEmpty) {
+                                                              bool cardVerify =
+                                                                  await cardsVerify(
+                                                                      cardToken,
+                                                                      verifCode);
+                                                              if (!cardVerify) {
                                                                 notificationTitle =
                                                                     "Failed";
                                                                 notificationBody =
-                                                                    "Payment Failed";
+                                                                    "Wrong SMS code";
                                                                 notificaitonColor =
                                                                     Colors.red;
                                                                 endPayment(
@@ -743,29 +733,31 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                     notificaitonColor,
                                                                     paymentMade);
                                                               } else {
-                                                                String
-                                                                    receiptState =
-                                                                    await receiptsPay(
-                                                                  receiptId,
-                                                                  cardToken,
-                                                                );
-                                                                if (receiptState
+                                                                String receiptId =
+                                                                    await receiptsCreate(
+                                                                        cardToken);
+                                                                if (receiptId
                                                                     .isEmpty) {
                                                                   notificationTitle =
                                                                       "Failed";
                                                                   notificationBody =
                                                                       "Payment Failed";
                                                                   notificaitonColor =
-                                                                      Colors
-                                                                          .red;
+                                                                      Colors.red;
                                                                   endPayment(
                                                                       notificationTitle,
                                                                       notificationBody,
                                                                       notificaitonColor,
                                                                       paymentMade);
                                                                 } else {
-                                                                  if (receiptState !=
-                                                                      "5") {
+                                                                  String
+                                                                      receiptState =
+                                                                      await receiptsPay(
+                                                                    receiptId,
+                                                                    cardToken,
+                                                                  );
+                                                                  if (receiptState
+                                                                      .isEmpty) {
                                                                     notificationTitle =
                                                                         "Failed";
                                                                     notificationBody =
@@ -779,14 +771,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                         notificaitonColor,
                                                                         paymentMade);
                                                                   } else {
-                                                                    String
-                                                                        // ignore: unused_local_variable
-                                                                        receiptStateHold =
-                                                                        await receiptsConfirmHold(
-                                                                      receiptId,
-                                                                    );
                                                                     if (receiptState !=
-                                                                        "4") {
+                                                                        "5") {
                                                                       notificationTitle =
                                                                           "Failed";
                                                                       notificationBody =
@@ -800,48 +786,70 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                           notificaitonColor,
                                                                           paymentMade);
                                                                     } else {
-                                                                      paymentMade =
-                                                                          true;
+                                                                      String
+                                                                          // ignore: unused_local_variable
+                                                                          receiptStateHold =
+                                                                          await receiptsConfirmHold(
+                                                                        receiptId,
+                                                                      );
+                                                                      if (receiptState !=
+                                                                          "4") {
+                                                                        notificationTitle =
+                                                                            "Failed";
+                                                                        notificationBody =
+                                                                            "Payment Failed";
+                                                                        notificaitonColor =
+                                                                            Colors
+                                                                                .red;
+                                                                        endPayment(
+                                                                            notificationTitle,
+                                                                            notificationBody,
+                                                                            notificaitonColor,
+                                                                            paymentMade);
+                                                                      } else {
+                                                                        paymentMade =
+                                                                            true;
+                                                                      }
+                                                                      endPayment(
+                                                                          notificationTitle,
+                                                                          notificationBody,
+                                                                          notificaitonColor,
+                                                                          paymentMade);
                                                                     }
-                                                                    endPayment(
-                                                                        notificationTitle,
-                                                                        notificationBody,
-                                                                        notificaitonColor,
-                                                                        paymentMade);
                                                                   }
                                                                 }
                                                               }
                                                             }
-                                                          }
-                                                        },
-                                                        child: const Text(
-                                                          'Ok',
-                                                          style: TextStyle(
-                                                              color:
-                                                                  secondaryColor),
+                                                          },
+                                                          child: const Text(
+                                                            'Ok',
+                                                            style: TextStyle(
+                                                                color:
+                                                                    secondaryColor),
+                                                          ),
                                                         ),
-                                                      ),
-                                                    ],
-                                                  );
-                                                },
-                                              );
-                                            });
+                                                      ],
+                                                    );
+                                                  },
+                                                );
+                                              });
+                                        }
                                       }
                                     }
-                                  }
-                                },
-                                color: secondaryColor,
-                                textColor: darkPrimaryColor,
-                              ),
-                            ],
+                                  },
+                                  color: secondaryColor,
+                                  textColor: darkPrimaryColor,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
-                      ),
 
-                      const SizedBox(height: 50),
+                        const SizedBox(height: 50),
 
-                      const SizedBox(height: 100),
-                    ],
+                        const SizedBox(height: 100),
+                      ],
+                    ),
                   ),
                 ),
               ),

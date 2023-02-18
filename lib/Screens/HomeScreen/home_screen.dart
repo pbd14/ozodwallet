@@ -246,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
     //   sender: EthereumAddress.fromHex(walletData['publicKey']),
     // ));
     estimateGas = await web3client!.getGasPrice();
-    ;
+
     gasBalance = await web3client!.getBalance(walletData['address']);
 
     setState(() {
@@ -283,7 +283,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
-    if (kIsWeb && size.width <=600) {
+    if (kIsWeb && size.width >= 600) {
       size = Size(600, size.height);
     }
     return loading
@@ -1043,9 +1043,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ? Container(
                                         margin:
                                             EdgeInsets.fromLTRB(10, 0, 10, 10),
-                                        width: 300,
+                                        width: 270,
                                         height: 200,
-                                        // padding: const EdgeInsets.all(15),
+                                        padding: const EdgeInsets.fromLTRB(
+                                            18, 10, 18, 10),
                                         decoration: BoxDecoration(
                                           borderRadius:
                                               BorderRadius.circular(10.0),
@@ -1060,7 +1061,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           image: DecorationImage(
                                             image: AssetImage(cardsData[
                                                 selectedNetworkId]!['image']),
-                                            fit: BoxFit.contain,
+                                            fit: BoxFit.fitHeight,
                                           ),
                                         ),
                                         child: Column(
@@ -1327,7 +1328,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                                   width: 300,
                                                   height: 200,
                                                   padding:
-                                                      const EdgeInsets.all(15),
+                                                      const EdgeInsets.fromLTRB(
+                                                          18, 10, 18, 10),
                                                   decoration: BoxDecoration(
                                                     borderRadius:
                                                         BorderRadius.circular(

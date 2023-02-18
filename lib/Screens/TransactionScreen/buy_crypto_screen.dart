@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -145,6 +146,9 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
+    if (kIsWeb && size.width >= 600) {
+      size = Size(600, size.height);
+    }
     return loading
         ?  LoadingScreen()
         : Scaffold(
@@ -159,158 +163,63 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
             ),
             backgroundColor: darkPrimaryColor,
             body: SingleChildScrollView(
-              child: Container(
-                margin: const EdgeInsets.all(20),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: size.height * 0.05,
-                      ),
-                      Text(
-                        "Buy Crypto",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 45,
-                            fontWeight: FontWeight.w700,
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  constraints: BoxConstraints(
+                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: size.height * 0.05,
+                        ),
+                        Text(
+                          "Buy Crypto",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                          textAlign: TextAlign.start,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 45,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 30,
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(20.0),
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              primaryColor,
-                              darkPrimaryColor,
-                            ],
-                          ),
+                        const SizedBox(
+                          height: 30,
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Jazzicon.getIconWidget(
-                                Jazzicon.getJazziconData(160,
-                                    address: walletData['publicKey']),
-                                size: 25),
-                            SizedBox(
-                              width: 10,
-                            ),
-                            Expanded(
-                              child: Text(
-                                walletData['name'],
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 3,
-                                textAlign: TextAlign.start,
-                                style: GoogleFonts.montserrat(
-                                  textStyle: const TextStyle(
-                                    color: secondaryColor,
-                                    fontSize: 25,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 50,
-                      ),
-                      Text(
-                        "Coin",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 25,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      DropdownButtonHideUnderline(
-                        child: DropdownButtonFormField<int>(
-                          isDense: false,
-                          decoration: InputDecoration(
-                            errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(40.0),
-                              borderSide:
-                                  BorderSide(color: Colors.red, width: 1.0),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(40.0),
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(40.0),
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
-                            ),
-                            hintStyle: TextStyle(
-                                color: darkPrimaryColor.withOpacity(0.7)),
-                            hintText: 'Coin',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(40.0),
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(20.0),
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                primaryColor,
+                                darkPrimaryColor,
+                              ],
                             ),
                           ),
-                          menuMaxHeight: 200,
-                          borderRadius: BorderRadius.circular(40.0),
-                          dropdownColor: darkPrimaryColor,
-                          focusColor: whiteColor,
-                          iconEnabledColor: secondaryColor,
-                          alignment: Alignment.centerLeft,
-                          onChanged: (coinId) async {
-                            setState(() {
-                              loading = true;
-                            });
-
-                            setState(() {
-                              selectedCoin = coins[coinId!];
-                            });
-                            possibleExchanges = [];
-                            getPossibleExchanges();
-                            setState(() {
-                              loading = false;
-                            });
-                          },
-                          hint: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Image.network(
-                                selectedCoin['image'],
-                                width: 30,
-                              ),
+                              Jazzicon.getIconWidget(
+                                  Jazzicon.getJazziconData(160,
+                                      address: walletData['publicKey']),
+                                  size: 25),
                               SizedBox(
                                 width: 10,
                               ),
-                              Container(
-                                width: size.width * 0.6 - 20,
+                              Expanded(
                                 child: Text(
-                                  selectedCoin['id']
-                                          .substring(0, 1)
-                                          .toUpperCase() +
-                                      selectedCoin['id'].substring(1),
+                                  walletData['name'],
                                   overflow: TextOverflow.ellipsis,
+                                  maxLines: 3,
                                   textAlign: TextAlign.start,
                                   style: GoogleFonts.montserrat(
                                     textStyle: const TextStyle(
@@ -323,28 +232,145 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                               ),
                             ],
                           ),
-                          items: [
-                            for (Map coin in coins)
-                              DropdownMenuItem<int>(
-                                value: coins.indexOf(coin),
-                                child: Container(
-                                  margin: EdgeInsets.symmetric(vertical: 10),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      // Image + symbol
-                                      Row(
-                                        children: [
-                                          Image.network(
-                                            coin['image'],
-                                            width: 30,
-                                          ),
-                                          SizedBox(
-                                            width: 5,
-                                          ),
-                                          Text(
-                                            coin['symbol'].toUpperCase(),
+                        ),
+                        const SizedBox(
+                          height: 50,
+                        ),
+                        Text(
+                          "Coin",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                          textAlign: TextAlign.start,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 25,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        DropdownButtonHideUnderline(
+                          child: DropdownButtonFormField<int>(
+                            isDense: false,
+                            decoration: InputDecoration(
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide:
+                                    BorderSide(color: Colors.red, width: 1.0),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide:
+                                    BorderSide(color: secondaryColor, width: 1.0),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide:
+                                    BorderSide(color: secondaryColor, width: 1.0),
+                              ),
+                              hintStyle: TextStyle(
+                                  color: darkPrimaryColor.withOpacity(0.7)),
+                              hintText: 'Coin',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide:
+                                    BorderSide(color: secondaryColor, width: 1.0),
+                              ),
+                            ),
+                            menuMaxHeight: 200,
+                            borderRadius: BorderRadius.circular(40.0),
+                            dropdownColor: darkPrimaryColor,
+                            focusColor: whiteColor,
+                            iconEnabledColor: secondaryColor,
+                            alignment: Alignment.centerLeft,
+                            onChanged: (coinId) async {
+                              setState(() {
+                                loading = true;
+                              });
+
+                              setState(() {
+                                selectedCoin = coins[coinId!];
+                              });
+                              possibleExchanges = [];
+                              getPossibleExchanges();
+                              setState(() {
+                                loading = false;
+                              });
+                            },
+                            hint: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                Image.network(
+                                  selectedCoin['image'],
+                                  width: 30,
+                                ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Container(
+                                  width: size.width * 0.6 - 20,
+                                  child: Text(
+                                    selectedCoin['id']
+                                            .substring(0, 1)
+                                            .toUpperCase() +
+                                        selectedCoin['id'].substring(1),
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.start,
+                                    style: GoogleFonts.montserrat(
+                                      textStyle: const TextStyle(
+                                        color: secondaryColor,
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.w700,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            items: [
+                              for (Map coin in coins)
+                                DropdownMenuItem<int>(
+                                  value: coins.indexOf(coin),
+                                  child: Container(
+                                    margin: EdgeInsets.symmetric(vertical: 10),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        // Image + symbol
+                                        Row(
+                                          children: [
+                                            Image.network(
+                                              coin['image'],
+                                              width: 30,
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Text(
+                                              coin['symbol'].toUpperCase(),
+                                              overflow: TextOverflow.ellipsis,
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  color: secondaryColor,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Container(
+                                          width: size.width * 0.5 - 20,
+                                          child: Text(
+                                            coin['id']
+                                                    .substring(0, 1)
+                                                    .toUpperCase() +
+                                                coin['id'].substring(1),
+                                            textAlign: TextAlign.end,
                                             overflow: TextOverflow.ellipsis,
                                             style: GoogleFonts.montserrat(
                                               textStyle: const TextStyle(
@@ -354,374 +380,356 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                      Container(
-                                        width: size.width * 0.5 - 20,
-                                        child: Text(
-                                          coin['id']
-                                                  .substring(0, 1)
-                                                  .toUpperCase() +
-                                              coin['id'].substring(1),
-                                          textAlign: TextAlign.end,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.montserrat(
-                                            textStyle: const TextStyle(
-                                              color: secondaryColor,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w400,
-                                            ),
-                                          ),
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 50),
-
-                      // Text(
-                      //   "Amount",
-                      //   overflow: TextOverflow.ellipsis,
-                      //   maxLines: 3,
-                      //   textAlign: TextAlign.start,
-                      //   style: GoogleFonts.montserrat(
-                      //     textStyle: const TextStyle(
-                      //       color: secondaryColor,
-                      //       fontSize: 25,
-                      //       fontWeight: FontWeight.w700,
-                      //     ),
-                      //   ),
-                      // ),
-                      // const SizedBox(
-                      //   height: 50,
-                      // ),
-
-                      // // Amount
-                      // Container(
-                      //   margin: EdgeInsets.only(
-                      //       left: size.width * 0.2,
-                      //       right: size.width * 0.1 + 40),
-                      //   child: TextFormField(
-                      //     cursorColor: darkPrimaryColor,
-                      //     textAlign: TextAlign.start,
-                      //     style: GoogleFonts.montserrat(
-                      //       textStyle: const TextStyle(
-                      //         color: secondaryColor,
-                      //         fontSize: 60,
-                      //         fontWeight: FontWeight.w700,
-                      //       ),
-                      //     ),
-                      //     validator: (val) {
-                      //       if (val!.isEmpty) {
-                      //         return 'Enter amount';
-                      //       } else if (double.parse(val) < 50) {
-                      //         return 'Min \$50';
-                      //       } else {
-                      //         return null;
-                      //       }
-                      //     },
-                      //     keyboardType: TextInputType.number,
-                      //     onChanged: (val) {
-                      //       setState(() {
-                      //         amount = double.parse(val);
-                      //       });
-                      //     },
-                      //     decoration: InputDecoration(
-                      //         prefix: Text(
-                      //           "\$",
-                      //           overflow: TextOverflow.ellipsis,
-                      //           maxLines: 3,
-                      //           textAlign: TextAlign.end,
-                      //           style: GoogleFonts.montserrat(
-                      //             textStyle: const TextStyle(
-                      //               color: secondaryColor,
-                      //               fontSize: 60,
-                      //               fontWeight: FontWeight.w700,
-                      //             ),
-                      //           ),
-                      //         ),
-                      //         errorBorder: const OutlineInputBorder(
-                      //           borderSide:
-                      //               BorderSide(color: Colors.red, width: 1.0),
-                      //         ),
-                      //         hintStyle: TextStyle(
-                      //           color: secondaryColor.withOpacity(0.7),
-                      //         ),
-                      //         hintText: "0.0",
-                      //         border: InputBorder.none),
-                      //   ),
-                      // ),
-                      // const SizedBox(
-                      //   height: 10,
-                      // ),
-                      // Text(
-                      //   exchangeName.substring(0, 1).toUpperCase() +
-                      //       exchangeName.substring(1),
-                      //   textAlign: TextAlign.center,
-                      //   overflow: TextOverflow.ellipsis,
-                      //   style: GoogleFonts.montserrat(
-                      //     textStyle: const TextStyle(
-                      //       color: secondaryColor,
-                      //       fontSize: 20,
-                      //       fontWeight: FontWeight.w400,
-                      //     ),
-                      //   ),
-                      // ),
-                      // const SizedBox(height: 30),
-
-                      // // Exchange
-                      DropdownButtonHideUnderline(
-                        child: DropdownButtonFormField<String>(
-                          isDense: false,
-                          decoration: InputDecoration(
-                            errorBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(40.0),
-                              borderSide:
-                                  BorderSide(color: Colors.red, width: 1.0),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(40.0),
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(40.0),
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
-                            ),
-                            hintStyle: TextStyle(
-                                color: darkPrimaryColor.withOpacity(0.7)),
-                            hintText: 'Exchange',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(40.0),
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
-                            ),
-                          ),
-                          menuMaxHeight: 200,
-                          borderRadius: BorderRadius.circular(40.0),
-                          dropdownColor: darkPrimaryColor,
-                          focusColor: whiteColor,
-                          iconEnabledColor: whiteColor,
-                          alignment: Alignment.centerLeft,
-                          onChanged: (exchangeName) {
-                            setState(() {
-                              webUrl = appDataExchanges!
-                                  .get(exchangeName!)['exchange_link'];
-                              selectedExchange =
-                                  appDataExchanges!.get(exchangeName);
-                            });
-                          },
-                          hint: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                            children: [
-                              if (selectedExchange.isNotEmpty)
-                                Image.network(
-                                  selectedExchange['image'],
-                                  width: 30,
-                                ),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Container(
-                                width: size.width * 0.6 - 20,
-                                child: Text(
-                                  selectedExchange.isNotEmpty
-                                      ? selectedExchange['name']
-                                              .substring(0, 1)
-                                              .toUpperCase() +
-                                          selectedExchange['name'].substring(1)
-                                      : 'N/A',
-                                  overflow: TextOverflow.ellipsis,
-                                  textAlign: TextAlign.start,
-                                  style: GoogleFonts.montserrat(
-                                    textStyle: const TextStyle(
-                                      color: secondaryColor,
-                                      fontSize: 25,
-                                      fontWeight: FontWeight.w700,
+                                      ],
                                     ),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
-                          items: [
-                            for (String exchangeName in possibleExchanges)
-                              DropdownMenuItem<String>(
-                                value: exchangeName,
-                                child: Container(
-                                  margin: EdgeInsets.symmetric(vertical: 10),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Image.network(
-                                        appDataExchanges!
-                                            .get(exchangeName)['image'],
-                                        width: 30,
+                        ),
+                        const SizedBox(height: 50),
+
+                        // Text(
+                        //   "Amount",
+                        //   overflow: TextOverflow.ellipsis,
+                        //   maxLines: 3,
+                        //   textAlign: TextAlign.start,
+                        //   style: GoogleFonts.montserrat(
+                        //     textStyle: const TextStyle(
+                        //       color: secondaryColor,
+                        //       fontSize: 25,
+                        //       fontWeight: FontWeight.w700,
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(
+                        //   height: 50,
+                        // ),
+
+                        // // Amount
+                        // Container(
+                        //   margin: EdgeInsets.only(
+                        //       left: size.width * 0.2,
+                        //       right: size.width * 0.1 + 40),
+                        //   child: TextFormField(
+                        //     cursorColor: darkPrimaryColor,
+                        //     textAlign: TextAlign.start,
+                        //     style: GoogleFonts.montserrat(
+                        //       textStyle: const TextStyle(
+                        //         color: secondaryColor,
+                        //         fontSize: 60,
+                        //         fontWeight: FontWeight.w700,
+                        //       ),
+                        //     ),
+                        //     validator: (val) {
+                        //       if (val!.isEmpty) {
+                        //         return 'Enter amount';
+                        //       } else if (double.parse(val) < 50) {
+                        //         return 'Min \$50';
+                        //       } else {
+                        //         return null;
+                        //       }
+                        //     },
+                        //     keyboardType: TextInputType.number,
+                        //     onChanged: (val) {
+                        //       setState(() {
+                        //         amount = double.parse(val);
+                        //       });
+                        //     },
+                        //     decoration: InputDecoration(
+                        //         prefix: Text(
+                        //           "\$",
+                        //           overflow: TextOverflow.ellipsis,
+                        //           maxLines: 3,
+                        //           textAlign: TextAlign.end,
+                        //           style: GoogleFonts.montserrat(
+                        //             textStyle: const TextStyle(
+                        //               color: secondaryColor,
+                        //               fontSize: 60,
+                        //               fontWeight: FontWeight.w700,
+                        //             ),
+                        //           ),
+                        //         ),
+                        //         errorBorder: const OutlineInputBorder(
+                        //           borderSide:
+                        //               BorderSide(color: Colors.red, width: 1.0),
+                        //         ),
+                        //         hintStyle: TextStyle(
+                        //           color: secondaryColor.withOpacity(0.7),
+                        //         ),
+                        //         hintText: "0.0",
+                        //         border: InputBorder.none),
+                        //   ),
+                        // ),
+                        // const SizedBox(
+                        //   height: 10,
+                        // ),
+                        // Text(
+                        //   exchangeName.substring(0, 1).toUpperCase() +
+                        //       exchangeName.substring(1),
+                        //   textAlign: TextAlign.center,
+                        //   overflow: TextOverflow.ellipsis,
+                        //   style: GoogleFonts.montserrat(
+                        //     textStyle: const TextStyle(
+                        //       color: secondaryColor,
+                        //       fontSize: 20,
+                        //       fontWeight: FontWeight.w400,
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 30),
+
+                        // // Exchange
+                        DropdownButtonHideUnderline(
+                          child: DropdownButtonFormField<String>(
+                            isDense: false,
+                            decoration: InputDecoration(
+                              errorBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide:
+                                    BorderSide(color: Colors.red, width: 1.0),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide:
+                                    BorderSide(color: secondaryColor, width: 1.0),
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide:
+                                    BorderSide(color: secondaryColor, width: 1.0),
+                              ),
+                              hintStyle: TextStyle(
+                                  color: darkPrimaryColor.withOpacity(0.7)),
+                              hintText: 'Exchange',
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(40.0),
+                                borderSide:
+                                    BorderSide(color: secondaryColor, width: 1.0),
+                              ),
+                            ),
+                            menuMaxHeight: 200,
+                            borderRadius: BorderRadius.circular(40.0),
+                            dropdownColor: darkPrimaryColor,
+                            focusColor: whiteColor,
+                            iconEnabledColor: whiteColor,
+                            alignment: Alignment.centerLeft,
+                            onChanged: (exchangeName) {
+                              setState(() {
+                                webUrl = appDataExchanges!
+                                    .get(exchangeName!)['exchange_link'];
+                                selectedExchange =
+                                    appDataExchanges!.get(exchangeName);
+                              });
+                            },
+                            hint: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                if (selectedExchange.isNotEmpty)
+                                  Image.network(
+                                    selectedExchange['image'],
+                                    width: 30,
+                                  ),
+                                SizedBox(
+                                  width: 10,
+                                ),
+                                Container(
+                                  width: size.width * 0.6 - 20,
+                                  child: Text(
+                                    selectedExchange.isNotEmpty
+                                        ? selectedExchange['name']
+                                                .substring(0, 1)
+                                                .toUpperCase() +
+                                            selectedExchange['name'].substring(1)
+                                        : 'N/A',
+                                    overflow: TextOverflow.ellipsis,
+                                    textAlign: TextAlign.start,
+                                    style: GoogleFonts.montserrat(
+                                      textStyle: const TextStyle(
+                                        color: secondaryColor,
+                                        fontSize: 25,
+                                        fontWeight: FontWeight.w700,
                                       ),
-                                      Container(
-                                        width: size.width * 0.5 - 20,
-                                        child: Text(
-                                          exchangeName
-                                                  .substring(0, 1)
-                                                  .toUpperCase() +
-                                              exchangeName.substring(1),
-                                          textAlign: TextAlign.center,
-                                          overflow: TextOverflow.ellipsis,
-                                          style: GoogleFonts.montserrat(
-                                            textStyle: const TextStyle(
-                                              color: secondaryColor,
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            items: [
+                              for (String exchangeName in possibleExchanges)
+                                DropdownMenuItem<String>(
+                                  value: exchangeName,
+                                  child: Container(
+                                    margin: EdgeInsets.symmetric(vertical: 10),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Image.network(
+                                          appDataExchanges!
+                                              .get(exchangeName)['image'],
+                                          width: 30,
+                                        ),
+                                        Container(
+                                          width: size.width * 0.5 - 20,
+                                          child: Text(
+                                            exchangeName
+                                                    .substring(0, 1)
+                                                    .toUpperCase() +
+                                                exchangeName.substring(1),
+                                            textAlign: TextAlign.center,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: secondaryColor,
+                                                fontSize: 20,
+                                                fontWeight: FontWeight.w400,
+                                              ),
                                             ),
                                           ),
                                         ),
-                                      ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+
+                        const SizedBox(height: 50),
+                        showWeb
+                            ? Container(
+                                padding: const EdgeInsets.all(10),
+                                margin: EdgeInsets.only(bottom: 20),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      primaryColor,
+                                      primaryColor,
                                     ],
                                   ),
                                 ),
-                              ),
-                          ],
-                        ),
-                      ),
-
-                      const SizedBox(height: 50),
-                      showWeb
-                          ? Container(
-                              padding: const EdgeInsets.all(10),
-                              margin: EdgeInsets.only(bottom: 20),
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20.0),
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    primaryColor,
-                                    primaryColor,
-                                  ],
-                                ),
-                              ),
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    child: Text(
-                                      walletData['publicKey'],
-                                      overflow: TextOverflow.ellipsis,
-                                      maxLines: 10,
-                                      textAlign: TextAlign.start,
-                                      style: GoogleFonts.montserrat(
-                                        textStyle: const TextStyle(
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        walletData['publicKey'],
+                                        overflow: TextOverflow.ellipsis,
+                                        maxLines: 10,
+                                        textAlign: TextAlign.start,
+                                        style: GoogleFonts.montserrat(
+                                          textStyle: const TextStyle(
+                                            color: secondaryColor,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Container(
+                                      width: 30,
+                                      child: IconButton(
+                                        padding: EdgeInsets.zero,
+                                        onPressed: () async {
+                                          await Clipboard.setData(ClipboardData(
+                                              text: walletData['publicKey']));
+                                          
+                                          showNotification('Copied','Public key copied',greenColor);  
+                                        },
+                                        icon: Icon(
+                                          CupertinoIcons.doc,
                                           color: secondaryColor,
-                                          fontSize: 15,
-                                          fontWeight: FontWeight.w500,
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  Container(
-                                    width: 30,
-                                    child: IconButton(
-                                      padding: EdgeInsets.zero,
-                                      onPressed: () async {
-                                        await Clipboard.setData(ClipboardData(
-                                            text: walletData['publicKey']));
-                                        
-                                        showNotification('Copied','Public key copied',greenColor);  
-                                      },
-                                      icon: Icon(
-                                        CupertinoIcons.doc,
-                                        color: secondaryColor,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            )
-                          : Container(),
-                      showWeb
-                          ? Container(
-                              height: size.height * 1.1,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(20.0),
-                                gradient: const LinearGradient(
-                                  begin: Alignment.topLeft,
-                                  end: Alignment.bottomRight,
-                                  colors: [
-                                    darkPrimaryColor,
-                                    primaryColor,
-                                    secondaryColor
                                   ],
                                 ),
-                              ),
-                              child:
-                                  WebViewWidget(controller: webViewController),
-                            )
-                          : Container(),
-                      SizedBox(height: showWeb ? 50 : 0),
-                      showWeb
-                          ? Container()
-                          : Center(
-                              child: RoundedButton(
-                                pw: 250,
-                                ph: 45,
-                                text: 'CONTINUE',
-                                press: () async {
-                                  setState(() {
-                                    loading = true;
-                                  });
-                                  if (_formKey.currentState!.validate() &&
-                                      possibleExchanges.isNotEmpty) {
-                                    webViewController = WebViewController()
-                                      ..setJavaScriptMode(
-                                          JavaScriptMode.unrestricted)
-                                      ..setBackgroundColor(
-                                          const Color(0x00000000))
-                                      ..setNavigationDelegate(
-                                        NavigationDelegate(
-                                          onProgress: (int progress) {
-                                            // Update loading bar.
-                                          },
-                                          onPageStarted: (String url) {},
-                                          onPageFinished: (String url) {},
-                                          onWebResourceError:
-                                              (WebResourceError error) {},
-                                          onNavigationRequest:
-                                              (NavigationRequest request) {
-                                            if (request.url.startsWith(
-                                                'https://www.youtube.com/')) {
-                                              return NavigationDecision.prevent;
-                                            }
-                                            return NavigationDecision.navigate;
-                                          },
-                                        ),
-                                      )
-                                      ..loadRequest(Uri.parse(webUrl));
+                              )
+                            : Container(),
+                        showWeb
+                            ? Container(
+                                height: size.height * 1.1,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20.0),
+                                  gradient: const LinearGradient(
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
+                                    colors: [
+                                      darkPrimaryColor,
+                                      primaryColor,
+                                      secondaryColor
+                                    ],
+                                  ),
+                                ),
+                                child:
+                                    WebViewWidget(controller: webViewController),
+                              )
+                            : Container(),
+                        SizedBox(height: showWeb ? 50 : 0),
+                        showWeb
+                            ? Container()
+                            : Center(
+                                child: RoundedButton(
+                                  pw: 250,
+                                  ph: 45,
+                                  text: 'CONTINUE',
+                                  press: () async {
                                     setState(() {
-                                      showWeb = true;
-                                      loading = false;
+                                      loading = true;
                                     });
-                                    // Navigator.pop(context);
-                                  } else {
-                                    setState(() {
-                                      loading = false;
-                                      error = 'Error';
-                                    });
-                                  }
-                                },
-                                color: secondaryColor,
-                                textColor: darkPrimaryColor,
+                                    if (_formKey.currentState!.validate() &&
+                                        possibleExchanges.isNotEmpty) {
+                                      webViewController = WebViewController()
+                                        ..setJavaScriptMode(
+                                            JavaScriptMode.unrestricted)
+                                        ..setBackgroundColor(
+                                            const Color(0x00000000))
+                                        ..setNavigationDelegate(
+                                          NavigationDelegate(
+                                            onProgress: (int progress) {
+                                              // Update loading bar.
+                                            },
+                                            onPageStarted: (String url) {},
+                                            onPageFinished: (String url) {},
+                                            onWebResourceError:
+                                                (WebResourceError error) {},
+                                            onNavigationRequest:
+                                                (NavigationRequest request) {
+                                              if (request.url.startsWith(
+                                                  'https://www.youtube.com/')) {
+                                                return NavigationDecision.prevent;
+                                              }
+                                              return NavigationDecision.navigate;
+                                            },
+                                          ),
+                                        )
+                                        ..loadRequest(Uri.parse(webUrl));
+                                      setState(() {
+                                        showWeb = true;
+                                        loading = false;
+                                      });
+                                      // Navigator.pop(context);
+                                    } else {
+                                      setState(() {
+                                        loading = false;
+                                        error = 'Error';
+                                      });
+                                    }
+                                  },
+                                  color: secondaryColor,
+                                  textColor: darkPrimaryColor,
+                                ),
                               ),
-                            ),
 
-                      const SizedBox(height: 100),
-                    ],
+                        const SizedBox(height: 100),
+                      ],
+                    ),
                   ),
                 ),
               ),

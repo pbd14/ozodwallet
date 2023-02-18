@@ -2,6 +2,7 @@ import 'package:bip39/bip39.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -54,431 +55,377 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
   Widget build(BuildContext context) {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
+    if (kIsWeb && size.width >= 600) {
+      size = Size(600, size.height);
+    }
     return loading
         ? LoadingScreen()
         : Scaffold(
             backgroundColor: darkPrimaryColor,
             body: SingleChildScrollView(
-              child: Container(
-                margin: const EdgeInsets.all(20),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: size.height * 0.1,
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(0.0),
-                        child: Text(
-                          error,
-                          style: GoogleFonts.montserrat(
-                            textStyle: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 14,
-                            ),
-                          ),
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  constraints: BoxConstraints(
+                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: size.height * 0.1,
                         ),
-                      ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text(
-                            "Private key",
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 3,
-                            textAlign: TextAlign.start,
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(0.0),
+                          child: Text(
+                            error,
                             style: GoogleFonts.montserrat(
                               textStyle: const TextStyle(
-                                color: secondaryColor,
-                                fontSize: 25,
-                                fontWeight: FontWeight.w700,
+                                color: Colors.red,
+                                fontSize: 14,
                               ),
                             ),
                           ),
-                          CupertinoSwitch(
-                            onChanged: (bool value) {
-                              setState(() {
-                                usingPrivateKey = value;
-                              });
-                            },
-                            activeColor: secondaryColor,
-                            trackColor: lightPrimaryColor,
-                            value: usingPrivateKey,
-                          ),
-                        ],
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        usingPrivateKey ? "Private key" : "Seed phrase",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 35,
-                            fontWeight: FontWeight.w700,
-                          ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        usingPrivateKey
-                            ? "Enter wallet private key"
-                            : "Enter 12 words phrase of your wallet",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1000,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      usingPrivateKey
-                          ? TextFormField(
-                              style: const TextStyle(color: secondaryColor),
-                              validator: (val) {
-                                if (val!.isEmpty) {
-                                  return 'Enter your private key';
-                                } else {
-                                  return null;
-                                }
-                              },
-                              keyboardType: TextInputType.visiblePassword,
-                              onChanged: (val) {
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Private key",
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 3,
+                              textAlign: TextAlign.start,
+                              style: GoogleFonts.montserrat(
+                                textStyle: const TextStyle(
+                                  color: secondaryColor,
+                                  fontSize: 25,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            CupertinoSwitch(
+                              onChanged: (bool value) {
                                 setState(() {
-                                  privateKey = val;
+                                  usingPrivateKey = value;
                                 });
                               },
-                              decoration: InputDecoration(
-                                errorBorder: OutlineInputBorder(
-                                  borderSide:
-                                      BorderSide(color: Colors.red, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: secondaryColor, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                enabledBorder: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: secondaryColor, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                hintStyle: TextStyle(
-                                    color: darkPrimaryColor.withOpacity(0.7)),
-                                hintText: 'Private Key',
-                                border: OutlineInputBorder(
-                                  borderSide: BorderSide(
-                                      color: secondaryColor, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                            )
-                          : Center(
-                              child: Container(
-                                width: size.width * 0.8,
-                                height: 200,
-                                padding: const EdgeInsets.all(20),
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(20.0),
-                                  gradient: const LinearGradient(
-                                    begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight,
-                                    colors: [
-                                      lightPrimaryColor,
-                                      lightPrimaryColor,
-                                    ],
-                                  ),
-                                ),
-                                child: TextFormField(
-                                  style:
-                                      const TextStyle(color: darkPrimaryColor),
-                                  validator: (val) {
-                                    if (val!.isEmpty) {
-                                      return 'Enter your seed phrase';
-                                    } else {
-                                      return null;
-                                    }
-                                  },
-                                  keyboardType: TextInputType.multiline,
-                                  maxLines: 1000,
-                                  onChanged: (val) {
-                                    setState(() {
-                                      userMnemonicPhrase = val;
-                                    });
-                                  },
-                                  decoration: InputDecoration(
-                                    errorBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: Colors.red, width: 1.0),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    focusedBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: darkPrimaryColor, width: 1.0),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    enabledBorder: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: darkPrimaryColor, width: 1.0),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    hintStyle: TextStyle(
-                                        color:
-                                            darkPrimaryColor.withOpacity(0.7)),
-                                    hintText: 'Seed phrase',
-                                    border: OutlineInputBorder(
-                                      borderSide: BorderSide(
-                                          color: darkPrimaryColor, width: 1.0),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                  ),
-                                ),
-                              ),
+                              activeColor: secondaryColor,
+                              trackColor: lightPrimaryColor,
+                              value: usingPrivateKey,
                             ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Text(
-                        "Password",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 35,
-                            fontWeight: FontWeight.w700,
+                          ],
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Text(
+                          usingPrivateKey ? "Private key" : "Seed phrase",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                          textAlign: TextAlign.start,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 35,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        "Enter password for your wallet",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1000,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w400,
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Text(
+                          usingPrivateKey
+                              ? "Enter wallet private key"
+                              : "Enter 12 words phrase of your wallet",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1000,
+                          textAlign: TextAlign.start,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w400,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      TextFormField(
-                        style: const TextStyle(color: secondaryColor),
-                        validator: (val) {
-                          if (val!.isEmpty) {
-                            return 'Enter your password';
-                          } else {
-                            return null;
-                          }
-                        },
-                        keyboardType: TextInputType.visiblePassword,
-                        onChanged: (val) {
-                          setState(() {
-                            password = val;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          errorBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.red, width: 1.0),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: secondaryColor, width: 1.0),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: secondaryColor, width: 1.0),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          hintStyle: TextStyle(
-                              color: darkPrimaryColor.withOpacity(0.7)),
-                          hintText: 'Password',
-                          border: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: secondaryColor, width: 1.0),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                        const SizedBox(
+                          height: 20,
                         ),
-                      ),
-                      const SizedBox(height: 40),
-                      Text(
-                        "Wallet name",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 35,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        "Name your wallet. You do not have to save this",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1000,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      TextFormField(
-                        style: const TextStyle(color: secondaryColor),
-                        validator: (val) {
-                          if (val!.isEmpty) {
-                            return 'Enter your name';
-                          } else {
-                            return null;
-                          }
-                        },
-                        keyboardType: TextInputType.name,
-                        onChanged: (val) {
-                          setState(() {
-                            name = val;
-                          });
-                        },
-                        decoration: InputDecoration(
-                          errorBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: Colors.red, width: 1.0),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: secondaryColor, width: 1.0),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          enabledBorder: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: secondaryColor, width: 1.0),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                          hintStyle: TextStyle(
-                              color: darkPrimaryColor.withOpacity(0.7)),
-                          hintText: 'Name',
-                          border: OutlineInputBorder(
-                            borderSide:
-                                BorderSide(color: secondaryColor, width: 1.0),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 40),
-                      Center(
-                        child: RoundedButton(
-                          pw: 250,
-                          ph: 45,
-                          text: 'IMPORT',
-                          press: () async {
-                            setState(() {
-                              loading = true;
-                            });
-                            if (_formKey.currentState!.validate() &&
-                                password != null &&
-                                password!.isNotEmpty) {
-                              if (usingPrivateKey) {
-                                try {
-                                  final walletPrivateKey = privateKey!;
-                                  final publicKey =
-                                      EthPrivateKey.fromHex(walletPrivateKey)
-                                          .address;
-
-                                  await FirebaseFirestore.instance
-                                      .collection('wallets')
-                                      .doc(publicKey.toString())
-                                      .set({
-                                    'loyalty_programs': [],
-                                    'public_key': publicKey.toString(),
-                                    'assets': [],
-                                  });
-
-                                  AndroidOptions _getAndroidOptions() =>
-                                      const AndroidOptions(
-                                        encryptedSharedPreferences: true,
-                                      );
-                                  final storage = FlutterSecureStorage(
-                                      aOptions: _getAndroidOptions());
-                                  String? lastWalletIndex;
-                                  if (!widget.isWelcomeScreen) {
-                                    lastWalletIndex = await storage.read(
-                                        key: "lastWalletIndex");
+                        usingPrivateKey
+                            ? TextFormField(
+                                style: const TextStyle(color: secondaryColor),
+                                validator: (val) {
+                                  if (val!.isEmpty) {
+                                    return 'Enter your private key';
                                   } else {
-                                    lastWalletIndex = "1";
+                                    return null;
                                   }
-
-                                  if (lastWalletIndex != null) {
-                                    await SafeStorageService().addNewWallet(
-                                        lastWalletIndex,
-                                        walletPrivateKey,
-                                        publicKey.toString(),
-                                        password!,
-                                        name);
-                                  }
-                                  if (widget.isWelcomeScreen) {
-                                    Navigator.pop(context);
-                                    Navigator.pop(context);
-                                  }
-
-                                  Navigator.pop(context);
-                                } catch (e) {
-                                  print("ERER");
-                                  print(e);
+                                },
+                                keyboardType: TextInputType.visiblePassword,
+                                onChanged: (val) {
                                   setState(() {
-                                    loading = false;
-                                    error = 'Error. Try again later';
+                                    privateKey = val;
                                   });
-                                  showNotification("Failed",
-                                      'Error. Try again later', Colors.red);
-                                }
-                              } else {
-                                try {
-                                  if (validateMnemonic(userMnemonicPhrase!)) {
-                                    final seed =
-                                        mnemonicToSeed(userMnemonicPhrase!);
-                                    final master = await ED25519_HD_KEY
-                                        .getMasterKeyFromSeed(seed);
-                                    final walletPrivateKey =
-                                        HEX.encode(master.key);
+                                },
+                                decoration: InputDecoration(
+                                  errorBorder: OutlineInputBorder(
+                                    borderSide:
+                                        BorderSide(color: Colors.red, width: 1.0),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: secondaryColor, width: 1.0),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: secondaryColor, width: 1.0),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                  hintStyle: TextStyle(
+                                      color: darkPrimaryColor.withOpacity(0.7)),
+                                  hintText: 'Private Key',
+                                  border: OutlineInputBorder(
+                                    borderSide: BorderSide(
+                                        color: secondaryColor, width: 1.0),
+                                    borderRadius: BorderRadius.circular(20),
+                                  ),
+                                ),
+                              )
+                            : Center(
+                                child: Container(
+                                  width: size.width * 0.8,
+                                  height: 200,
+                                  padding: const EdgeInsets.all(20),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    gradient: const LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        lightPrimaryColor,
+                                        lightPrimaryColor,
+                                      ],
+                                    ),
+                                  ),
+                                  child: TextFormField(
+                                    style:
+                                        const TextStyle(color: darkPrimaryColor),
+                                    validator: (val) {
+                                      if (val!.isEmpty) {
+                                        return 'Enter your seed phrase';
+                                      } else {
+                                        return null;
+                                      }
+                                    },
+                                    keyboardType: TextInputType.multiline,
+                                    maxLines: 1000,
+                                    onChanged: (val) {
+                                      setState(() {
+                                        userMnemonicPhrase = val;
+                                      });
+                                    },
+                                    decoration: InputDecoration(
+                                      errorBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: Colors.red, width: 1.0),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      focusedBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: darkPrimaryColor, width: 1.0),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      enabledBorder: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: darkPrimaryColor, width: 1.0),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                      hintStyle: TextStyle(
+                                          color:
+                                              darkPrimaryColor.withOpacity(0.7)),
+                                      hintText: 'Seed phrase',
+                                      border: OutlineInputBorder(
+                                        borderSide: BorderSide(
+                                            color: darkPrimaryColor, width: 1.0),
+                                        borderRadius: BorderRadius.circular(20),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Text(
+                          "Password",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                          textAlign: TextAlign.start,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 35,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Text(
+                          "Enter password for your wallet",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1000,
+                          textAlign: TextAlign.start,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        TextFormField(
+                          style: const TextStyle(color: secondaryColor),
+                          validator: (val) {
+                            if (val!.isEmpty) {
+                              return 'Enter your password';
+                            } else {
+                              return null;
+                            }
+                          },
+                          keyboardType: TextInputType.visiblePassword,
+                          onChanged: (val) {
+                            setState(() {
+                              password = val;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            errorBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: Colors.red, width: 1.0),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: secondaryColor, width: 1.0),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: secondaryColor, width: 1.0),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            hintStyle: TextStyle(
+                                color: darkPrimaryColor.withOpacity(0.7)),
+                            hintText: 'Password',
+                            border: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: secondaryColor, width: 1.0),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        Text(
+                          "Wallet name",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                          textAlign: TextAlign.start,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 35,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        Text(
+                          "Name your wallet. You do not have to save this",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1000,
+                          textAlign: TextAlign.start,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 20,
+                        ),
+                        TextFormField(
+                          style: const TextStyle(color: secondaryColor),
+                          validator: (val) {
+                            if (val!.isEmpty) {
+                              return 'Enter your name';
+                            } else {
+                              return null;
+                            }
+                          },
+                          keyboardType: TextInputType.name,
+                          onChanged: (val) {
+                            setState(() {
+                              name = val;
+                            });
+                          },
+                          decoration: InputDecoration(
+                            errorBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: Colors.red, width: 1.0),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: secondaryColor, width: 1.0),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: secondaryColor, width: 1.0),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            hintStyle: TextStyle(
+                                color: darkPrimaryColor.withOpacity(0.7)),
+                            hintText: 'Name',
+                            border: OutlineInputBorder(
+                              borderSide:
+                                  BorderSide(color: secondaryColor, width: 1.0),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        Center(
+                          child: RoundedButton(
+                            pw: 250,
+                            ph: 45,
+                            text: 'IMPORT',
+                            press: () async {
+                              setState(() {
+                                loading = true;
+                              });
+                              if (_formKey.currentState!.validate() &&
+                                  password != null &&
+                                  password!.isNotEmpty) {
+                                if (usingPrivateKey) {
+                                  try {
+                                    final walletPrivateKey = privateKey!;
                                     final publicKey =
                                         EthPrivateKey.fromHex(walletPrivateKey)
                                             .address;
@@ -520,43 +467,104 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                     }
 
                                     Navigator.pop(context);
-                                  } else {
+                                  } catch (e) {
+                                    print("ERER");
+                                    print(e);
                                     setState(() {
                                       loading = false;
-                                      error = 'Incorrect seed phrase';
+                                      error = 'Error. Try again later';
                                     });
                                     showNotification("Failed",
-                                        'Incorrect seed phrase', Colors.red);
+                                        'Error. Try again later', Colors.red);
                                   }
-                                } catch (e) {
-                                  print("ERER");
-                                  print(e);
-                                  setState(() {
-                                    loading = false;
-                                    error = 'Error. Try again later';
-                                  });
-                                  showNotification("Failed",
-                                      'Error. Try again later', Colors.red);
+                                } else {
+                                  try {
+                                    if (validateMnemonic(userMnemonicPhrase!)) {
+                                      final seed =
+                                          mnemonicToSeed(userMnemonicPhrase!);
+                                      final master = await ED25519_HD_KEY
+                                          .getMasterKeyFromSeed(seed);
+                                      final walletPrivateKey =
+                                          HEX.encode(master.key);
+                                      final publicKey =
+                                          EthPrivateKey.fromHex(walletPrivateKey)
+                                              .address;
+
+                                      await FirebaseFirestore.instance
+                                          .collection('wallets')
+                                          .doc(publicKey.toString())
+                                          .set({
+                                        'loyalty_programs': [],
+                                        'public_key': publicKey.toString(),
+                                        'assets': [],
+                                      });
+
+                                      AndroidOptions _getAndroidOptions() =>
+                                          const AndroidOptions(
+                                            encryptedSharedPreferences: true,
+                                          );
+                                      final storage = FlutterSecureStorage(
+                                          aOptions: _getAndroidOptions());
+                                      String? lastWalletIndex;
+                                      if (!widget.isWelcomeScreen) {
+                                        lastWalletIndex = await storage.read(
+                                            key: "lastWalletIndex");
+                                      } else {
+                                        lastWalletIndex = "1";
+                                      }
+
+                                      if (lastWalletIndex != null) {
+                                        await SafeStorageService().addNewWallet(
+                                            lastWalletIndex,
+                                            walletPrivateKey,
+                                            publicKey.toString(),
+                                            password!,
+                                            name);
+                                      }
+                                      if (widget.isWelcomeScreen) {
+                                        Navigator.pop(context);
+                                        Navigator.pop(context);
+                                      }
+
+                                      Navigator.pop(context);
+                                    } else {
+                                      setState(() {
+                                        loading = false;
+                                        error = 'Incorrect seed phrase';
+                                      });
+                                      showNotification("Failed",
+                                          'Incorrect seed phrase', Colors.red);
+                                    }
+                                  } catch (e) {
+                                    print("ERER");
+                                    print(e);
+                                    setState(() {
+                                      loading = false;
+                                      error = 'Error. Try again later';
+                                    });
+                                    showNotification("Failed",
+                                        'Error. Try again later', Colors.red);
+                                  }
                                 }
+                              } else {
+                                setState(() {
+                                  loading = false;
+                                  error = 'Incorrect credentials';
+                                });
+                                showNotification("Failed",
+                                    'Incorrect credentials', Colors.red);
                               }
-                            } else {
                               setState(() {
                                 loading = false;
-                                error = 'Incorrect credentials';
                               });
-                              showNotification("Failed",
-                                  'Incorrect credentials', Colors.red);
-                            }
-                            setState(() {
-                              loading = false;
-                            });
-                          },
-                          color: secondaryColor,
-                          textColor: darkPrimaryColor,
+                            },
+                            color: secondaryColor,
+                            textColor: darkPrimaryColor,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 300),
-                    ],
+                        const SizedBox(height: 300),
+                      ],
+                    ),
                   ),
                 ),
               ),

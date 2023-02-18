@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:bip39/bip39.dart';
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -58,6 +59,9 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
   Widget build(BuildContext context) {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
+    if (kIsWeb && size.width >= 600) {
+      size = Size(600, size.height);
+    }
     return loading
         ?  LoadingScreen()
         : Scaffold(
@@ -72,238 +76,242 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
             ),
             backgroundColor: darkPrimaryColor,
             body: SingleChildScrollView(
-              child: Container(
-                margin: const EdgeInsets.all(20),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: size.height * 0.1,
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(0.0),
-                        child: Text(
-                          error,
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.all(20),
+                  constraints: BoxConstraints(
+                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: size.height * 0.1,
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(0.0),
+                          child: Text(
+                            error,
+                            style: GoogleFonts.montserrat(
+                              textStyle: const TextStyle(
+                                color: Colors.red,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Text(
+                          "Check seed phrase",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 3,
+                          textAlign: TextAlign.start,
                           style: GoogleFonts.montserrat(
                             textStyle: const TextStyle(
-                              color: Colors.red,
-                              fontSize: 14,
+                              color: secondaryColor,
+                              fontSize: 35,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
-                      ),
-                      Text(
-                        "Check seed phrase",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 3,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 35,
-                            fontWeight: FontWeight.w700,
-                          ),
+                        const SizedBox(
+                          height: 20,
                         ),
-                      ),
-                      const SizedBox(
-                        height: 20,
-                      ),
-                      Text(
-                        "Please verify that you saved seed phrase. Type all words from phrase below",
-                        overflow: TextOverflow.ellipsis,
-                        maxLines: 1000,
-                        textAlign: TextAlign.start,
-                        style: GoogleFonts.montserrat(
-                          textStyle: const TextStyle(
-                            color: secondaryColor,
-                            fontSize: 20,
-                            fontWeight: FontWeight.w400,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 50,
-                      ),
-                      Center(
-                        child: Container(
-                          width: size.width * 0.8,
-                          height: 200,
-                          padding: const EdgeInsets.all(20),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(20.0),
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [
-                                lightPrimaryColor,
-                                lightPrimaryColor,
-                              ],
+                        Text(
+                          "Please verify that you saved seed phrase. Type all words from phrase below",
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1000,
+                          textAlign: TextAlign.start,
+                          style: GoogleFonts.montserrat(
+                            textStyle: const TextStyle(
+                              color: secondaryColor,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w400,
                             ),
                           ),
-                          child: TextFormField(
-                            style: const TextStyle(color: darkPrimaryColor),
-                            validator: (val) {
-                              if (val!.isEmpty) {
-                                return 'Enter your seed phrase';
-                              } else if (val != mnemonicPhrase) {
-                                return 'Seed phrase is not correct';
-                              } else {
-                                return null;
-                              }
-                            },
-                            keyboardType: TextInputType.multiline,
-                            maxLines: 1000,
-                            onChanged: (val) {
+                        ),
+                        const SizedBox(
+                          height: 50,
+                        ),
+                        Center(
+                          child: Container(
+                            width: size.width * 0.8,
+                            height: 200,
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20.0),
+                              gradient: const LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: [
+                                  lightPrimaryColor,
+                                  lightPrimaryColor,
+                                ],
+                              ),
+                            ),
+                            child: TextFormField(
+                              style: const TextStyle(color: darkPrimaryColor),
+                              validator: (val) {
+                                if (val!.isEmpty) {
+                                  return 'Enter your seed phrase';
+                                } else if (val != mnemonicPhrase) {
+                                  return 'Seed phrase is not correct';
+                                } else {
+                                  return null;
+                                }
+                              },
+                              keyboardType: TextInputType.multiline,
+                              maxLines: 1000,
+                              onChanged: (val) {
+                                setState(() {
+                                  userMnemonicPhrase = val;
+                                });
+                              },
+                              decoration: InputDecoration(
+                                errorBorder: OutlineInputBorder(
+                                  borderSide:
+                                      BorderSide(color: Colors.red, width: 1.0),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: darkPrimaryColor, width: 1.0),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                enabledBorder: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: darkPrimaryColor, width: 1.0),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                hintStyle: TextStyle(
+                                    color: darkPrimaryColor.withOpacity(0.7)),
+                                hintText: 'Seed phrase',
+                                border: OutlineInputBorder(
+                                  borderSide: BorderSide(
+                                      color: darkPrimaryColor, width: 1.0),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(
+                          height: 10,
+                        ),
+                        const SizedBox(height: 50),
+                        Center(
+                          child: RoundedButton(
+                            pw: 250,
+                            ph: 45,
+                            text: 'CONTINUE',
+                            press: () async {
                               setState(() {
-                                userMnemonicPhrase = val;
+                                loading = true;
                               });
-                            },
-                            decoration: InputDecoration(
-                              errorBorder: OutlineInputBorder(
-                                borderSide:
-                                    BorderSide(color: Colors.red, width: 1.0),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: darkPrimaryColor, width: 1.0),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              enabledBorder: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: darkPrimaryColor, width: 1.0),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              hintStyle: TextStyle(
-                                  color: darkPrimaryColor.withOpacity(0.7)),
-                              hintText: 'Seed phrase',
-                              border: OutlineInputBorder(
-                                borderSide: BorderSide(
-                                    color: darkPrimaryColor, width: 1.0),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(
-                        height: 10,
-                      ),
-                      const SizedBox(height: 50),
-                      Center(
-                        child: RoundedButton(
-                          pw: 250,
-                          ph: 45,
-                          text: 'CONTINUE',
-                          press: () async {
-                            setState(() {
-                              loading = true;
-                            });
-                            if (_formKey.currentState!.validate()) {
-                              if (userMnemonicPhrase == mnemonicPhrase!) {
-                                if (validateMnemonic(mnemonicPhrase!)) {
-                                  try {
-                                    final seed =
-                                        mnemonicToSeed(mnemonicPhrase!);
-                                    final master = await ED25519_HD_KEY
-                                        .getMasterKeyFromSeed(seed);
-                                    final privateKey = HEX.encode(master.key);
-                                    final publicKey =
-                                        EthPrivateKey.fromHex(privateKey)
-                                            .address;
-                                    AndroidOptions _getAndroidOptions() =>
-                                        const AndroidOptions(
-                                          encryptedSharedPreferences: true,
-                                        );
+                              if (_formKey.currentState!.validate()) {
+                                if (userMnemonicPhrase == mnemonicPhrase!) {
+                                  if (validateMnemonic(mnemonicPhrase!)) {
+                                    try {
+                                      final seed =
+                                          mnemonicToSeed(mnemonicPhrase!);
+                                      final master = await ED25519_HD_KEY
+                                          .getMasterKeyFromSeed(seed);
+                                      final privateKey = HEX.encode(master.key);
+                                      final publicKey =
+                                          EthPrivateKey.fromHex(privateKey)
+                                              .address;
+                                      AndroidOptions _getAndroidOptions() =>
+                                          const AndroidOptions(
+                                            encryptedSharedPreferences: true,
+                                          );
 
-                                    final storage = FlutterSecureStorage(
-                                        aOptions: _getAndroidOptions());
-                                    String? lastWalletIndex;
-                                    if (!widget.isWelcomeScreen) {
-                                      lastWalletIndex = await storage.read(
-                                          key: "lastWalletIndex");
-                                    } else {
-                                      lastWalletIndex = "1";
-                                    }
-
-                                    if (lastWalletIndex != null) {
-                                      await SafeStorageService().addNewWallet(
-                                          lastWalletIndex,
-                                          privateKey,
-                                          publicKey.toString(),
-                                          widget.password,
-                                          widget.name);
-
-                                      // ignore: unused_local_variable
-                                      Wallet wallet = Wallet.createNew(
-                                          EthPrivateKey.fromHex(privateKey),
-                                          widget.password,
-                                          Random());
-
-                                      await FirebaseFirestore.instance
-                                          .collection('wallets')
-                                          .doc(publicKey.toString())
-                                          .set({
-                                        'loyalty_programs': [],
-                                        'public_key': publicKey.toString(),
-                                        'assets': [],
-                                      });
-                                      if (widget.isWelcomeScreen) {
-                                        Navigator.pop(context);
-                                        Navigator.pop(context);
+                                      final storage = FlutterSecureStorage(
+                                          aOptions: _getAndroidOptions());
+                                      String? lastWalletIndex;
+                                      if (!widget.isWelcomeScreen) {
+                                        lastWalletIndex = await storage.read(
+                                            key: "lastWalletIndex");
+                                      } else {
+                                        lastWalletIndex = "1";
                                       }
 
-                                      Navigator.pop(context);
-                                      Navigator.pop(context);
-                                    } else {
+                                      if (lastWalletIndex != null) {
+                                        await SafeStorageService().addNewWallet(
+                                            lastWalletIndex,
+                                            privateKey,
+                                            publicKey.toString(),
+                                            widget.password,
+                                            widget.name);
+
+                                        // ignore: unused_local_variable
+                                        Wallet wallet = Wallet.createNew(
+                                            EthPrivateKey.fromHex(privateKey),
+                                            widget.password,
+                                            Random());
+
+                                        await FirebaseFirestore.instance
+                                            .collection('wallets')
+                                            .doc(publicKey.toString())
+                                            .set({
+                                          'loyalty_programs': [],
+                                          'public_key': publicKey.toString(),
+                                          'assets': [],
+                                        });
+                                        if (widget.isWelcomeScreen) {
+                                          Navigator.pop(context);
+                                          Navigator.pop(context);
+                                        }
+
+                                        Navigator.pop(context);
+                                        Navigator.pop(context);
+                                      } else {
+                                        setState(() {
+                                          loading = false;
+                                        });
+                                      }
+                                    } catch (e) {
                                       setState(() {
                                         loading = false;
+                                        error = 'Error. Try again later';
                                       });
+                                      showNotification("Failed",
+                                          'Error. Try again later', Colors.red);
                                     }
-                                  } catch (e) {
+                                  } else {
                                     setState(() {
                                       loading = false;
-                                      error = 'Error. Try again later';
+                                      error = 'Failed to create wallet';
                                     });
-                                    showNotification("Failed",
-                                        'Error. Try again later', Colors.red);
+                                    showNotification(
+                                        "Failed",
+                                        'Failed to create wallet. Try again later',
+                                        Colors.red);
                                   }
                                 } else {
                                   setState(() {
                                     loading = false;
-                                    error = 'Failed to create wallet';
+                                    error = 'Seed phrase is not correct';
                                   });
-                                  showNotification(
-                                      "Failed",
-                                      'Failed to create wallet. Try again later',
-                                      Colors.red);
+                                  showNotification("Failed",
+                                      'Seed phrase is not correct', Colors.red);
                                 }
-                              } else {
-                                setState(() {
-                                  loading = false;
-                                  error = 'Seed phrase is not correct';
-                                });
-                                showNotification("Failed",
-                                    'Seed phrase is not correct', Colors.red);
                               }
-                            }
-                            setState(() {
-                              loading = false;
-                            });
-                          },
-                          color: secondaryColor,
-                          textColor: darkPrimaryColor,
+                              setState(() {
+                                loading = false;
+                              });
+                            },
+                            color: secondaryColor,
+                            textColor: darkPrimaryColor,
+                          ),
                         ),
-                      ),
-                      const SizedBox(
-                        height: 100,
-                      ),
-                    ],
+                        const SizedBox(
+                          height: 100,
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

@@ -300,7 +300,7 @@ class _WalletScreenState extends State<WalletScreen> {
   Widget build(BuildContext context) {
     // ignore: unused_local_variable
     Size size = MediaQuery.of(context).size;
-    if (kIsWeb && size.width <=600) {
+    if (kIsWeb && size.width >= 600) {
       size = Size(600, size.height);
     }
 
@@ -1985,7 +1985,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                       ),
                                       RoundedButton(
                                         pw: 150,
-                                        ph: 45,
+                                        ph: 35,
                                         text: 'Import',
                                         press: () {
                                           final _formKey =
@@ -2263,6 +2263,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                         },
                                         color: secondaryColor,
                                         textColor: darkPrimaryColor,
+                                      ),
+                                    SizedBox(
+                                        height: 5,
                                       ),
                                     ],
                                   ),
