@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:bip39/bip39.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';

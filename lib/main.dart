@@ -35,14 +35,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // FirebaseFunctions functions = FirebaseFunctions.instance;
   if (kIsWeb) {
-    print("RGREGR");
     await Firebase.initializeApp(
       // name: 'Ozod Mobile Web',
       // options: DefaultFirebaseOptions.currentPlatform,
       options: FirebaseOptions(
         apiKey: 'AIzaSyCDoHs_7O-lZ2PCXW30XBrNkw2IICCsay4',
         appId: '1:631128095988:web:d61e719234a144cd51b2a1',
-        messagingSenderId: '',
+        messagingSenderId: '631128095988',
         projectId: 'ozod-loyalty',
       ),
     );
@@ -74,6 +73,7 @@ class MyApp extends StatefulWidget {
     var state = context.findAncestorStateOfType<_MyAppState>();
     state?.setLocale(newLocale);
   }
+  const MyApp({super.key});
 
   @override
   _MyAppState createState() => _MyAppState();

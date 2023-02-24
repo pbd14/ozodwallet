@@ -130,8 +130,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
               child: Center(
                 child: Container(
                   margin: const EdgeInsets.all(20),
-                  constraints: BoxConstraints(
-                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                  constraints:
+                      BoxConstraints(maxWidth: kIsWeb ? 600 : double.infinity),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -172,7 +172,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                           child: Column(
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Jazzicon.getIconWidget(
                                       Jazzicon.getJazziconData(160,
@@ -202,7 +203,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                 height: 20,
                               ),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Image.network(
                                     appData!.get('AVAILABLE_ETHER_NETWORKS')[
@@ -291,8 +293,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                 },
                                 decoration: InputDecoration(
                                   errorBorder: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.red, width: 1.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.red, width: 1.0),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   focusedBorder: OutlineInputBorder(
@@ -323,7 +325,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                     context: context,
                                     builder: (BuildContext context) {
                                       return StatefulBuilder(
-                                        builder: (context, StateSetter setState) {
+                                        builder:
+                                            (context, StateSetter setState) {
                                           return AlertDialog(
                                             backgroundColor: darkPrimaryColor,
                                             shape: RoundedRectangleBorder(
@@ -347,8 +350,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                               10),
                                                       decoration: BoxDecoration(
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                                20.0),
+                                                            BorderRadius
+                                                                .circular(20.0),
                                                         gradient:
                                                             const LinearGradient(
                                                           begin:
@@ -362,7 +365,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                         ),
                                                       ),
                                                       child: MobileScanner(
-                                                          allowDuplicates: false,
+                                                          allowDuplicates:
+                                                              false,
                                                           onDetect:
                                                               (barcode, args) {
                                                             if (barcode
@@ -384,17 +388,15 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
 
                                                                 textEditingController
                                                                     .text = EthereumAddress(Uint8List.fromList(json
-                                                                        .decode(utf8
-                                                                            .decode(bytes
-                                                                                .toList()))
+                                                                        .decode(utf8.decode(bytes
+                                                                            .toList()))
                                                                         .cast<
                                                                             int>()
                                                                         .toList()))
                                                                     .toString();
                                                                 receiverPublicAddress = EthereumAddress(Uint8List.fromList(json
-                                                                        .decode(utf8
-                                                                            .decode(bytes
-                                                                                .toList()))
+                                                                        .decode(utf8.decode(bytes
+                                                                            .toList()))
                                                                         .cast<
                                                                             int>()
                                                                         .toList()))
@@ -463,7 +465,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                         ),
                         Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: secondaryColor, width: 1.0),
+                            border:
+                                Border.all(color: secondaryColor, width: 1.0),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: EdgeInsets.all(10),
@@ -550,7 +553,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                               ),
                               Text(
                                 "Balance: " +
-                                    (balance!.getInWei / BigInt.from(pow(10, 18)))
+                                    (balance!.getInWei /
+                                            BigInt.from(pow(10, 18)))
                                         .toString() +
                                     " " +
                                     widget.coin['symbol'],
@@ -611,7 +615,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                     context: context,
                                     builder: (BuildContext context) {
                                       return StatefulBuilder(
-                                        builder: (context, StateSetter setState) {
+                                        builder:
+                                            (context, StateSetter setState) {
                                           return AlertDialog(
                                             backgroundColor: darkPrimaryColor,
                                             shape: RoundedRectangleBorder(
@@ -634,9 +639,10 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                       maxLines: 3,
-                                                      textAlign: TextAlign.center,
-                                                      style:
-                                                          GoogleFonts.montserrat(
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: GoogleFonts
+                                                          .montserrat(
                                                         textStyle:
                                                             const TextStyle(
                                                           color: secondaryColor,
@@ -656,9 +662,10 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                       maxLines: 3,
-                                                      textAlign: TextAlign.center,
-                                                      style:
-                                                          GoogleFonts.montserrat(
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: GoogleFonts
+                                                          .montserrat(
                                                         textStyle:
                                                             const TextStyle(
                                                           overflow: TextOverflow
@@ -682,9 +689,9 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                           Jazzicon.getIconWidget(
                                                               Jazzicon.getJazziconData(
                                                                   160,
-                                                                  address:
-                                                                      widget.coin[
-                                                                          'id']),
+                                                                  address: widget
+                                                                          .coin[
+                                                                      'id']),
                                                               size: 25),
                                                           SizedBox(
                                                             width: 10,
@@ -692,13 +699,14 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                           Container(
                                                             width: 100,
                                                             child: Text(
-                                                              widget
-                                                                  .coin['symbol'],
+                                                              widget.coin[
+                                                                  'symbol'],
                                                               overflow:
                                                                   TextOverflow
                                                                       .ellipsis,
                                                               textAlign:
-                                                                  TextAlign.start,
+                                                                  TextAlign
+                                                                      .start,
                                                               style: GoogleFonts
                                                                   .montserrat(
                                                                 textStyle:
@@ -722,13 +730,15 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                     Container(
                                                       decoration: BoxDecoration(
                                                         border: Border.all(
-                                                            color: secondaryColor,
+                                                            color:
+                                                                secondaryColor,
                                                             width: 1.0),
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                                20),
+                                                            BorderRadius
+                                                                .circular(20),
                                                       ),
-                                                      padding: EdgeInsets.all(15),
+                                                      padding:
+                                                          EdgeInsets.all(15),
                                                       child: Column(
                                                         mainAxisAlignment:
                                                             MainAxisAlignment
@@ -762,15 +772,13 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                       textStyle:
                                                                           const TextStyle(
                                                                         overflow:
-                                                                            TextOverflow
-                                                                                .ellipsis,
+                                                                            TextOverflow.ellipsis,
                                                                         color:
                                                                             secondaryColor,
                                                                         fontSize:
                                                                             15,
                                                                         fontWeight:
-                                                                            FontWeight
-                                                                                .w300,
+                                                                            FontWeight.w300,
                                                                       ),
                                                                     ),
                                                                   ),
@@ -796,15 +804,13 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                       textStyle:
                                                                           const TextStyle(
                                                                         overflow:
-                                                                            TextOverflow
-                                                                                .ellipsis,
+                                                                            TextOverflow.ellipsis,
                                                                         color:
                                                                             secondaryColor,
                                                                         fontSize:
                                                                             15,
                                                                         fontWeight:
-                                                                            FontWeight
-                                                                                .w300,
+                                                                            FontWeight.w300,
                                                                       ),
                                                                     ),
                                                                   ),
@@ -840,15 +846,13 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                       textStyle:
                                                                           const TextStyle(
                                                                         overflow:
-                                                                            TextOverflow
-                                                                                .ellipsis,
+                                                                            TextOverflow.ellipsis,
                                                                         color:
                                                                             secondaryColor,
                                                                         fontSize:
                                                                             13,
                                                                         fontWeight:
-                                                                            FontWeight
-                                                                                .w300,
+                                                                            FontWeight.w300,
                                                                       ),
                                                                     ),
                                                                   ),
@@ -874,15 +878,13 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                       textStyle:
                                                                           const TextStyle(
                                                                         overflow:
-                                                                            TextOverflow
-                                                                                .ellipsis,
+                                                                            TextOverflow.ellipsis,
                                                                         color:
                                                                             secondaryColor,
                                                                         fontSize:
                                                                             15,
                                                                         fontWeight:
-                                                                            FontWeight
-                                                                                .w300,
+                                                                            FontWeight.w300,
                                                                       ),
                                                                     ),
                                                                   ),
@@ -938,7 +940,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                             height: 10,
                                                           ),
                                                           Divider(
-                                                            color: secondaryColor,
+                                                            color:
+                                                                secondaryColor,
                                                           ),
                                                           Row(
                                                             mainAxisAlignment:
@@ -1024,16 +1027,14 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                       text: 'CONFIRM',
                                                       press: () async {
                                                         Navigator.of(context)
-                                                            .pop(false);
-                                                        setState(() {
-                                                          loading = true;
-                                                        });
+                                                            .pop(true);
                                                         BigInt chainId =
                                                             await widget
                                                                 .web3client
                                                                 .getChainId();
 
-                                                        Transaction transaction =
+                                                        Transaction
+                                                            transaction =
                                                             await Transaction
                                                                 .callContract(
                                                           contract: widget
@@ -1062,7 +1063,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
 
                                                         // ignore: unused_local_variable
                                                         bool txSuccess = true;
-                                                        String transactionResult =
+                                                        String
+                                                            transactionResult =
                                                             await widget
                                                                 .web3client
                                                                 .sendTransaction(
@@ -1079,22 +1081,30 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                       .toString() ==
                                                                   'RPCError: got code -32000 with msg "gas required exceeds allowance (0)".'
                                                               ? "Not enough gas. Buy ether"
-                                                              : error.toString();
-                                                          notifColor = Colors.red;
+                                                              : error
+                                                                  .toString();
+                                                          notifColor =
+                                                              Colors.red;
                                                           txSuccess = false;
                                                           showNotification(
                                                               notifTitle,
                                                               notifBody,
                                                               notifColor);
-                                                          return error.toString();
+                                                          return error
+                                                              .toString();
                                                         });
                                                         if (txSuccess) {
                                                           checkTx(
                                                               transactionResult);
+                                                        } else {
+                                                          setState(() {
+                                                            loading = false;
+                                                          });
                                                         }
                                                       },
                                                       color: secondaryColor,
-                                                      textColor: darkPrimaryColor,
+                                                      textColor:
+                                                          darkPrimaryColor,
                                                     ),
                                                     const SizedBox(
                                                       height: 20,
@@ -1120,6 +1130,10 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                       );
                                     });
                               } else {
+                                if (!isValidAddress) {
+                                  showNotification(
+                                      "Error", "Wrong public code", Colors.red);
+                                }
                                 setState(() {
                                   loading = false;
                                   error = 'Error2';

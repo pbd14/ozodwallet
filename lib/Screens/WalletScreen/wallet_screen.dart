@@ -806,8 +806,8 @@ class _WalletScreenState extends State<WalletScreen> {
               ),
             ),
             body: RefreshIndicator(
-              backgroundColor: darkPrimaryColor,
-              color: secondaryColor,
+              backgroundColor: lightPrimaryColor,
+              color: darkPrimaryColor,
               onRefresh: _refresh,
               child: CustomScrollView(
                 controller: _scrollController,
