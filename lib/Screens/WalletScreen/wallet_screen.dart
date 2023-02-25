@@ -2264,7 +2264,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                         color: secondaryColor,
                                         textColor: darkPrimaryColor,
                                       ),
-                                    SizedBox(
+                                      SizedBox(
                                         height: 5,
                                       ),
                                     ],
@@ -2275,22 +2275,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                 // Txs
                                 selectedWalletTxs.length != 0
                                     ? Container(
-                                        width: size.width * 0.8,
-                                        padding: const EdgeInsets.all(10),
-                                        decoration: BoxDecoration(
-                                          borderRadius:
-                                              BorderRadius.circular(20.0),
-                                          gradient: const LinearGradient(
-                                            begin: Alignment.topLeft,
-                                            end: Alignment.bottomRight,
-                                            colors: [
-                                              whiteColor,
-                                              Color.fromARGB(
-                                                  255, 220, 225, 234),
-                                              Color.fromRGBO(134, 147, 171, 1.0)
-                                            ],
-                                          ),
-                                        ),
+                                        width: size.width * 0.9,
                                         child: Column(
                                           children: [
                                             Align(
@@ -2301,8 +2286,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 textAlign: TextAlign.start,
                                                 style: GoogleFonts.montserrat(
                                                   textStyle: const TextStyle(
-                                                    color: darkDarkColor,
-                                                    fontSize: 30,
+                                                    color: secondaryColor,
+                                                    fontSize: 40,
                                                     fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
@@ -2314,8 +2299,17 @@ class _WalletScreenState extends State<WalletScreen> {
                                             for (dynamic tx
                                                 in selectedWalletTxs.take(5))
                                               Container(
+                                                decoration: BoxDecoration(
+                                                  border: Border.all(
+                                                      color: secondaryColor,
+                                                      width: 1.0),
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                                padding:
+                                                    const EdgeInsets.all(10),
                                                 margin:
-                                                    EdgeInsets.only(bottom: 30),
+                                                    EdgeInsets.only(bottom: 10),
                                                 child: Row(
                                                   mainAxisAlignment:
                                                       MainAxisAlignment
@@ -2335,7 +2329,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                   CupertinoIcons
                                                                       .arrow_up_circle_fill,
                                                                   color:
-                                                                      darkDarkColor,
+                                                                      secondaryColor,
                                                                 )
                                                               : Icon(
                                                                   CupertinoIcons
@@ -2355,7 +2349,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                               textStyle:
                                                                   const TextStyle(
                                                                 color:
-                                                                    darkDarkColor,
+                                                                    secondaryColor,
                                                                 fontSize: 10,
                                                                 fontWeight:
                                                                     FontWeight
@@ -2391,7 +2385,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     textStyle:
                                                                         const TextStyle(
                                                                       color:
-                                                                          darkDarkColor,
+                                                                          secondaryColor,
                                                                       fontSize:
                                                                           25,
                                                                       fontWeight:
@@ -2413,7 +2407,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     textStyle:
                                                                         const TextStyle(
                                                                       color:
-                                                                          darkDarkColor,
+                                                                          secondaryColor,
                                                                       fontSize:
                                                                           25,
                                                                       fontWeight:
@@ -2442,7 +2436,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     textStyle:
                                                                         const TextStyle(
                                                                       color:
-                                                                          darkDarkColor,
+                                                                          secondaryColor,
                                                                       fontSize:
                                                                           10,
                                                                       fontWeight:
@@ -2465,7 +2459,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     textStyle:
                                                                         const TextStyle(
                                                                       color:
-                                                                          darkDarkColor,
+                                                                          secondaryColor,
                                                                       fontSize:
                                                                           10,
                                                                       fontWeight:
@@ -2511,7 +2505,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                               textStyle:
                                                                   const TextStyle(
                                                                 color:
-                                                                    darkDarkColor,
+                                                                    secondaryColor,
                                                                 fontSize: 15,
                                                                 fontWeight:
                                                                     FontWeight
@@ -2539,7 +2533,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                               textStyle:
                                                                   const TextStyle(
                                                                 color:
-                                                                    darkDarkColor,
+                                                                    secondaryColor,
                                                                 fontSize: 20,
                                                                 fontWeight:
                                                                     FontWeight

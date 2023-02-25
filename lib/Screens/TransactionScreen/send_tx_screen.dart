@@ -131,8 +131,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
               child: Center(
                 child: Container(
                   margin: const EdgeInsets.all(20),
-                  constraints: BoxConstraints(
-                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                  constraints:
+                      BoxConstraints(maxWidth: kIsWeb ? 600 : double.infinity),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -173,7 +173,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                           child: Column(
                             children: [
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Jazzicon.getIconWidget(
                                       Jazzicon.getJazziconData(160,
@@ -203,7 +204,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 height: 20,
                               ),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Image.network(
                                     appData!.get('AVAILABLE_ETHER_NETWORKS')[
@@ -291,8 +293,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 },
                                 decoration: InputDecoration(
                                   errorBorder: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.red, width: 1.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.red, width: 1.0),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   focusedBorder: OutlineInputBorder(
@@ -323,7 +325,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                     context: context,
                                     builder: (BuildContext context) {
                                       return StatefulBuilder(
-                                        builder: (context, StateSetter setState) {
+                                        builder:
+                                            (context, StateSetter setState) {
                                           return AlertDialog(
                                             backgroundColor: darkPrimaryColor,
                                             shape: RoundedRectangleBorder(
@@ -347,8 +350,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                               10),
                                                       decoration: BoxDecoration(
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                                20.0),
+                                                            BorderRadius
+                                                                .circular(20.0),
                                                         gradient:
                                                             const LinearGradient(
                                                           begin:
@@ -362,7 +365,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                         ),
                                                       ),
                                                       child: MobileScanner(
-                                                          allowDuplicates: false,
+                                                          allowDuplicates:
+                                                              false,
                                                           onDetect:
                                                               (barcode, args) {
                                                             if (barcode
@@ -384,17 +388,15 @@ class _SendTxScreenState extends State<SendTxScreen> {
 
                                                                 textEditingController
                                                                     .text = EthereumAddress(Uint8List.fromList(json
-                                                                        .decode(utf8
-                                                                            .decode(bytes
-                                                                                .toList()))
+                                                                        .decode(utf8.decode(bytes
+                                                                            .toList()))
                                                                         .cast<
                                                                             int>()
                                                                         .toList()))
                                                                     .toString();
                                                                 receiverPublicAddress = EthereumAddress(Uint8List.fromList(json
-                                                                        .decode(utf8
-                                                                            .decode(bytes
-                                                                                .toList()))
+                                                                        .decode(utf8.decode(bytes
+                                                                            .toList()))
                                                                         .cast<
                                                                             int>()
                                                                         .toList()))
@@ -515,7 +517,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 }
                               },
                               hint: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
                                   Image.network(
                                     appData!.get('AVAILABLE_ETHER_NETWORKS')[
@@ -547,7 +550,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                   DropdownMenuItem<Map>(
                                     value: asset,
                                     child: Container(
-                                      margin: EdgeInsets.symmetric(vertical: 10),
+                                      margin:
+                                          EdgeInsets.symmetric(vertical: 10),
                                       child: Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.start,
@@ -614,7 +618,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                         // B
                         Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: secondaryColor, width: 1.0),
+                            border:
+                                Border.all(color: secondaryColor, width: 1.0),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: EdgeInsets.all(10),
@@ -723,13 +728,14 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                     children: <Widget>[
                                                       Text(
                                                         cryptoUnits[unit]!,
-                                                        overflow:
-                                                            TextOverflow.ellipsis,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
                                                         style: GoogleFonts
                                                             .montserrat(
                                                           textStyle:
                                                               const TextStyle(
-                                                            color: secondaryColor,
+                                                            color:
+                                                                secondaryColor,
                                                             fontSize: 20,
                                                             fontWeight:
                                                                 FontWeight.w700,
@@ -829,28 +835,15 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 BigInt estimateGas =
                                     await widget.web3client.estimateGas(
                                   sender: walletData['address'],
-                                  to: EthereumAddress.fromHex(
-                                      receiverPublicAddress!),
-                                  value: EtherAmount.fromUnitAndValue(
-                                      selectedEtherUnit,
-                                      selectedAsset['symbol'] == 'ETH'
-                                          ? BigInt.from(int.parse(amount!))
-                                          : 0),
                                 );
-                                // BigInt total = selectedAsset['symbol'] == 'ETH'
-                                //     ? estimateGas +
-                                //         BigInt.from(EtherAmount.fromUnitAndValue(
-                                //           selectedEtherUnit,
-                                //           BigInt.from(int.parse(amount!)),
-                                //         ).getValueInUnit(EtherUnit.gwei))
-                                //     : estimateGas;
                                 BigInt total = selectedAsset['symbol'] == 'ETH'
-                                    ? BigInt.from(
-                                        etherGas.getValueInUnit(EtherUnit.gwei) +
-                                            EtherAmount.fromUnitAndValue(
-                                              selectedEtherUnit,
-                                              BigInt.from(int.parse(amount!)),
-                                            ).getValueInUnit(EtherUnit.gwei))
+                                    ? BigInt.from((etherGas.getValueInUnit(
+                                                EtherUnit.gwei) *
+                                            estimateGas.toDouble()) +
+                                        EtherAmount.fromUnitAndValue(
+                                          selectedEtherUnit,
+                                          BigInt.from(int.parse(amount!)),
+                                        ).getValueInUnit(EtherUnit.gwei))
                                     : etherGas.getValueInUnitBI(EtherUnit.gwei);
                                 setState(() {
                                   loading = false;
@@ -861,7 +854,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                     context: context,
                                     builder: (BuildContext context) {
                                       return StatefulBuilder(
-                                        builder: (context, StateSetter setState) {
+                                        builder:
+                                            (context, StateSetter setState) {
                                           return AlertDialog(
                                             backgroundColor: darkPrimaryColor,
                                             shape: RoundedRectangleBorder(
@@ -884,9 +878,10 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                       maxLines: 3,
-                                                      textAlign: TextAlign.center,
-                                                      style:
-                                                          GoogleFonts.montserrat(
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: GoogleFonts
+                                                          .montserrat(
                                                         textStyle:
                                                             const TextStyle(
                                                           color: secondaryColor,
@@ -906,9 +901,10 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                       overflow:
                                                           TextOverflow.ellipsis,
                                                       maxLines: 3,
-                                                      textAlign: TextAlign.center,
-                                                      style:
-                                                          GoogleFonts.montserrat(
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      style: GoogleFonts
+                                                          .montserrat(
                                                         textStyle:
                                                             const TextStyle(
                                                           overflow: TextOverflow
@@ -928,11 +924,12 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                         ? Text(
                                                             cryptoUnits[
                                                                 selectedEtherUnit]!,
-                                                            overflow: TextOverflow
-                                                                .ellipsis,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
                                                             maxLines: 3,
-                                                            textAlign:
-                                                                TextAlign.center,
+                                                            textAlign: TextAlign
+                                                                .center,
                                                             style: GoogleFonts
                                                                 .montserrat(
                                                               textStyle:
@@ -949,11 +946,12 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                         : Text(
                                                             selectedAsset[
                                                                 'symbol'],
-                                                            overflow: TextOverflow
-                                                                .ellipsis,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .ellipsis,
                                                             maxLines: 3,
-                                                            textAlign:
-                                                                TextAlign.center,
+                                                            textAlign: TextAlign
+                                                                .center,
                                                             style: GoogleFonts
                                                                 .montserrat(
                                                               textStyle:
@@ -978,9 +976,11 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                         int.parse(
                                                                             amount!)))
                                                             .getValueInUnit(
-                                                                EtherUnit.gwei)))
+                                                                EtherUnit
+                                                                    .gwei)))
                                                       Container(
-                                                        decoration: BoxDecoration(
+                                                        decoration:
+                                                            BoxDecoration(
                                                           border: Border.all(
                                                               color: Colors.red,
                                                               width: 1.0),
@@ -1021,7 +1021,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                             .ellipsis,
                                                                     color: Colors
                                                                         .red,
-                                                                    fontSize: 15,
+                                                                    fontSize:
+                                                                        15,
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .w300,
@@ -1035,13 +1036,15 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                     Container(
                                                       decoration: BoxDecoration(
                                                         border: Border.all(
-                                                            color: secondaryColor,
+                                                            color:
+                                                                secondaryColor,
                                                             width: 1.0),
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                                20),
+                                                            BorderRadius
+                                                                .circular(20),
                                                       ),
-                                                      padding: EdgeInsets.all(15),
+                                                      padding:
+                                                          EdgeInsets.all(15),
                                                       child: Column(
                                                         mainAxisAlignment:
                                                             MainAxisAlignment
@@ -1075,15 +1078,13 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                       textStyle:
                                                                           const TextStyle(
                                                                         overflow:
-                                                                            TextOverflow
-                                                                                .ellipsis,
+                                                                            TextOverflow.ellipsis,
                                                                         color:
                                                                             secondaryColor,
                                                                         fontSize:
                                                                             15,
                                                                         fontWeight:
-                                                                            FontWeight
-                                                                                .w300,
+                                                                            FontWeight.w300,
                                                                       ),
                                                                     ),
                                                                   ),
@@ -1109,15 +1110,13 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                       textStyle:
                                                                           const TextStyle(
                                                                         overflow:
-                                                                            TextOverflow
-                                                                                .ellipsis,
+                                                                            TextOverflow.ellipsis,
                                                                         color:
                                                                             secondaryColor,
                                                                         fontSize:
                                                                             15,
                                                                         fontWeight:
-                                                                            FontWeight
-                                                                                .w300,
+                                                                            FontWeight.w300,
                                                                       ),
                                                                     ),
                                                                   ),
@@ -1128,7 +1127,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                           const SizedBox(
                                                             height: 10,
                                                           ),
-                                                          // Estimate gas
+                                                          // Estimate gas amount
                                                           Container(
                                                             child: Row(
                                                               mainAxisAlignment:
@@ -1140,7 +1139,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                       size.width *
                                                                           0.2,
                                                                   child: Text(
-                                                                    "Estimate gas price for this transaction",
+                                                                    "Estimate gas amount",
                                                                     overflow:
                                                                         TextOverflow
                                                                             .ellipsis,
@@ -1153,15 +1152,13 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                       textStyle:
                                                                           const TextStyle(
                                                                         overflow:
-                                                                            TextOverflow
-                                                                                .ellipsis,
+                                                                            TextOverflow.ellipsis,
                                                                         color:
                                                                             secondaryColor,
                                                                         fontSize:
                                                                             13,
                                                                         fontWeight:
-                                                                            FontWeight
-                                                                                .w300,
+                                                                            FontWeight.w300,
                                                                       ),
                                                                     ),
                                                                   ),
@@ -1174,10 +1171,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                       size.width *
                                                                           0.2,
                                                                   child: Text(
-                                                                    "${EtherAmount.fromUnitAndValue(EtherUnit.gwei, estimateGas).getValueInUnit(EtherUnit.ether)} " +
-                                                                        cryptoUnits[
-                                                                            EtherUnit
-                                                                                .ether]!,
+                                                                    "$estimateGas",
                                                                     overflow:
                                                                         TextOverflow
                                                                             .ellipsis,
@@ -1190,15 +1184,13 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                       textStyle:
                                                                           const TextStyle(
                                                                         overflow:
-                                                                            TextOverflow
-                                                                                .ellipsis,
+                                                                            TextOverflow.ellipsis,
                                                                         color:
                                                                             secondaryColor,
                                                                         fontSize:
                                                                             15,
                                                                         fontWeight:
-                                                                            FontWeight
-                                                                                .w300,
+                                                                            FontWeight.w300,
                                                                       ),
                                                                     ),
                                                                   ),
@@ -1255,7 +1247,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                           ),
 
                                                           Divider(
-                                                            color: secondaryColor,
+                                                            color:
+                                                                secondaryColor,
                                                           ),
                                                           Row(
                                                             mainAxisAlignment:
@@ -1367,18 +1360,18 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                       receiverPublicAddress!),
                                                               // gasPrice: EtherAmount.inWei(BigInt.one),
                                                               // maxGas: 100000,
-                                                              value: EtherAmount
-                                                                  .fromUnitAndValue(
-                                                                      selectedEtherUnit,
-                                                                      BigInt.from(
-                                                                          int.parse(
-                                                                              amount!))),
+                                                              value: EtherAmount.fromUnitAndValue(
+                                                                  selectedEtherUnit,
+                                                                  BigInt.from(
+                                                                      int.parse(
+                                                                          amount!))),
                                                             ),
                                                             chainId:
                                                                 chainId.toInt(),
                                                           )
-                                                                  .catchError((error,
-                                                                      stackTrace) {
+                                                                  .catchError(
+                                                                      (error,
+                                                                          stackTrace) {
                                                             txSuccess = false;
                                                             showNotification(
                                                                 'Failed',
@@ -1408,8 +1401,9 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                 .function(
                                                                     'transfer'),
                                                             parameters: [
-                                                              EthereumAddress.fromHex(
-                                                                  receiverPublicAddress!),
+                                                              EthereumAddress
+                                                                  .fromHex(
+                                                                      receiverPublicAddress!),
                                                               BigInt.from(
                                                                 (double.parse(
                                                                         amount!) *
@@ -1435,7 +1429,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                           )
                                                                   .onError((error,
                                                                       stackTrace) {
-                                                            notifTitle = "Error";
+                                                            notifTitle =
+                                                                "Error";
                                                             notifBody = error
                                                                         .toString() ==
                                                                     'RPCError: got code -32000 with msg "gas required exceeds allowance (0)".'
@@ -1461,7 +1456,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                         }
                                                       },
                                                       color: secondaryColor,
-                                                      textColor: darkPrimaryColor,
+                                                      textColor:
+                                                          darkPrimaryColor,
                                                     ),
                                                     const SizedBox(
                                                       height: 20,

@@ -603,8 +603,6 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                 BigInt estimateGas =
                                     await widget.web3client.estimateGas(
                                   sender: walletData['address'],
-                                  to: EthereumAddress.fromHex(
-                                      receiverPublicAddress!),
                                 );
                                 setState(() {
                                   loading = false;
@@ -821,7 +819,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                           const SizedBox(
                                                             height: 10,
                                                           ),
-                                                          // Estimate gas
+                                                          // Estimate gas amount
                                                           Container(
                                                             child: Row(
                                                               mainAxisAlignment:
@@ -833,7 +831,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                       size.width *
                                                                           0.2,
                                                                   child: Text(
-                                                                    "Estimate gas price for this transaction",
+                                                                    "Estimate gas amount",
                                                                     overflow:
                                                                         TextOverflow
                                                                             .ellipsis,
@@ -865,7 +863,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                       size.width *
                                                                           0.2,
                                                                   child: Text(
-                                                                    "${NumberFormat.compact().format(EtherAmount.fromUnitAndValue(EtherUnit.gwei, estimateGas).getValueInUnit(EtherUnit.gwei))} GWEI",
+                                                                    "$estimateGas",
                                                                     overflow:
                                                                         TextOverflow
                                                                             .ellipsis,
@@ -953,7 +951,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                     size.width *
                                                                         0.2,
                                                                 child: Text(
-                                                                  "Total",
+                                                                  "Total gas price",
                                                                   overflow:
                                                                       TextOverflow
                                                                           .ellipsis,
@@ -987,7 +985,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                     size.width *
                                                                         0.2,
                                                                 child: Text(
-                                                                  "${etherGas.getValueInUnit(EtherUnit.gwei)} GWEI",
+                                                                  "${(etherGas.getValueInUnit(EtherUnit.gwei) * estimateGas.toDouble() ).toStringAsFixed(2)} GWEI",
                                                                   overflow:
                                                                       TextOverflow
                                                                           .ellipsis,
