@@ -72,17 +72,17 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
     balance = await widget.web3client.getBalance(walletData['address']);
 
     appDataPaymentOptions = await FirebaseFirestore.instance
-        .collection("wallet_app_data")
+        .collection("app_data")
         .doc("payment_options")
         .get();
 
     appData = await FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('data')
         .get();
 
     appDataApi = await FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('api')
         .get();
 

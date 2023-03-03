@@ -11,10 +11,24 @@ import 'package:overlay_support/overlay_support.dart';
 import 'Services/languages/locale_constant.dart';
 
 // Firebase app ids
+
+// Behruz
 // web       1:631128095988:web:d61e719234a144cd51b2a1
 // android   1:631128095988:android:8196f18eab8bdd5551b2a1
 // ios       1:631128095988:ios:61ba2b2aad3e2bb051b2a1
 // macos     1:631128095988:ios:61ba2b2aad3e2bb051b2a1
+// Google recaptcha
+// Site key 6LdDv4YkAAAAAFCYjHfRbYyYKg8Xci89hWdVuLg-
+// Secret key 6LdDv4YkAAAAAL2sVGCBBBjUG7BZIJfbTtZiWmwx
+
+// Ozod
+// web       1:31089423786:web:2f103a290b0e7703fd27d3
+// android   1:31089423786:android:af2273c8a6e615bafd27d3
+// // ios       1:631128095988:ios:61ba2b2aad3e2bb051b2a1
+// // macos     1:631128095988:ios:61ba2b2aad3e2bb051b2a1
+// Google recaptcha
+// Site key 6Lca8MokAAAAAEiXVuUN55eK3ixX5gZ6CxtJGrpk
+// Secret key 6Lca8MokAAAAACn68ZUddzEmVKPpk_4EKxoWsiWA
 
 // SHA1: 19:15:92:FA:6D:EE:79:89:88:63:7A:59:5C:45:75:83:30:26:74:33
 // SHA256: 33:88:C5:61:62:CC:38:A9:CC:FE:3A:37:0A:17:70:2C:4F:86:BF:47:4B:6A:75:DF:3C:88:AD:0D:8D:07:E5:5A
@@ -25,37 +39,27 @@ import 'Services/languages/locale_constant.dart';
 // SHA-1 //85:62:C9:57:DC:0B:27:CF:22:6C:C8:84:74:BD:C1:B7:0C:46:CF:95
 // SHA-256 //54:A8:97:A4:60:18:36:88:6B:65:0E:F0:D5:96:17:0A:14:B2:E5:30:30:C6:F3:4F:53:E2:7B:25:08:B9:D5:72
 
-
-// Google recaptcha
-// Site key 6LdDv4YkAAAAAFCYjHfRbYyYKg8Xci89hWdVuLg-
-// Secret key 6LdDv4YkAAAAAL2sVGCBBBjUG7BZIJfbTtZiWmwx
-
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // FirebaseFunctions functions = FirebaseFunctions.instance;
   if (kIsWeb) {
     await Firebase.initializeApp(
       // name: 'Ozod Mobile Web',
       // options: DefaultFirebaseOptions.currentPlatform,
       options: FirebaseOptions(
-        apiKey: 'AIzaSyCDoHs_7O-lZ2PCXW30XBrNkw2IICCsay4',
-        appId: '1:631128095988:web:d61e719234a144cd51b2a1',
-        messagingSenderId: '631128095988',
-        projectId: 'ozod-loyalty',
-      ),
+          apiKey: "AIzaSyCAJV40XWhTSjHECwJ-FvyP6tvEPcAOlS8",
+          authDomain: "ozod-finance.firebaseapp.com",
+          projectId: "ozod-finance",
+          storageBucket: "ozod-finance.appspot.com",
+          messagingSenderId: "31089423786",
+          appId: "1:31089423786:web:2f103a290b0e7703fd27d3",
+          measurementId: "G-5HF2H01K93"),
     );
   } else {
     await Firebase.initializeApp();
   }
 
   await FirebaseAppCheck.instance.activate(
-    webRecaptchaSiteKey: 'recaptcha-v3-site-key',
-    // Default provider for Android is the Play Integrity provider. You can use the "AndroidProvider" enum to choose
-    // your preferred provider. Choose from:
-    // 1. debug provider
-    // 2. safety net provider
-    // 3. play integrity provider
+    webRecaptchaSiteKey: '6Lca8MokAAAAAEiXVuUN55eK3ixX5gZ6CxtJGrpk',
     androidProvider: AndroidProvider.debug,
   );
 
@@ -73,6 +77,7 @@ class MyApp extends StatefulWidget {
     var state = context.findAncestorStateOfType<_MyAppState>();
     state?.setLocale(newLocale);
   }
+
   const MyApp({super.key});
 
   @override

@@ -1,41 +1,33 @@
 {
   "project_info": {
-    "project_number": "631128095988",
-    "project_id": "ozod-loyalty",
-    "storage_bucket": "ozod-loyalty.appspot.com"
+    "project_number": "31089423786",
+    "project_id": "ozod-finance",
+    "storage_bucket": "ozod-finance.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:631128095988:android:8196f18eab8bdd5551b2a1",
+        "mobilesdk_app_id": "1:31089423786:android:af2273c8a6e615bafd27d3",
         "android_client_info": {
           "package_name": "com.ozod.wallet.ozodwallet"
         }
       },
       "oauth_client": [
         {
-          "client_id": "631128095988-aucjv7trij1lh6emvialdkqteg8n6igv.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.ozod.wallet.ozodwallet",
-            "certificate_hash": "191592fa6dee798988637a595c45758330267433"
-          }
-        },
-        {
-          "client_id": "631128095988-uplpr0e158vbnvobpuvet8rntifpt05g.apps.googleusercontent.com",
+          "client_id": "31089423786-k81bm9hq0gtpehith1c2j1nlvoug4jp8.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDH3Co4yjNeQgeohB4vIU4fEcq0TMvSCjs"
+          "current_key": "AIzaSyCOT6YYpnqVu0R-hOhiZFjqUWC4XbWxQLI"
         }
       ],
       "services": {
         "appinvite_service": {
           "other_platform_oauth_client": [
             {
-              "client_id": "631128095988-uplpr0e158vbnvobpuvet8rntifpt05g.apps.googleusercontent.com",
+              "client_id": "31089423786-k81bm9hq0gtpehith1c2j1nlvoug4jp8.apps.googleusercontent.com",
               "client_type": 3
             }
           ]

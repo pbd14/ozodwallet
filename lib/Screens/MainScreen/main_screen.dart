@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -132,7 +134,6 @@ class _MainScreenState extends State<MainScreen> {
     if (widget.tabNum != 0) {
       _controller.jumpToTab(widget.tabNum);
     }
-    prepare();
     super.initState();
   }
 
@@ -194,8 +195,8 @@ class _MainScreenState extends State<MainScreen> {
                 navBarStyle: NavBarStyle.style7,
                 margin: kIsWeb
                     ? size.width >= 600
-                        ? EdgeInsets.fromLTRB(
-                            (size.width - 600)/2 + 20, 0, (size.width - 600)/2 + 20, 20)
+                        ? EdgeInsets.fromLTRB((size.width - 600) / 2 + 20, 0,
+                            (size.width - 600) / 2 + 20, 20)
                         : EdgeInsets.fromLTRB(20, 0, 20, 20)
                     : const EdgeInsets.fromLTRB(20, 0, 20, 20),
               );

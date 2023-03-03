@@ -116,11 +116,11 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
   Future<void> prepare() async {
     // get app data
     appData = await FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('data')
         .get();
     appDataExchanges = await FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('exchanges')
         .get();
     walletData = await SafeStorageService().getWalletData(widget.walletIndex);

@@ -69,11 +69,11 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
 
     // get app data
     appData = await firestore.FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('data')
         .get();
     appDataApi = await firestore.FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('api')
         .get();
     walletData = await SafeStorageService().getWalletData(widget.walletIndex);

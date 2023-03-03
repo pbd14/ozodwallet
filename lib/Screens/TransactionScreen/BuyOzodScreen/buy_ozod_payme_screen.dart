@@ -58,7 +58,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
     balance = await widget.web3client.getBalance(walletData['address']);
 
     appDataPaymentOptions = await FirebaseFirestore.instance
-        .collection("wallet_app_data")
+        .collection("app_data")
         .doc("payment_options")
         .get();
 

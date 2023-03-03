@@ -71,7 +71,8 @@ class _WalletScreenState extends State<WalletScreen> {
   DocumentSnapshot? appDataNodes;
   DocumentSnapshot? appDataApi;
   DocumentSnapshot? appData;
-  EtherAmount? estimateGas;
+  EtherAmount estimateGasPrice = EtherAmount.zero();
+  BigInt estimateGasAmount = BigInt.from(1);
   EtherAmount? gasBalance;
   double gasTxsLeft = 0;
 
@@ -94,7 +95,8 @@ class _WalletScreenState extends State<WalletScreen> {
     selectedWalletAssets = [];
     selectedWalletAssetsData = {};
     wallets = [];
-    estimateGas = EtherAmount.zero();
+    estimateGasPrice = EtherAmount.zero();
+    estimateGasAmount = BigInt.from(1);
     gasBalance = EtherAmount.zero();
     gasTxsLeft = 0;
     pendingTxs = [];
@@ -167,15 +169,15 @@ class _WalletScreenState extends State<WalletScreen> {
     await getDataFromSP();
     // get app data
     appDataNodes = await FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('nodes')
         .get();
     appDataApi = await FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('api')
         .get();
     appData = await FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('data')
         .get();
 
@@ -250,7 +252,11 @@ class _WalletScreenState extends State<WalletScreen> {
     List valueTxs = jsonBody['result'];
 
     // Gas indicator
-    estimateGas = await web3client.getGasPrice();
+    estimateGasPrice = await web3client.getGasPrice();
+    estimateGasAmount = await web3client.estimateGas(
+      sender: walletData['address'],
+    );
+
     gasBalance = await web3client.getBalance(walletData['address']);
 
     setState(() {
@@ -273,7 +279,8 @@ class _WalletScreenState extends State<WalletScreen> {
           ? selectedWalletTxs = valueTxs.toList()
           : selectedWalletTxs = [];
       gasTxsLeft = (gasBalance!.getValueInUnit(EtherUnit.gwei) /
-              estimateGas!.getValueInUnit(EtherUnit.gwei))
+              (estimateGasPrice.getValueInUnit(EtherUnit.gwei) *
+                  estimateGasAmount.toDouble()))
           .toDouble();
       // if (appData != null) {
       //   selectedNetworkId = appData!.get('AVAILABLE_ETHER_NETWORKS')[0];
@@ -1685,107 +1692,160 @@ class _WalletScreenState extends State<WalletScreen> {
                                             ],
                                     ),
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                  child: ExpansionTile(
+                                    tilePadding: EdgeInsets.zero,
+                                    childrenPadding: EdgeInsets.zero,
+                                    expandedCrossAxisAlignment: CrossAxisAlignment.center,
+                                    expandedAlignment: Alignment.center,
+                                    trailing: SizedBox.shrink(),
+                                    backgroundColor: Colors.transparent,
+                                    title: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Gas Indicator",
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.start,
+                                          maxLines: 2,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: whiteColor,
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Text(
+                                          "~ ${NumberFormat.compact().format(gasTxsLeft)} Txs left",
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.start,
+                                          maxLines: 2,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: whiteColor,
+                                              fontSize: 23,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Center(
+                                          child: RoundedButton(
+                                            pw: 150,
+                                            ph: 35,
+                                            text: 'Top up gas',
+                                            press: () {
+                                              if (kIsWeb) {
+                                                showNotification(
+                                                    'Coming soon',
+                                                    'Not supported for web',
+                                                    Colors.orange);
+                                              } else {
+                                                Navigator.push(
+                                                  context,
+                                                  SlideRightRoute(
+                                                      page: BuyCryptoScreen(
+                                                    walletIndex:
+                                                        selectedWalletIndex,
+                                                    web3client: web3client,
+                                                  )),
+                                                );
+                                              }
+                                            },
+                                            color: whiteColor,
+                                            textColor: darkPrimaryColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                     children: [
-                                      Text(
-                                        "Gas Indicator",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        maxLines: 2,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
-                                            color: whiteColor,
-                                            fontSize: 25,
-                                            fontWeight: FontWeight.w700,
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(
+                                            height: 20,
                                           ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Text(
-                                        "~ ${NumberFormat.compact().format(gasTxsLeft)} Txs left",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        maxLines: 2,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
-                                            color: whiteColor,
-                                            fontSize: 23,
-                                            fontWeight: FontWeight.w700,
+                                          Text(
+                                            "${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            maxLines: 4,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: whiteColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        "${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        maxLines: 4,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
-                                            color: whiteColor,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w400,
+                                          SizedBox(
+                                            height: 10,
                                           ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        "Gas price: ${estimateGas!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        maxLines: 4,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
+                                          Divider(
                                             color: whiteColor,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w400,
                                           ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 20,
-                                      ),
-                                      Center(
-                                        child: RoundedButton(
-                                          pw: 150,
-                                          ph: 35,
-                                          text: 'Top up gas',
-                                          press: () {
-                                            if (kIsWeb) {
-                                              showNotification(
-                                                  'Coming soon',
-                                                  'Not supported for web',
-                                                  Colors.orange);
-                                            } else {
-                                              Navigator.push(
-                                                context,
-                                                SlideRightRoute(
-                                                    page: BuyCryptoScreen(
-                                                  walletIndex:
-                                                      selectedWalletIndex,
-                                                  web3client: web3client,
-                                                )),
-                                              );
-                                            }
-                                          },
-                                          color: whiteColor,
-                                          textColor: darkPrimaryColor,
-                                        ),
+                                          Text(
+                                            "Gas price: ${estimateGasPrice.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            maxLines: 4,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: whiteColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 5,
+                                          ),
+                                          Text(
+                                            "Estimate gas amount: $estimateGasAmount",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            maxLines: 4,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: whiteColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          Text(
+                                            "Total gas needed: ${(estimateGasPrice.getValueInUnit(EtherUnit.gwei) * estimateGasAmount.toDouble()).toStringAsFixed(2)} GWEI",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            maxLines: 4,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: whiteColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 20,
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
                                 ),
-                                SizedBox(
-                                  height: 50,
-                                ),
+                                const SizedBox(height: 50),
+
 
                                 // Assets
                                 Container(
@@ -2298,253 +2358,783 @@ class _WalletScreenState extends State<WalletScreen> {
                                             ),
                                             for (dynamic tx
                                                 in selectedWalletTxs.take(5))
-                                              Container(
-                                                decoration: BoxDecoration(
-                                                  border: Border.all(
-                                                      color: secondaryColor,
-                                                      width: 1.0),
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                ),
-                                                padding:
-                                                    const EdgeInsets.all(10),
-                                                margin:
-                                                    EdgeInsets.only(bottom: 10),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceEvenly,
-                                                  children: [
-                                                    // Icons + Date
-                                                    Container(
-                                                      width: size.width * 0.1,
-                                                      child: Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          tx['from'] ==
-                                                                  publicKey
-                                                              ? Icon(
-                                                                  CupertinoIcons
-                                                                      .arrow_up_circle_fill,
+                                              CupertinoButton(
+                                                padding: EdgeInsets.zero,
+                                                onPressed: () {
+                                                  print(tx);
+                                                  showDialog(
+                                                      barrierDismissible: true,
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return StatefulBuilder(
+                                                          builder: (context,
+                                                              StateSetter
+                                                                  setState) {
+                                                            return AlertDialog(
+                                                              backgroundColor:
+                                                                  darkPrimaryColor,
+                                                              shape:
+                                                                  RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            20.0),
+                                                              ),
+                                                              title: const Text(
+                                                                'Transaction',
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        secondaryColor),
+                                                              ),
+                                                              content:
+                                                                  SingleChildScrollView(
+                                                                child:
+                                                                    Container(
+                                                                  child: Column(
+                                                                    crossAxisAlignment:
+                                                                        CrossAxisAlignment
+                                                                            .center,
+                                                                    children: [
+                                                                      Text(
+                                                                        "Amount",
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        maxLines:
+                                                                            3,
+                                                                        textAlign:
+                                                                            TextAlign.center,
+                                                                        style: GoogleFonts
+                                                                            .montserrat(
+                                                                          textStyle:
+                                                                              const TextStyle(
+                                                                            color:
+                                                                                secondaryColor,
+                                                                            fontSize:
+                                                                                25,
+                                                                            fontWeight:
+                                                                                FontWeight.w700,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      const SizedBox(
+                                                                        height:
+                                                                            10,
+                                                                      ),
+                                                                      Text(
+                                                                        NumberFormat.compact().format(EtherAmount.fromUnitAndValue(EtherUnit.wei,
+                                                                                tx['value'])
+                                                                            .getValueInUnit(selectedEtherUnit)),
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        maxLines:
+                                                                            3,
+                                                                        textAlign:
+                                                                            TextAlign.center,
+                                                                        style: GoogleFonts
+                                                                            .montserrat(
+                                                                          textStyle:
+                                                                              const TextStyle(
+                                                                            overflow:
+                                                                                TextOverflow.ellipsis,
+                                                                            color:
+                                                                                secondaryColor,
+                                                                            fontSize:
+                                                                                60,
+                                                                            fontWeight:
+                                                                                FontWeight.w700,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      const SizedBox(
+                                                                        height:
+                                                                            10,
+                                                                      ),
+                                                                      Center(
+                                                                        child:
+                                                                            Text(
+                                                                          cryptoUnits[
+                                                                              selectedEtherUnit]!,
+                                                                          overflow:
+                                                                              TextOverflow.ellipsis,
+                                                                          textAlign:
+                                                                              TextAlign.start,
+                                                                          style:
+                                                                              GoogleFonts.montserrat(
+                                                                            textStyle:
+                                                                                const TextStyle(
+                                                                              color: secondaryColor,
+                                                                              fontSize: 25,
+                                                                              fontWeight: FontWeight.w700,
+                                                                            ),
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(
+                                                                        height:
+                                                                            20,
+                                                                      ),
+                                                                      Container(
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          border: Border.all(
+                                                                              color: secondaryColor,
+                                                                              width: 1.0),
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(20),
+                                                                        ),
+                                                                        padding:
+                                                                            EdgeInsets.all(15),
+                                                                        child:
+                                                                            Column(
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.center,
+                                                                          crossAxisAlignment:
+                                                                              CrossAxisAlignment.start,
+                                                                          children: [
+                                                                            // Date
+                                                                            Container(
+                                                                              child: Row(
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                children: [
+                                                                                  Container(
+                                                                                    width: size.width * 0.2,
+                                                                                    child: Text(
+                                                                                      "Date",
+                                                                                      overflow: TextOverflow.ellipsis,
+                                                                                      maxLines: 3,
+                                                                                      textAlign: TextAlign.start,
+                                                                                      style: GoogleFonts.montserrat(
+                                                                                        textStyle: const TextStyle(
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          color: secondaryColor,
+                                                                                          fontSize: 15,
+                                                                                          fontWeight: FontWeight.w300,
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                  SizedBox(
+                                                                                    width: 5,
+                                                                                  ),
+                                                                                  Container(
+                                                                                    width: size.width * 0.3,
+                                                                                    child: Text(
+                                                                                      DateFormat.yMMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000)).toString() + " / " + DateFormat.Hm().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000)).toString(),
+                                                                                      overflow: TextOverflow.ellipsis,
+                                                                                      maxLines: 2,
+                                                                                      textAlign: TextAlign.end,
+                                                                                      style: GoogleFonts.montserrat(
+                                                                                        textStyle: const TextStyle(
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          color: secondaryColor,
+                                                                                          fontSize: 15,
+                                                                                          fontWeight: FontWeight.w300,
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                            ),
+                                                                            const SizedBox(
+                                                                              height: 10,
+                                                                            ),
+                                                                            // Hash
+                                                                            Container(
+                                                                              child: CupertinoButton(
+                                                                                onPressed: () async {
+                                                                                  await Clipboard.setData(
+                                                                                    ClipboardData(text: privateKey),
+                                                                                  );
+                                                                                  showNotification('Copied', 'Copied', greenColor);
+                                                                                },
+                                                                                padding: EdgeInsets.zero,
+                                                                                child: Row(
+                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                  children: [
+                                                                                    Container(
+                                                                                      width: size.width * 0.2,
+                                                                                      child: Text(
+                                                                                        "Tx Hash",
+                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                        maxLines: 3,
+                                                                                        textAlign: TextAlign.start,
+                                                                                        style: GoogleFonts.montserrat(
+                                                                                          textStyle: const TextStyle(
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            color: secondaryColor,
+                                                                                            fontSize: 15,
+                                                                                            fontWeight: FontWeight.w300,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                    SizedBox(
+                                                                                      width: 5,
+                                                                                    ),
+                                                                                    Container(
+                                                                                      width: size.width * 0.3,
+                                                                                      child: Text(
+                                                                                        tx['hash'],
+                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                        maxLines: 1,
+                                                                                        textAlign: TextAlign.end,
+                                                                                        style: GoogleFonts.montserrat(
+                                                                                          textStyle: const TextStyle(
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            color: secondaryColor,
+                                                                                            fontSize: 15,
+                                                                                            fontWeight: FontWeight.w300,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            const SizedBox(
+                                                                              height: 0,
+                                                                            ),
+                                                                            // From
+                                                                            Container(
+                                                                              child: CupertinoButton(
+                                                                                onPressed: () async {
+                                                                                  await Clipboard.setData(
+                                                                                    ClipboardData(text: privateKey),
+                                                                                  );
+                                                                                  showNotification('Copied', 'Copied', greenColor);
+                                                                                },
+                                                                                padding: EdgeInsets.zero,
+                                                                                child: Row(
+                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                  children: [
+                                                                                    Container(
+                                                                                      width: size.width * 0.2,
+                                                                                      child: Text(
+                                                                                        "From",
+                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                        maxLines: 3,
+                                                                                        textAlign: TextAlign.start,
+                                                                                        style: GoogleFonts.montserrat(
+                                                                                          textStyle: const TextStyle(
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            color: secondaryColor,
+                                                                                            fontSize: 15,
+                                                                                            fontWeight: FontWeight.w300,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                    SizedBox(
+                                                                                      width: 5,
+                                                                                    ),
+                                                                                    Container(
+                                                                                      width: size.width * 0.3,
+                                                                                      child: Text(
+                                                                                        tx['from'],
+                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                        maxLines: 1,
+                                                                                        textAlign: TextAlign.end,
+                                                                                        style: GoogleFonts.montserrat(
+                                                                                          textStyle: const TextStyle(
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            color: secondaryColor,
+                                                                                            fontSize: 15,
+                                                                                            fontWeight: FontWeight.w300,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                            const SizedBox(
+                                                                              height: 0,
+                                                                            ),
+                                                                            // To
+                                                                            Container(
+                                                                              child: CupertinoButton(
+                                                                                onPressed: () async {
+                                                                                  await Clipboard.setData(
+                                                                                    ClipboardData(text: privateKey),
+                                                                                  );
+                                                                                  showNotification('Copied', 'Copied', greenColor);
+                                                                                },
+                                                                                padding: EdgeInsets.zero,
+                                                                                child: Row(
+                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                  children: [
+                                                                                    Container(
+                                                                                      width: size.width * 0.2,
+                                                                                      child: Text(
+                                                                                        "To",
+                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                        maxLines: 1,
+                                                                                        textAlign: TextAlign.start,
+                                                                                        style: GoogleFonts.montserrat(
+                                                                                          textStyle: const TextStyle(
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            color: secondaryColor,
+                                                                                            fontSize: 15,
+                                                                                            fontWeight: FontWeight.w300,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                    SizedBox(
+                                                                                      width: 5,
+                                                                                    ),
+                                                                                    Container(
+                                                                                      width: size.width * 0.3,
+                                                                                      child: Text(
+                                                                                        tx['to'],
+                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                        maxLines: 1,
+                                                                                        textAlign: TextAlign.end,
+                                                                                        style: GoogleFonts.montserrat(
+                                                                                          textStyle: const TextStyle(
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            color: secondaryColor,
+                                                                                            fontSize: 15,
+                                                                                            fontWeight: FontWeight.w300,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
+                                                                              ),
+                                                                            ),
+
+                                                                            const SizedBox(
+                                                                              height: 30,
+                                                                            ),
+                                                                            Divider(
+                                                                              color: secondaryColor,
+                                                                            ),
+                                                                            // Ether gas
+                                                                            Container(
+                                                                              child: Row(
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                children: [
+                                                                                  Container(
+                                                                                    width: size.width * 0.2,
+                                                                                    child: Text(
+                                                                                      "Gas price",
+                                                                                      overflow: TextOverflow.ellipsis,
+                                                                                      maxLines: 3,
+                                                                                      textAlign: TextAlign.start,
+                                                                                      style: GoogleFonts.montserrat(
+                                                                                        textStyle: const TextStyle(
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          color: secondaryColor,
+                                                                                          fontSize: 15,
+                                                                                          fontWeight: FontWeight.w300,
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                  SizedBox(
+                                                                                    width: 5,
+                                                                                  ),
+                                                                                  Container(
+                                                                                    width: size.width * 0.2,
+                                                                                    child: Text(
+                                                                                      "${EtherAmount.fromUnitAndValue(EtherUnit.wei, tx['gasPrice']).getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                                                                      overflow: TextOverflow.ellipsis,
+                                                                                      maxLines: 3,
+                                                                                      textAlign: TextAlign.end,
+                                                                                      style: GoogleFonts.montserrat(
+                                                                                        textStyle: const TextStyle(
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          color: secondaryColor,
+                                                                                          fontSize: 15,
+                                                                                          fontWeight: FontWeight.w300,
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                            ),
+                                                                            const SizedBox(
+                                                                              height: 10,
+                                                                            ),
+                                                                            // Gas used
+                                                                            Container(
+                                                                              child: Row(
+                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                children: [
+                                                                                  Container(
+                                                                                    width: size.width * 0.2,
+                                                                                    child: Text(
+                                                                                      "Gas used",
+                                                                                      overflow: TextOverflow.ellipsis,
+                                                                                      maxLines: 5,
+                                                                                      textAlign: TextAlign.start,
+                                                                                      style: GoogleFonts.montserrat(
+                                                                                        textStyle: const TextStyle(
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          color: secondaryColor,
+                                                                                          fontSize: 13,
+                                                                                          fontWeight: FontWeight.w300,
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                  SizedBox(
+                                                                                    width: 5,
+                                                                                  ),
+                                                                                  Container(
+                                                                                    width: size.width * 0.2,
+                                                                                    child: Text(
+                                                                                      "${tx['gasUsed']}",
+                                                                                      overflow: TextOverflow.ellipsis,
+                                                                                      maxLines: 3,
+                                                                                      textAlign: TextAlign.end,
+                                                                                      style: GoogleFonts.montserrat(
+                                                                                        textStyle: const TextStyle(
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          color: secondaryColor,
+                                                                                          fontSize: 15,
+                                                                                          fontWeight: FontWeight.w300,
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ],
+                                                                              ),
+                                                                            ),
+                                                                            const SizedBox(
+                                                                              height: 10,
+                                                                            ),
+                                                                            Divider(
+                                                                              color: secondaryColor,
+                                                                            ),
+                                                                            Row(
+                                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                              children: [
+                                                                                Container(
+                                                                                  width: size.width * 0.2,
+                                                                                  child: Text(
+                                                                                    "Total gas",
+                                                                                    overflow: TextOverflow.ellipsis,
+                                                                                    maxLines: 3,
+                                                                                    textAlign: TextAlign.start,
+                                                                                    style: GoogleFonts.montserrat(
+                                                                                      textStyle: const TextStyle(
+                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                        color: secondaryColor,
+                                                                                        fontSize: 15,
+                                                                                        fontWeight: FontWeight.w600,
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                                SizedBox(
+                                                                                  width: 5,
+                                                                                ),
+                                                                                Container(
+                                                                                  width: size.width * 0.2,
+                                                                                  child: Text(
+                                                                                    "${(EtherAmount.fromUnitAndValue(EtherUnit.wei, tx['gasPrice']).getValueInUnit(EtherUnit.gwei) * double.parse(tx['gasUsed'])).toStringAsFixed(2)} GWEI",
+                                                                                    overflow: TextOverflow.ellipsis,
+                                                                                    maxLines: 3,
+                                                                                    textAlign: TextAlign.end,
+                                                                                    style: GoogleFonts.montserrat(
+                                                                                      textStyle: const TextStyle(
+                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                        color: secondaryColor,
+                                                                                        fontSize: 15,
+                                                                                        fontWeight: FontWeight.w600,
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                      ),
+                                                                      const SizedBox(
+                                                                        height:
+                                                                            20,
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              actions: <Widget>[
+                                                                TextButton(
+                                                                  onPressed:
+                                                                      () {
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop(
+                                                                            false);
+                                                                  },
+                                                                  child:
+                                                                      const Text(
+                                                                    'Ok',
+                                                                    style: TextStyle(
+                                                                        color:
+                                                                            secondaryColor),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      });
+                                                },
+                                                child: Container(
+                                                  decoration: BoxDecoration(
+                                                    border: Border.all(
+                                                        color: secondaryColor,
+                                                        width: 1.0),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                            20),
+                                                  ),
+                                                  padding:
+                                                      const EdgeInsets.all(10),
+                                                  margin: EdgeInsets.only(
+                                                      bottom: 10),
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceEvenly,
+                                                    children: [
+                                                      // Icons + Date
+                                                      Container(
+                                                        width: size.width * 0.1,
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            tx['from'] ==
+                                                                    publicKey
+                                                                ? Icon(
+                                                                    CupertinoIcons
+                                                                        .arrow_up_circle_fill,
+                                                                    color:
+                                                                        secondaryColor,
+                                                                  )
+                                                                : Icon(
+                                                                    CupertinoIcons
+                                                                        .arrow_down_circle_fill,
+                                                                    color: Colors
+                                                                        .green,
+                                                                  ),
+                                                            Text(
+                                                              "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000))}",
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .start,
+                                                              style: GoogleFonts
+                                                                  .montserrat(
+                                                                textStyle:
+                                                                    const TextStyle(
                                                                   color:
                                                                       secondaryColor,
-                                                                )
-                                                              : Icon(
-                                                                  CupertinoIcons
-                                                                      .arrow_down_circle_fill,
-                                                                  color: Colors
-                                                                      .green,
+                                                                  fontSize: 10,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600,
                                                                 ),
-                                                          Text(
-                                                            "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000))}",
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            textAlign:
-                                                                TextAlign.start,
-                                                            style: GoogleFonts
-                                                                .montserrat(
-                                                              textStyle:
-                                                                  const TextStyle(
-                                                                color:
-                                                                    secondaryColor,
-                                                                fontSize: 10,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w600,
                                                               ),
                                                             ),
-                                                          ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       ),
-                                                    ),
-                                                    Container(
-                                                      width: size.width * 0.4,
-                                                      child: Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          tx['from'] ==
-                                                                  publicKey
-                                                              ? Text(
-                                                                  "Sent",
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  textAlign:
-                                                                      TextAlign
-                                                                          .start,
-                                                                  style: GoogleFonts
-                                                                      .montserrat(
-                                                                    textStyle:
-                                                                        const TextStyle(
-                                                                      color:
-                                                                          secondaryColor,
-                                                                      fontSize:
-                                                                          25,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w700,
+                                                      Container(
+                                                        width: size.width * 0.4,
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            tx['from'] ==
+                                                                    publicKey
+                                                                ? Text(
+                                                                    "Sent",
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .start,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        fontSize:
+                                                                            25,
+                                                                        fontWeight:
+                                                                            FontWeight.w700,
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                : Text(
+                                                                    "Received",
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .start,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        fontSize:
+                                                                            25,
+                                                                        fontWeight:
+                                                                            FontWeight.w700,
+                                                                      ),
                                                                     ),
                                                                   ),
-                                                                )
-                                                              : Text(
-                                                                  "Received",
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  textAlign:
-                                                                      TextAlign
-                                                                          .start,
-                                                                  style: GoogleFonts
-                                                                      .montserrat(
-                                                                    textStyle:
-                                                                        const TextStyle(
-                                                                      color:
-                                                                          secondaryColor,
-                                                                      fontSize:
-                                                                          25,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w700,
+                                                            tx['from'] ==
+                                                                        publicKey &&
+                                                                    !selectedWalletAssetsData
+                                                                        .keys
+                                                                        .contains(
+                                                                            tx['to'])
+                                                                ? Text(
+                                                                    "To ${tx['to']}",
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .start,
+                                                                    maxLines: 2,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        fontSize:
+                                                                            10,
+                                                                        fontWeight:
+                                                                            FontWeight.w400,
+                                                                      ),
+                                                                    ),
+                                                                  )
+                                                                : Text(
+                                                                    "From ${tx['from']}",
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    maxLines: 2,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .start,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        fontSize:
+                                                                            10,
+                                                                        fontWeight:
+                                                                            FontWeight.w400,
+                                                                      ),
                                                                     ),
                                                                   ),
-                                                                ),
-                                                          tx['from'] ==
-                                                                      publicKey &&
-                                                                  !selectedWalletAssetsData
+                                                          ],
+                                                        ),
+                                                      ),
+                                                      Container(
+                                                        width: size.width * 0.2,
+                                                        child: Column(
+                                                          mainAxisAlignment:
+                                                              MainAxisAlignment
+                                                                  .center,
+                                                          children: [
+                                                            Text(
+                                                              !selectedWalletAssetsData
                                                                       .keys
-                                                                      .contains(
-                                                                          tx['to'])
-                                                              ? Text(
-                                                                  "To ${tx['to']}",
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  textAlign:
-                                                                      TextAlign
-                                                                          .start,
-                                                                  maxLines: 2,
-                                                                  style: GoogleFonts
-                                                                      .montserrat(
-                                                                    textStyle:
-                                                                        const TextStyle(
-                                                                      color:
-                                                                          secondaryColor,
-                                                                      fontSize:
-                                                                          10,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w400,
-                                                                    ),
-                                                                  ),
-                                                                )
-                                                              : Text(
-                                                                  "From ${tx['from']}",
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  maxLines: 2,
-                                                                  textAlign:
-                                                                      TextAlign
-                                                                          .start,
-                                                                  style: GoogleFonts
-                                                                      .montserrat(
-                                                                    textStyle:
-                                                                        const TextStyle(
-                                                                      color:
-                                                                          secondaryColor,
-                                                                      fontSize:
-                                                                          10,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w400,
-                                                                    ),
-                                                                  ),
+                                                                      .contains(tx[
+                                                                          'to'])
+                                                                  ? NumberFormat
+                                                                          .compact()
+                                                                      .format(EtherAmount.fromUnitAndValue(
+                                                                              EtherUnit.wei,
+                                                                              tx['value'])
+                                                                          .getValueInUnit(selectedEtherUnit))
+                                                                      .toString()
+                                                                  : "N/A",
+                                                              maxLines: 2,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .start,
+                                                              style: GoogleFonts
+                                                                  .montserrat(
+                                                                textStyle:
+                                                                    const TextStyle(
+                                                                  color:
+                                                                      secondaryColor,
+                                                                  fontSize: 15,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
                                                                 ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                    Container(
-                                                      width: size.width * 0.2,
-                                                      child: Column(
-                                                        mainAxisAlignment:
-                                                            MainAxisAlignment
-                                                                .center,
-                                                        children: [
-                                                          Text(
-                                                            !selectedWalletAssetsData
-                                                                    .keys
-                                                                    .contains(tx[
-                                                                        'to'])
-                                                                ? NumberFormat
-                                                                        .compact()
-                                                                    .format(EtherAmount.fromUnitAndValue(
-                                                                            EtherUnit
-                                                                                .wei,
-                                                                            tx[
-                                                                                'value'])
-                                                                        .getValueInUnit(
-                                                                            selectedEtherUnit))
-                                                                    .toString()
-                                                                : "N/A",
-                                                            maxLines: 2,
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            textAlign:
-                                                                TextAlign.start,
-                                                            style: GoogleFonts
-                                                                .montserrat(
-                                                              textStyle:
-                                                                  const TextStyle(
-                                                                color:
-                                                                    secondaryColor,
-                                                                fontSize: 15,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w700,
                                                               ),
                                                             ),
-                                                          ),
-                                                          Text(
-                                                            !selectedWalletAssetsData
-                                                                    .keys
-                                                                    .contains(tx[
-                                                                        'to'])
-                                                                ? cryptoUnits[
-                                                                        selectedEtherUnit]
-                                                                    .toString()
-                                                                : selectedWalletAssetsData[
-                                                                    tx['to']],
-                                                            overflow:
-                                                                TextOverflow
-                                                                    .ellipsis,
-                                                            textAlign:
-                                                                TextAlign.start,
-                                                            style: GoogleFonts
-                                                                .montserrat(
-                                                              textStyle:
-                                                                  const TextStyle(
-                                                                color:
-                                                                    secondaryColor,
-                                                                fontSize: 20,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w400,
+                                                            Text(
+                                                              !selectedWalletAssetsData
+                                                                      .keys
+                                                                      .contains(tx[
+                                                                          'to'])
+                                                                  ? cryptoUnits[
+                                                                          selectedEtherUnit]
+                                                                      .toString()
+                                                                  : selectedWalletAssetsData[
+                                                                      tx['to']],
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .start,
+                                                              style: GoogleFonts
+                                                                  .montserrat(
+                                                                textStyle:
+                                                                    const TextStyle(
+                                                                  color:
+                                                                      secondaryColor,
+                                                                  fontSize: 20,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w400,
+                                                                ),
                                                               ),
                                                             ),
-                                                          ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                           ],

@@ -65,7 +65,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
 
   Future<void> prepare() async {
     appData = await firestore.FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('data')
         .get();
 

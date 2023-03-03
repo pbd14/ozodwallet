@@ -12,7 +12,7 @@
     }
   ],
   "hosting": {
-    "site": "ozodfin",
+    "site": "ozod-wallet",
     "public": "build/web",
     "ignore": [
       "firebase.json",

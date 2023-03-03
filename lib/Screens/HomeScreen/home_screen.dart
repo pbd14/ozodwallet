@@ -116,7 +116,7 @@ class _HomeScreenState extends State<HomeScreen> {
     selectedWalletAssetsData = {};
     wallets = [];
     estimateGasPrice = EtherAmount.zero();
-    estimateGasAmount = BigInt.zero;
+    estimateGasAmount = BigInt.from(1);
     gasBalance = EtherAmount.zero();
     gasTxsLeft = 0;
     web3client = null;
@@ -165,15 +165,15 @@ class _HomeScreenState extends State<HomeScreen> {
     await getDataFromSP();
     // get app data
     appDataNodes = await firestore.FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('nodes')
         .get();
     appDataApi = await firestore.FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('api')
         .get();
     appData = await firestore.FirebaseFirestore.instance
-        .collection('wallet_app_data')
+        .collection('app_data')
         .doc('data')
         .get();
     // Check network availability
@@ -2640,135 +2640,154 @@ class _HomeScreenState extends State<HomeScreen> {
                                             ],
                                     ),
                                   ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                                  child: ExpansionTile(
+                                    tilePadding: EdgeInsets.zero,
+                                    childrenPadding: EdgeInsets.zero,
+                                    expandedCrossAxisAlignment: CrossAxisAlignment.center,
+                                    expandedAlignment: Alignment.center,
+                                    trailing: SizedBox.shrink(),
+                                    backgroundColor: Colors.transparent,
+                                    title: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Gas Indicator",
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.start,
+                                          maxLines: 2,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: whiteColor,
+                                              fontSize: 25,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Text(
+                                          "~ ${NumberFormat.compact().format(gasTxsLeft)} Txs left",
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.start,
+                                          maxLines: 2,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: whiteColor,
+                                              fontSize: 23,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        SizedBox(
+                                          height: 10,
+                                        ),
+                                        Center(
+                                          child: RoundedButton(
+                                            pw: 150,
+                                            ph: 35,
+                                            text: 'Top up gas',
+                                            press: () {
+                                              if (kIsWeb) {
+                                                showNotification(
+                                                    'Coming soon',
+                                                    'Not supported for web',
+                                                    Colors.orange);
+                                              } else {
+                                                Navigator.push(
+                                                  context,
+                                                  SlideRightRoute(
+                                                      page: BuyCryptoScreen(
+                                                    walletIndex:
+                                                        selectedWalletIndex,
+                                                    web3client: web3client!,
+                                                  )),
+                                                );
+                                              }
+                                            },
+                                            color: whiteColor,
+                                            textColor: darkPrimaryColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                     children: [
-                                      Text(
-                                        "Gas Indicator",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        maxLines: 2,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
-                                            color: whiteColor,
-                                            fontSize: 25,
-                                            fontWeight: FontWeight.w700,
+                                      Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(
+                                            height: 20,
                                           ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Text(
-                                        "~ ${NumberFormat.compact().format(gasTxsLeft)} Txs left",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        maxLines: 2,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
-                                            color: whiteColor,
-                                            fontSize: 23,
-                                            fontWeight: FontWeight.w700,
+                                          Text(
+                                            "${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            maxLines: 4,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: whiteColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        "${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        maxLines: 4,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
-                                            color: whiteColor,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w400,
+                                          SizedBox(
+                                            height: 10,
                                           ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Divider(
-                                        color: whiteColor,
-                                      ),
-                                      Text(
-                                        "Gas price: ${estimateGasPrice.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        maxLines: 4,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
+                                          Divider(
                                             color: whiteColor,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w400,
                                           ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 5,
-                                      ),
-                                      Text(
-                                        "Estimate gas amount: $estimateGasAmount",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        maxLines: 4,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
-                                            color: whiteColor,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w400,
+                                          Text(
+                                            "Gas price: ${estimateGasPrice.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            maxLines: 4,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: whiteColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 10,
-                                      ),
-                                      Text(
-                                        "Total gas needed: ${(estimateGasPrice.getValueInUnit(EtherUnit.gwei) * estimateGasAmount.toDouble()).toStringAsFixed(2)} GWEI",
-                                        overflow: TextOverflow.ellipsis,
-                                        textAlign: TextAlign.start,
-                                        maxLines: 4,
-                                        style: GoogleFonts.montserrat(
-                                          textStyle: const TextStyle(
-                                            color: whiteColor,
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w400,
+                                          SizedBox(
+                                            height: 5,
                                           ),
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        height: 20,
-                                      ),
-                                      Center(
-                                        child: RoundedButton(
-                                          pw: 150,
-                                          ph: 35,
-                                          text: 'Top up gas',
-                                          press: () {
-                                            if (kIsWeb) {
-                                              showNotification(
-                                                  'Coming soon',
-                                                  'Not supported for web',
-                                                  Colors.orange);
-                                            } else {
-                                              Navigator.push(
-                                                context,
-                                                SlideRightRoute(
-                                                    page: BuyCryptoScreen(
-                                                  walletIndex:
-                                                      selectedWalletIndex,
-                                                  web3client: web3client!,
-                                                )),
-                                              );
-                                            }
-                                          },
-                                          color: whiteColor,
-                                          textColor: darkPrimaryColor,
-                                        ),
+                                          Text(
+                                            "Estimate gas amount: $estimateGasAmount",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            maxLines: 4,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: whiteColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 10,
+                                          ),
+                                          Text(
+                                            "Total gas needed: ${(estimateGasPrice.getValueInUnit(EtherUnit.gwei) * estimateGasAmount.toDouble()).toStringAsFixed(2)} GWEI",
+                                            overflow: TextOverflow.ellipsis,
+                                            textAlign: TextAlign.start,
+                                            maxLines: 4,
+                                            style: GoogleFonts.montserrat(
+                                              textStyle: const TextStyle(
+                                                color: whiteColor,
+                                                fontSize: 15,
+                                                fontWeight: FontWeight.w400,
+                                              ),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            height: 20,
+                                          ),
+                                        ],
                                       ),
                                     ],
                                   ),
@@ -2804,8 +2823,6 @@ class _HomeScreenState extends State<HomeScreen> {
                                               CupertinoButton(
                                                 padding: EdgeInsets.zero,
                                                 onPressed: () {
-                                                  print('fvdf');
-                                                  print(tx);
                                                   showDialog(
                                                       barrierDismissible: true,
                                                       context: context,
@@ -2866,9 +2883,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                             10,
                                                                       ),
                                                                       Text(
-                                                                        NumberFormat.compact().format(int.parse(tx['value']) /
-                                                                            pow(10,
-                                                                                int.parse(tx['tokenDecimal']))),
+                                                                        NumberFormat.compact().format(BigInt.parse(tx['value']) /
+                                                                            BigInt.from(pow(10,
+                                                                                int.parse(tx['tokenDecimal'])))),
                                                                         overflow:
                                                                             TextOverflow.ellipsis,
                                                                         maxLines:
