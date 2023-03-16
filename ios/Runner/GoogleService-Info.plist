@@ -3,23 +3,21 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>631128095988-pc4m1sersb2su65cjs5jgsmvo9mnhtdt.apps.googleusercontent.com</string>
+	<string>31089423786-6c46n2kl9a4n0rdcqinc4i1rs4itdbng.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.631128095988-pc4m1sersb2su65cjs5jgsmvo9mnhtdt</string>
-	<key>ANDROID_CLIENT_ID</key>
-	<string>631128095988-aucjv7trij1lh6emvialdkqteg8n6igv.apps.googleusercontent.com</string>
+	<string>com.googleusercontent.apps.31089423786-6c46n2kl9a4n0rdcqinc4i1rs4itdbng</string>
 	<key>API_KEY</key>
-	<string>AIzaSyAVjW4FzBVSvu1PRgcT_21QhEe3dy354eM</string>
+	<string>AIzaSyCpaCfqHFmsB59a2uH5yhxPqF5Bm5xOFig</string>
 	<key>GCM_SENDER_ID</key>
-	<string>631128095988</string>
+	<string>31089423786</string>
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
 	<string>com.ozod.wallet.ozodwallet</string>
 	<key>PROJECT_ID</key>
-	<string>ozod-loyalty</string>
+	<string>ozod-finance</string>
 	<key>STORAGE_BUCKET</key>
-	<string>ozod-loyalty.appspot.com</string>
+	<string>ozod-finance.appspot.com</string>
 	<key>IS_ADS_ENABLED</key>
 	<false></false>
 	<key>IS_ANALYTICS_ENABLED</key>
@@ -31,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:631128095988:ios:61ba2b2aad3e2bb051b2a1</string>
+	<string>1:31089423786:ios:3dee8dc48715b314fd27d3</string>
 </dict>
 </plist>
