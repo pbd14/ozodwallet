@@ -127,7 +127,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                     child: Container(
                       margin: const EdgeInsets.all(20),
                       constraints: BoxConstraints(
-                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                          maxWidth: kIsWeb ? 600 : double.infinity),
                       child: Form(
                         key: _formKey,
                         child: Column(
@@ -166,7 +166,8 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                 ),
                               ),
                               child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
                                 children: [
                                   Jazzicon.getIconWidget(
                                       Jazzicon.getJazziconData(160,
@@ -216,8 +217,8 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                             // Amount
                             Container(
                               decoration: BoxDecoration(
-                                border:
-                                    Border.all(color: secondaryColor, width: 1.0),
+                                border: Border.all(
+                                    color: secondaryColor, width: 1.0),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               padding: EdgeInsets.all(10),
@@ -262,7 +263,8 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                               color: Colors.red, width: 1.0),
                                         ),
                                         hintStyle: TextStyle(
-                                          color: secondaryColor.withOpacity(0.7),
+                                          color:
+                                              secondaryColor.withOpacity(0.7),
                                         ),
                                         hintText: "0.0",
                                         border: InputBorder.none),
@@ -341,7 +343,8 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                     //     fit: BoxFit.fill),
                                   ),
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
                                     children: [
                                       Row(
                                         mainAxisAlignment:
@@ -715,43 +718,30 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                       SizedBox(
                                         height: 30,
                                       ),
-                                      RoundedButton(
-                                        pw: 250,
-                                        ph: 45,
-                                        text: 'Buy UZSO',
-                                        press: () async {
-                                          if (_formKey.currentState!.validate()) {
-                                            String notificationTitle = "Success";
-                                            String notificationBody =
-                                                "Payment made";
-                                            Color notificaitonColor =
-                                                Colors.green;
-                                            bool paymentMade = false;
-                                            setState(() {
-                                              loading1 = true;
-                                            });
+                                      Center(
+                                        child: RoundedButton(
+                                          pw: 250,
+                                          ph: 45,
+                                          text: 'Buy UZSO',
+                                          press: () async {
+                                            if (_formKey.currentState!
+                                                .validate()) {
+                                              String notificationTitle =
+                                                  "Success";
+                                              String notificationBody =
+                                                  "Payment made";
+                                              Color notificaitonColor =
+                                                  Colors.green;
+                                              bool paymentMade = false;
+                                              setState(() {
+                                                loading1 = true;
+                                              });
 
-                                            Map preparePaymentResult =
-                                                await preparePayment();
-                                            if (preparePaymentResult['error'] !=
-                                                0) {
-                                              notificationTitle = "Failed";
-                                              notificationBody =
-                                                  "Error. Try later again";
-                                              notificaitonColor = Colors.red;
-                                              endPayment(
-                                                  notificationTitle,
-                                                  notificationBody,
-                                                  notificaitonColor,
-                                                  paymentMade);
-                                            } else {
-                                              octoPaymentId =
-                                                  preparePaymentResult[
-                                                      'octo_payment_UUID'];
-                                              Map payResult =
-                                                  await pay(octoPaymentId!);
-                                              if (payResult['error'] != 0 &&
-                                                  payResult['error'] != 5) {
+                                              Map preparePaymentResult =
+                                                  await preparePayment();
+                                              if (preparePaymentResult[
+                                                      'error'] !=
+                                                  0) {
                                                 notificationTitle = "Failed";
                                                 notificationBody =
                                                     "Error. Try later again";
@@ -762,60 +752,81 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                                     notificaitonColor,
                                                     paymentMade);
                                               } else {
-                                                webViewController =
-                                                    WebViewController()
-                                                      ..setJavaScriptMode(
-                                                          JavaScriptMode
-                                                              .unrestricted)
-                                                      ..setBackgroundColor(
-                                                          const Color(0x00000000))
-                                                      ..setNavigationDelegate(
-                                                        NavigationDelegate(
-                                                          onProgress:
-                                                              (int progress) {
-                                                            // Update loading bar.
-                                                          },
-                                                          onPageStarted:
-                                                              (String url) {},
-                                                          onPageFinished:
-                                                              (String url) {},
-                                                          onWebResourceError:
-                                                              (WebResourceError
-                                                                  error) {},
-                                                          onNavigationRequest:
-                                                              (NavigationRequest
-                                                                  request) {
-                                                            if (request.url
-                                                                .startsWith(
-                                                                    'https://www.youtube.com/')) {
+                                                octoPaymentId =
+                                                    preparePaymentResult[
+                                                        'octo_payment_UUID'];
+                                                Map payResult =
+                                                    await pay(octoPaymentId!);
+                                                if (payResult['error'] != 0 &&
+                                                    payResult['error'] != 5) {
+                                                  notificationTitle = "Failed";
+                                                  notificationBody =
+                                                      "Error. Try later again";
+                                                  notificaitonColor =
+                                                      Colors.red;
+                                                  endPayment(
+                                                      notificationTitle,
+                                                      notificationBody,
+                                                      notificaitonColor,
+                                                      paymentMade);
+                                                } else {
+                                                  webViewController =
+                                                      WebViewController()
+                                                        ..setJavaScriptMode(
+                                                            JavaScriptMode
+                                                                .unrestricted)
+                                                        ..setBackgroundColor(
+                                                            const Color(
+                                                                0x00000000))
+                                                        ..setNavigationDelegate(
+                                                          NavigationDelegate(
+                                                            onProgress:
+                                                                (int progress) {
+                                                              // Update loading bar.
+                                                            },
+                                                            onPageStarted:
+                                                                (String url) {},
+                                                            onPageFinished:
+                                                                (String url) {},
+                                                            onWebResourceError:
+                                                                (WebResourceError
+                                                                    error) {},
+                                                            onNavigationRequest:
+                                                                (NavigationRequest
+                                                                    request) {
+                                                              if (request.url
+                                                                  .startsWith(
+                                                                      'https://www.youtube.com/')) {
+                                                                return NavigationDecision
+                                                                    .prevent;
+                                                              }
                                                               return NavigationDecision
-                                                                  .prevent;
-                                                            }
-                                                            return NavigationDecision
-                                                                .navigate;
-                                                          },
-                                                        ),
-                                                      )
-                                                      ..loadRequest(Uri.parse(
-                                                          payResult['error'] == 5
-                                                              ? preparePaymentResult[
-                                                                  'octo_pay_url']
-                                                              : payResult['data'][
-                                                                  'redirectUrl']));
-                                                setState(() {
-                                                  showWeb = true;
-                                                  loading1 = false;
-                                                });
+                                                                  .navigate;
+                                                            },
+                                                          ),
+                                                        )
+                                                        ..loadRequest(Uri.parse(payResult[
+                                                                    'error'] ==
+                                                                5
+                                                            ? preparePaymentResult[
+                                                                'octo_pay_url']
+                                                            : payResult['data'][
+                                                                'redirectUrl']));
+                                                  setState(() {
+                                                    showWeb = true;
+                                                    loading1 = false;
+                                                  });
+                                                }
                                               }
-                                            }
 
-                                            setState(() {
-                                              loading1 = false;
-                                            });
-                                          }
-                                        },
-                                        color: secondaryColor,
-                                        textColor: darkPrimaryColor,
+                                              setState(() {
+                                                loading1 = false;
+                                              });
+                                            }
+                                          },
+                                          color: secondaryColor,
+                                          textColor: darkPrimaryColor,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -898,8 +909,8 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                               .instance
                                               .httpsCallable('mintToCustomer')
                                               .call({
-                                            'to':
-                                                walletData['address'].toString(),
+                                            'to': walletData['address']
+                                                .toString(),
                                             'amount': (BigInt.from(amount) *
                                                     BigInt.from(pow(10, 18)))
                                                 .toString(),
@@ -938,8 +949,9 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                             "status_code": paymentStatusCode,
                                             "web3Transaction": resp.data,
                                           });
-                                        } on FirebaseFunctionsException {
-                                           print('VGERREVE1');
+                                        } on FirebaseFunctionsException catch (e) {
+                                          print('VGERREVE1');
+                                          print(e);
                                           notificationTitle = "Error";
                                           notificationBody =
                                               "Servers are overloaded. Please try again later";
@@ -1010,8 +1022,8 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                     ],
                                   ),
                                 ),
-                                child:
-                                    WebViewWidget(controller: webViewController),
+                                child: WebViewWidget(
+                                    controller: webViewController),
                               ),
 
                             const SizedBox(height: 100),
@@ -1120,7 +1132,6 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
       Color notificaitonColor, bool paymentMade) {
     showNotification(notificationTitle, notificationBody, notificaitonColor);
     if (paymentMade) {
-      
       // Navigator.pop(context);
     }
     setState(() {

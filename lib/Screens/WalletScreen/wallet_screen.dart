@@ -316,6 +316,22 @@ class _WalletScreenState extends State<WalletScreen> {
         : Scaffold(
             key: _scaffoldKey,
             backgroundColor: darkPrimaryColor,
+            appBar: AppBar(
+              elevation: 0,
+              automaticallyImplyLeading: false,
+              // toolbarHeight: 30,
+              backgroundColor: Colors.transparent,
+              leading: IconButton(
+                color: secondaryColor,
+                icon: const Icon(
+                  CupertinoIcons.line_horizontal_3,
+                  size: 30,
+                ),
+                onPressed: () {
+                  _scaffoldKey.currentState!.openDrawer();
+                },
+              ),
+            ),
             drawer: Drawer(
               // Add a ListView to the drawer. This ensures the user can scroll
               // through the options in the drawer if there isn't enough vertical
@@ -328,7 +344,7 @@ class _WalletScreenState extends State<WalletScreen> {
                 children: [
                   DrawerHeader(
                     decoration: BoxDecoration(
-                      color: primaryColor,
+                      color: lightPrimaryColor,
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -340,7 +356,7 @@ class _WalletScreenState extends State<WalletScreen> {
                           maxLines: 2,
                           style: GoogleFonts.montserrat(
                             textStyle: const TextStyle(
-                              color: secondaryColor,
+                              color: darkPrimaryColor,
                               fontSize: 25,
                               fontWeight: FontWeight.w700,
                             ),
@@ -828,7 +844,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                 maxWidth: kIsWeb ? 600 : double.infinity),
                             child: Column(
                               children: [
-                                SizedBox(height: size.height * 0.1),
+                                SizedBox(height: 10),
 
                                 // Blockchain network
                                 Container(
@@ -982,6 +998,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                 ),
                                 SizedBox(height: 20),
 
+// Alerts
                                 if (appData!.get('AVAILABLE_ETHER_NETWORKS')[
                                     selectedNetworkId]['is_testnet'])
                                   Container(
@@ -996,8 +1013,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                     child: Row(
                                       children: [
                                         Icon(
-                                          CupertinoIcons
-                                              .exclamationmark_circle_fill,
+                                          CupertinoIcons.exclamationmark_circle,
                                           color: Colors.red,
                                         ),
                                         SizedBox(
@@ -1012,7 +1028,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                             style: GoogleFonts.montserrat(
                                               textStyle: const TextStyle(
                                                 overflow: TextOverflow.ellipsis,
-                                                color: secondaryColor,
+                                                color: Colors.red,
                                                 fontSize: 15,
                                                 fontWeight: FontWeight.w300,
                                               ),
@@ -1695,7 +1711,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                   child: ExpansionTile(
                                     tilePadding: EdgeInsets.zero,
                                     childrenPadding: EdgeInsets.zero,
-                                    expandedCrossAxisAlignment: CrossAxisAlignment.center,
+                                    expandedCrossAxisAlignment:
+                                        CrossAxisAlignment.center,
                                     expandedAlignment: Alignment.center,
                                     trailing: SizedBox.shrink(),
                                     backgroundColor: Colors.transparent,
@@ -1845,7 +1862,6 @@ class _WalletScreenState extends State<WalletScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 50),
-
 
                                 // Assets
                                 Container(

@@ -340,6 +340,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                             ),
                                             content: SingleChildScrollView(
                                               child: Container(
+                                                width: size.width * 0.9,
+                                                height: size.height * 0.4,
                                                 margin: EdgeInsets.all(0),
                                                 child: Column(
                                                   children: [
@@ -985,7 +987,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                     size.width *
                                                                         0.2,
                                                                 child: Text(
-                                                                  "${(etherGas.getValueInUnit(EtherUnit.gwei) * estimateGas.toDouble() ).toStringAsFixed(2)} GWEI",
+                                                                  "${(etherGas.getValueInUnit(EtherUnit.gwei) * estimateGas.toDouble()).toStringAsFixed(2)} GWEI",
                                                                   overflow:
                                                                       TextOverflow
                                                                           .ellipsis,
