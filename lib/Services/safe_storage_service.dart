@@ -49,4 +49,8 @@ class SafeStorageService {
   Future<void> editWalletName(String walletIndex, String name) async {
     await storage.write(key: "Wallet${walletIndex}", value: name);
   }
+
+  Future<void> deleteAllData() async {
+    await storage.deleteAll();
+  }
 }

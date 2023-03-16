@@ -32,13 +32,14 @@ class _MainScreenState extends State<MainScreen> {
   bool loading = true;
   bool walletExists = false;
   bool appIsActive = true;
-  StreamSubscription<DocumentSnapshot>? firebaseVarsSubscription;
+  StreamSubscription? firebaseVarsSubscription;
+  StreamSubscription? walletExistsSubscription;
   final PersistentTabController _controller =
       PersistentTabController(initialIndex: 0);
 
   List<Widget> _buildScreens() {
     return [
-      HomeScreen(),
+      HomeScreen(refreshFunction: _refresh,),
       WalletScreen(),
       // LoyaltyScreen(),
       // WalletScreen(),
@@ -125,7 +126,9 @@ class _MainScreenState extends State<MainScreen> {
         appIsActive = vars.get('ozod_wallet_app_active');
       }
     });
+
     final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
+
     String? value = await storage.read(key: 'walletExists');
     if (value != 'true') {
       Navigator.push(

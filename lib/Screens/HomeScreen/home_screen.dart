@@ -32,7 +32,12 @@ import 'package:web3dart/web3dart.dart';
 // ignore: must_be_immutable
 class HomeScreen extends StatefulWidget {
   String error;
-  HomeScreen({Key? key, this.error = 'Something Went Wrong'}) : super(key: key);
+  Function refreshFunction;
+  HomeScreen(
+      {Key? key,
+      this.error = 'Something Went Wrong',
+      required this.refreshFunction})
+      : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -767,7 +772,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                 ),
                                               ),
                                             ),
-                                            const SizedBox(height: 100),
+                                            const SizedBox(height: 20),
                                             Center(
                                               child: RoundedButton(
                                                 pw: 250,
@@ -805,6 +810,209 @@ class _HomeScreenState extends State<HomeScreen> {
                                           Navigator.of(context).pop(false),
                                       child: const Text(
                                         'Ok',
+                                        style: TextStyle(color: secondaryColor),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          });
+
+                      // Update the state of the app
+                      // ...
+                      // Then close the drawer
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      CupertinoIcons.trash,
+                      color: Colors.red,
+                    ),
+                    title: Text(
+                      "Delete all data",
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                      maxLines: 2,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: Colors.red,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (BuildContext context) {
+                            return StatefulBuilder(
+                              builder: (context, StateSetter setState) {
+                                return AlertDialog(
+                                  backgroundColor: darkPrimaryColor,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                  title: const Text(
+                                    'Delete all data',
+                                    style: TextStyle(color: secondaryColor),
+                                  ),
+                                  content: SingleChildScrollView(
+                                    child: Form(
+                                      key: _formKey,
+                                      child: Center(
+                                        child: Column(
+                                          children: [
+                                            Text(
+                                              "Enter word DELETE to continue",
+                                              overflow: TextOverflow.ellipsis,
+                                              maxLines: 5,
+                                              textAlign: TextAlign.start,
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  color: secondaryColor,
+                                                  fontSize: 20,
+                                                  fontWeight: FontWeight.w400,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 20,
+                                            ),
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                border: Border.all(
+                                                    color: Colors.red,
+                                                    width: 1.0),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                              ),
+                                              padding: EdgeInsets.all(15),
+                                              child: Row(
+                                                children: [
+                                                  Icon(
+                                                    CupertinoIcons
+                                                        .exclamationmark_circle,
+                                                    color: Colors.red,
+                                                  ),
+                                                  SizedBox(
+                                                    width: 5,
+                                                  ),
+                                                  Expanded(
+                                                    child: Text(
+                                                      "This action will delete all data from this phone. Your wallets and assets will still remain on blockchain, and you can restore them by your private key and secret phrase",
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                      maxLines: 5,
+                                                      textAlign:
+                                                          TextAlign.start,
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          color: Colors.red,
+                                                          fontSize: 15,
+                                                          fontWeight:
+                                                              FontWeight.w300,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 20,
+                                            ),
+                                            TextFormField(
+                                              style: const TextStyle(
+                                                  color: secondaryColor),
+                                              validator: (val) {
+                                                if (val!.isEmpty) {
+                                                  return 'Enter DELETE';
+                                                } else if (val != 'DELETE') {
+                                                  return 'Enter DELETE';
+                                                } else {
+                                                  return null;
+                                                }
+                                              },
+                                              keyboardType: TextInputType.name,
+                                              decoration: InputDecoration(
+                                                errorBorder:
+                                                    const OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: Colors.red,
+                                                      width: 1.0),
+                                                ),
+                                                focusedBorder:
+                                                    const OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: secondaryColor,
+                                                      width: 1.0),
+                                                ),
+                                                enabledBorder:
+                                                    const OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: secondaryColor,
+                                                      width: 1.0),
+                                                ),
+                                                hintStyle: TextStyle(
+                                                    color: darkPrimaryColor
+                                                        .withOpacity(0.7)),
+                                                hintText: 'DELETE',
+                                                border:
+                                                    const OutlineInputBorder(
+                                                  borderSide: BorderSide(
+                                                      color: secondaryColor,
+                                                      width: 1.0),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(height: 20),
+                                            Center(
+                                              child: RoundedButton(
+                                                pw: 250,
+                                                ph: 45,
+                                                text: 'Delete',
+                                                press: () async {
+                                                  if (_formKey.currentState!
+                                                          .validate() &&
+                                                      editedName != null &&
+                                                      editedName.isNotEmpty) {
+                                                    Navigator.of(context)
+                                                        .pop(true);
+                                                    setState(() {
+                                                      loading = true;
+                                                    });
+
+                                                    await SafeStorageService()
+                                                        .deleteAllData();
+                                                    await sharedPreferences!
+                                                        .clear();
+                                                    widget.refreshFunction();
+                                                  }
+                                                },
+                                                color: Colors.red,
+                                                textColor: secondaryColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text(
+                                        'Cancel',
                                         style: TextStyle(color: secondaryColor),
                                       ),
                                     ),

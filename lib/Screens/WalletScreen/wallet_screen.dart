@@ -998,7 +998,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                 ),
                                 SizedBox(height: 20),
 
-// Alerts
+                                // Alerts
                                 if (appData!.get('AVAILABLE_ETHER_NETWORKS')[
                                     selectedNetworkId]['is_testnet'])
                                   Container(

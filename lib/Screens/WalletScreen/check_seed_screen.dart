@@ -262,7 +262,6 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                                         });
                                         if (widget.isWelcomeScreen) {
                                           Navigator.pop(context);
-                                          Navigator.pop(context);
                                         }
 
                                         Navigator.pop(context);

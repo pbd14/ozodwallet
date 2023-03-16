@@ -463,7 +463,6 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                     }
                                     if (widget.isWelcomeScreen) {
                                       Navigator.pop(context);
-                                      Navigator.pop(context);
                                     }
 
                                     Navigator.pop(context);
@@ -522,7 +521,6 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                             name);
                                       }
                                       if (widget.isWelcomeScreen) {
-                                        Navigator.pop(context);
                                         Navigator.pop(context);
                                       }
 
