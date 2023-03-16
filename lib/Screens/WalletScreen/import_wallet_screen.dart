@@ -61,6 +61,15 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
     return loading
         ? LoadingScreen()
         : Scaffold(
+          appBar: AppBar(
+              elevation: 0,
+              automaticallyImplyLeading: true,
+              toolbarHeight: 30,
+              backgroundColor: darkPrimaryColor,
+              foregroundColor: secondaryColor,
+              centerTitle: true,
+              actions: [],
+            ),
             backgroundColor: darkPrimaryColor,
             body: SingleChildScrollView(
               child: Center(
@@ -73,12 +82,6 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        SizedBox(
-                          height: size.height * 0.1,
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
                         Padding(
                           padding: const EdgeInsets.all(0.0),
                           child: Text(
@@ -136,7 +139,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                           ),
                         ),
                         const SizedBox(
-                          height: 20,
+                          height: 10,
                         ),
                         Text(
                           usingPrivateKey
@@ -202,7 +205,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                 child: Container(
                                   width: size.width * 0.8,
                                   height: 200,
-                                  padding: const EdgeInsets.all(20),
+                                  padding: const EdgeInsets.all(15),
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(20.0),
                                     gradient: const LinearGradient(
@@ -261,7 +264,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                 ),
                               ),
                         const SizedBox(
-                          height: 10,
+                          height: 40,
                         ),
                         Text(
                           "Password",
@@ -277,7 +280,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                           ),
                         ),
                         const SizedBox(
-                          height: 20,
+                          height: 10,
                         ),
                         Text(
                           "Enter password for your wallet",
@@ -351,7 +354,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                           ),
                         ),
                         const SizedBox(
-                          height: 20,
+                          height: 10,
                         ),
                         Text(
                           "Name your wallet. You do not have to save this",

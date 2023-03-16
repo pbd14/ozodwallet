@@ -54,15 +54,24 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
       size = Size(600, size.height);
     }
     return loading
-        ?  LoadingScreen()
+        ? LoadingScreen()
         : Scaffold(
+            appBar: AppBar(
+              elevation: 0,
+              automaticallyImplyLeading: true,
+              toolbarHeight: 30,
+              backgroundColor: darkPrimaryColor,
+              foregroundColor: secondaryColor,
+              centerTitle: true,
+              actions: [],
+            ),
             backgroundColor: darkPrimaryColor,
             body: SingleChildScrollView(
               child: Center(
                 child: Container(
                   margin: const EdgeInsets.all(20),
-                  constraints: BoxConstraints(
-                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                  constraints:
+                      BoxConstraints(maxWidth: kIsWeb ? 600 : double.infinity),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -212,25 +221,25 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                             errorBorder: OutlineInputBorder(
                               borderSide:
                                   BorderSide(color: Colors.red, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            focusedBorder:  OutlineInputBorder(
+                            focusedBorder: OutlineInputBorder(
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            enabledBorder:  OutlineInputBorder(
+                            enabledBorder: OutlineInputBorder(
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                             hintStyle: TextStyle(
                                 color: darkPrimaryColor.withOpacity(0.7)),
                             hintText: 'Password',
-                            border:  OutlineInputBorder(
+                            border: OutlineInputBorder(
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),
@@ -283,28 +292,28 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                             });
                           },
                           decoration: InputDecoration(
-                            errorBorder:  OutlineInputBorder(
+                            errorBorder: OutlineInputBorder(
                               borderSide:
                                   BorderSide(color: Colors.red, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            focusedBorder:  OutlineInputBorder(
+                            focusedBorder: OutlineInputBorder(
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20),
                             ),
-                            enabledBorder:  OutlineInputBorder(
+                            enabledBorder: OutlineInputBorder(
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                             hintStyle: TextStyle(
                                 color: darkPrimaryColor.withOpacity(0.7)),
                             hintText: 'Name',
-                            border:  OutlineInputBorder(
+                            border: OutlineInputBorder(
                               borderSide:
                                   BorderSide(color: secondaryColor, width: 1.0),
-                                  borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
                         ),

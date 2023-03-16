@@ -2,7 +2,7 @@ import 'languages.dart';
 
 class LanguageEn extends Languages {
   @override
-  String get welcomeToOzod => "WELCOME TO OZOD";
+  String get welcomeToOzod => "WELCOME TO";
   @override
   String get labelSelectLanguage => "English";
   @override
