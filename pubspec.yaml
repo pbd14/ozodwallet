@@ -57,7 +57,7 @@ dependencies:
   fl_chart: ^0.55.2
   ntp: ^2.0.0
   qr_flutter: ^4.0.0
-  tutorial_coach_mark: ^1.1.1
+  tutorial_coach_mark: ^1.2.7
   flutter_secure_storage: ^7.0.1
   flutter_dotenv: ^5.0.2
   webview_flutter: ^4.0.1

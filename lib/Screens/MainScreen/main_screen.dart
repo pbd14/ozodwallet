@@ -39,7 +39,9 @@ class _MainScreenState extends State<MainScreen> {
 
   List<Widget> _buildScreens() {
     return [
-      HomeScreen(refreshFunction: _refresh,),
+      HomeScreen(
+        refreshFunction: _refresh,
+      ),
       WalletScreen(),
       // LoyaltyScreen(),
       // WalletScreen(),
@@ -200,18 +202,175 @@ class _MainScreenState extends State<MainScreen> {
             : !walletExists
                 ? Scaffold(
                     backgroundColor: darkPrimaryColor,
-                    body: Container(
-                      margin: const EdgeInsets.all(20),
-                      child: Center(
-                        child: RoundedButton(
-                          pw: 150,
-                          ph: 45,
-                          text: 'Start',
-                          press: () async {
-                            _refresh();
-                          },
-                          color: secondaryColor,
-                          textColor: darkPrimaryColor,
+                    body: SingleChildScrollView(
+                      child: Container(
+                        margin: const EdgeInsets.all(20),
+                        child: Center(
+                          child: Column(
+                            children: [
+                              SizedBox(
+                                height: 200,
+                              ),
+                              Image.asset(
+                                "assets/images/iso6.png",
+                                width: size.width * 0.9,
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Align(
+                                alignment: Alignment.topRight,
+                                child: Text(
+                                  'What is Web3 Wallet?',
+                                  textAlign: TextAlign.start,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: const TextStyle(
+                                      color: secondaryColor,
+                                      fontSize: 45,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  'A Web3 wallet is a safe storage of your money on blockchain. It lets you control and own your money, without any intermediaries.',
+                                  textAlign: TextAlign.start,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: const TextStyle(
+                                      color: secondaryColor,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 50,
+                              ),
+                              Image.asset(
+                                "assets/images/iso7.png",
+                                width: size.width * 0.9,
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Text(
+                                  'Public key',
+                                  textAlign: TextAlign.start,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: const TextStyle(
+                                      color: secondaryColor,
+                                      fontSize: 45,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 10,
+                              ),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: Text(
+                                  'Each wallet has a public key, which is like username for your wallet. You can share it with everyone, so that they can send you money',
+                                  textAlign: TextAlign.start,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: const TextStyle(
+                                      color: secondaryColor,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.topRight,
+                                child: Text(
+                                  'Private key',
+                                  textAlign: TextAlign.end,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: const TextStyle(
+                                      color: secondaryColor,
+                                      fontSize: 45,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  'Private key on the other hand is a password to your wallet. DO NOT shate it. Anyone who has your private key, has full access of your wallet',
+                                  textAlign: TextAlign.end,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: const TextStyle(
+                                      color: secondaryColor,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 50,
+                              ),
+                              Image.asset(
+                                "assets/images/iso8.png",
+                                width: size.width * 0.9,
+                              ),
+                              SizedBox(
+                                height: 20,
+                              ),
+                              Align(
+                                alignment: Alignment.topLeft,
+                                child: Text(
+                                  'Gas',
+                                  textAlign: TextAlign.start,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: const TextStyle(
+                                      color: secondaryColor,
+                                      fontSize: 45,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: Text(
+                                  'Gas is a fee you pay to make transactions on the blockchain. You need to buy some gas for very cheap to make transactions',
+                                  textAlign: TextAlign.start,
+                                  style: GoogleFonts.montserrat(
+                                    textStyle: const TextStyle(
+                                      color: secondaryColor,
+                                      fontSize: 20,
+                                      fontWeight: FontWeight.w400,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 50,
+                              ),
+                              RoundedButton(
+                                pw: 150,
+                                ph: 45,
+                                text: 'Start',
+                                press: () async {
+                                  _refresh();
+                                },
+                                color: secondaryColor,
+                                textColor: darkPrimaryColor,
+                              ),
+                              SizedBox(
+                                height: size.height * 0.1,
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),

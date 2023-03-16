@@ -67,7 +67,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       child: Column(
                         children: [
                           SizedBox(
-                            height: size.height * 0.7,
+                            height: size.height * 0.75,
                           ),
                           Container(
                             padding: EdgeInsets.symmetric(horizontal: 20),
@@ -101,7 +101,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                               ),
                             ),
                           ),
-                          const SizedBox(height: 50),
+                          const SizedBox(height: 100),
                           Image.asset(
                             "assets/images/iso4.png",
                             width: size.width * 0.9,
@@ -141,7 +141,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 50),
+                          const SizedBox(height: 100),
                           Image.asset(
                             "assets/images/iso5.png",
                             width: size.width * 1.5,

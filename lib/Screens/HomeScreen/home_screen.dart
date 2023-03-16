@@ -27,6 +27,7 @@ import 'package:ozodwallet/constants.dart';
 import 'package:http/http.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tutorial_coach_mark/tutorial_coach_mark.dart';
 import 'package:web3dart/web3dart.dart';
 
 // ignore: must_be_immutable
@@ -43,12 +44,213 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   bool loading = true;
   String? loadingString;
   Timer? timer;
   ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
+  SharedPreferences? sharedPreference;
+
+  // Tutorial
+  late TutorialCoachMark tutorialCoachMark;
+
+  GlobalKey keyButton1 = GlobalKey();
+  GlobalKey keyButton2 = GlobalKey();
+  GlobalKey keyButton3 = GlobalKey();
+
+  void createTutorial() {
+    tutorialCoachMark = TutorialCoachMark(
+      targets: _createTargets(),
+      colorShadow: lightPrimaryColor,
+      textStyleSkip: TextStyle(color: darkPrimaryColor),
+      textSkip: "SKIP",
+      paddingFocus: 10,
+      opacityShadow: 0.8,
+      onFinish: () async {
+        sharedPreference = await SharedPreferences.getInstance();
+        sharedPreference!.setBool("isHomeTutorial", true);
+      },
+      onClickTarget: (target) {
+        print('onClickTarget: $target');
+        if (target.keyTarget == keyButton2) {
+          _scrollController.animateTo(200,
+              duration: Duration(milliseconds: 500), curve: Curves.ease);
+        }
+        // if (target.keyTarget == keyButton3) {
+        //   _scrollController.animateTo(MediaQuery.of(context).size.height * 0.5,
+        //       duration: Duration(milliseconds: 500), curve: Curves.ease);
+        // }
+      },
+      onClickTargetWithTapPosition: (target, tapDetails) {
+        print("target: $target");
+        print(
+            "clicked at position local: ${tapDetails.localPosition} - global: ${tapDetails.globalPosition}");
+      },
+      onClickOverlay: (target) {
+        print('onClickOverlay: $target');
+      },
+      onSkip: () {
+        print("skip");
+      },
+    );
+    print("EFFREF4");
+  }
+
+  List<TargetFocus> _createTargets() {
+    List<TargetFocus> targets = [];
+    targets.add(
+      TargetFocus(
+        identify: "Target 0",
+        keyTarget: keyButton1,
+        shape: ShapeLightFocus.RRect,
+        radius: 5,
+        contents: [
+          TargetContent(
+            align: ContentAlign.bottom,
+            builder: (context, controller) {
+              return Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      "Blockchain network",
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: darkPrimaryColor,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      child: Text(
+                      "There are many blockchain networks, which work separately. Think of them as Visa and MasterCard in traditional finance. We recommend POLYGON, because of its low fees",
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 10,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: darkPrimaryColor,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+    targets.add(
+      TargetFocus(
+        identify: "Target 1",
+        keyTarget: keyButton2,
+        shape: ShapeLightFocus.RRect,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      "Wallet",
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: darkPrimaryColor,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(top: 50.0),
+                      child:Text(
+                      "This is your wallet on selected blockchain network. Here you can see you balance of UZSO. Remember: 1 UZSO = 1000 UZS. At the bottom is your public key",
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 10,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: darkPrimaryColor,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+    targets.add(
+      TargetFocus(
+        identify: "Target 3",
+        keyTarget: keyButton3,
+        shape: ShapeLightFocus.RRect,
+        radius: 5,
+        contents: [
+          TargetContent(
+            align: ContentAlign.top,
+            builder: (context, controller) {
+              return Container(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    Text(
+                      "Gas Indicator",
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 2,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: darkPrimaryColor,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 20.0),
+                      child: Text(
+                      "Gas indicator shows how much gas is left. To get more gas, you need to buy cryptocurrency of selected blockchain network. Remember that gas price may vary",
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 10,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: darkPrimaryColor,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+    return targets;
+  }
+
+  void showTutorial() {
+    tutorialCoachMark.show(context: context);
+  }
 
   SharedPreferences? sharedPreferences;
   Map<String, Map> cardsData = {
@@ -166,6 +368,19 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> prepare() async {
+    sharedPreference = await SharedPreferences.getInstance();
+    // Tutorial
+    bool? isTutorial = await sharedPreference!.getBool("isHomeTutorial");
+
+    if (isTutorial == null) {
+      createTutorial();
+      Future.delayed(Duration(seconds: 7), showTutorial);
+    } else if (!isTutorial) {
+      createTutorial();
+      Future.delayed(Duration(seconds: 7), showTutorial);
+    }
+    WidgetsBinding.instance.addObserver(this);
+
     wallets = await SafeStorageService().getAllWallets();
     await getDataFromSP();
     // get app data
@@ -298,6 +513,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     timer?.cancel();
     super.dispose();
   }
@@ -1035,516 +1251,75 @@ class _HomeScreenState extends State<HomeScreen> {
               backgroundColor: lightPrimaryColor,
               color: darkPrimaryColor,
               onRefresh: _refresh,
-              child: CustomScrollView(
-                controller: _scrollController,
-                slivers: [
-                  SliverList(
-                    delegate: SliverChildListDelegate(
-                      [
-                        Center(
-                          child: Container(
-                            constraints: BoxConstraints(
-                                maxWidth: kIsWeb ? 600 : double.infinity),
-                            child: Column(
-                              children: [
-                                SizedBox(height: 10),
+              child: Stack(
+                children: [
+                  CustomScrollView(
+                    controller: _scrollController,
+                    slivers: [
+                      SliverList(
+                        delegate: SliverChildListDelegate(
+                          [
+                            Center(
+                              child: Container(
+                                constraints: BoxConstraints(
+                                    maxWidth: kIsWeb ? 600 : double.infinity),
+                                child: Column(
+                                  children: [
+                                    SizedBox(height: 10),
 
-                                // Blockchain network
-                                Container(
-                                  margin: EdgeInsets.symmetric(horizontal: 40),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButtonFormField<String>(
-                                      decoration: InputDecoration(
-                                        errorBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(40.0),
-                                          borderSide: BorderSide(
-                                              color: Colors.red, width: 1.0),
-                                        ),
-                                        focusedBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(40.0),
-                                          borderSide: BorderSide(
-                                              color: secondaryColor,
-                                              width: 1.0),
-                                        ),
-                                        enabledBorder: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(40.0),
-                                          borderSide: BorderSide(
-                                              color: secondaryColor,
-                                              width: 1.0),
-                                        ),
-                                        hintStyle: TextStyle(
-                                            color: darkPrimaryColor
-                                                .withOpacity(0.7)),
-                                        hintText: 'Network',
-                                        border: OutlineInputBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(40.0),
-                                          borderSide: BorderSide(
-                                              color: secondaryColor,
-                                              width: 1.0),
-                                        ),
-                                      ),
-                                      isDense: true,
-                                      menuMaxHeight: 200,
-                                      borderRadius: BorderRadius.circular(40.0),
-                                      dropdownColor: darkPrimaryColor,
-                                      // focusColor: whiteColor,
-                                      iconEnabledColor: secondaryColor,
-                                      alignment: Alignment.centerLeft,
-                                      onChanged: (networkId) async {
-                                        setState(() {
-                                          loading = true;
-                                        });
-                                        await sharedPreferences!.setString(
-                                            "selectedNetworkId",
-                                            appData!
-                                                .get('AVAILABLE_OZOD_NETWORKS')[
-                                                    networkId]['id']
-                                                .toString());
-                                        await sharedPreferences!.setString(
-                                            "selectedNetworkName",
-                                            appData!
-                                                .get('AVAILABLE_OZOD_NETWORKS')[
-                                                    networkId]['name']
-                                                .toString());
-                                        setState(() {
-                                          selectedNetworkId = appData!.get(
-                                                  'AVAILABLE_OZOD_NETWORKS')[
-                                              networkId]['id'];
-                                          selectedNetworkName = appData!.get(
-                                                  'AVAILABLE_OZOD_NETWORKS')[
-                                              networkId]['name'];
-                                        });
-                                        _refresh();
-                                      },
-                                      hint: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceEvenly,
-                                        children: [
-                                          Image.network(
-                                            appData!.get(
-                                                    'AVAILABLE_OZOD_NETWORKS')[
-                                                selectedNetworkId]['image'],
-                                            width: 30,
-                                          ),
-                                          SizedBox(
-                                            width: 5,
-                                          ),
-                                          Container(
-                                            // width: size.width * 0.6 - 20,
-                                            child: Text(
-                                              selectedNetworkName,
-                                              overflow: TextOverflow.ellipsis,
-                                              textAlign: TextAlign.center,
-                                              style: GoogleFonts.montserrat(
-                                                textStyle: const TextStyle(
+                                    // Blockchain network
+                                    Container(
+                                      key: keyButton1,
+                                      margin:
+                                          EdgeInsets.symmetric(horizontal: 40),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButtonFormField<String>(
+                                          decoration: InputDecoration(
+                                            errorBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(40.0),
+                                              borderSide: BorderSide(
+                                                  color: Colors.red,
+                                                  width: 1.0),
+                                            ),
+                                            focusedBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(40.0),
+                                              borderSide: BorderSide(
                                                   color: secondaryColor,
-                                                  fontSize: 15,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
+                                                  width: 1.0),
+                                            ),
+                                            enabledBorder: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(40.0),
+                                              borderSide: BorderSide(
+                                                  color: secondaryColor,
+                                                  width: 1.0),
+                                            ),
+                                            hintStyle: TextStyle(
+                                                color: darkPrimaryColor
+                                                    .withOpacity(0.7)),
+                                            hintText: 'Network',
+                                            border: OutlineInputBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(40.0),
+                                              borderSide: BorderSide(
+                                                  color: secondaryColor,
+                                                  width: 1.0),
                                             ),
                                           ),
-                                        ],
-                                      ),
-                                      items: [
-                                        for (String networkId in appData!
-                                            .get('AVAILABLE_OZOD_NETWORKS')
-                                            .keys)
-                                          if (appData!.get(
-                                                  'AVAILABLE_OZOD_NETWORKS')[
-                                              networkId]['active'])
-                                            DropdownMenuItem<String>(
-                                              value: networkId,
-                                              child: Container(
-                                                margin: EdgeInsets.symmetric(
-                                                    vertical: 10),
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment.start,
-                                                  children: [
-                                                    Image.network(
-                                                      appData!.get(
-                                                              'AVAILABLE_OZOD_NETWORKS')[
-                                                          networkId]['image'],
-                                                      width: 30,
-                                                    ),
-                                                    SizedBox(
-                                                      width: 5,
-                                                    ),
-                                                    // Image + symbol
-                                                    Text(
-                                                      appData!.get(
-                                                              'AVAILABLE_OZOD_NETWORKS')[
-                                                          networkId]['name'],
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                      maxLines: 2,
-                                                      style: GoogleFonts
-                                                          .montserrat(
-                                                        textStyle:
-                                                            const TextStyle(
-                                                          color: secondaryColor,
-                                                          fontSize: 20,
-                                                          fontWeight:
-                                                              FontWeight.w700,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                SizedBox(height: 20),
-
-                                // Alerts
-                                if (appData!.get('AVAILABLE_ETHER_NETWORKS')[
-                                    selectedNetworkId]['is_testnet'])
-                                  Container(
-                                    margin:
-                                        EdgeInsets.symmetric(horizontal: 40),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: Colors.red, width: 1.0),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    padding: EdgeInsets.all(15),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          CupertinoIcons.exclamationmark_circle,
-                                          color: Colors.red,
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            "This is a test blockchain network. Assets in this chain do not have real value",
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 5,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                overflow: TextOverflow.ellipsis,
-                                                color: Colors.red,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w300,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                if (gasTxsLeft < 0)
-                                  Container(
-                                    margin: EdgeInsets.symmetric(
-                                        horizontal: 40, vertical: 10),
-                                    decoration: BoxDecoration(
-                                      border: Border.all(
-                                          color: Colors.red, width: 1.0),
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                    padding: EdgeInsets.all(15),
-                                    child: Row(
-                                      children: [
-                                        Icon(
-                                          CupertinoIcons.exclamationmark_circle,
-                                          color: Colors.red,
-                                        ),
-                                        SizedBox(
-                                          width: 5,
-                                        ),
-                                        Expanded(
-                                          child: Text(
-                                            "You ran out of gas. Buy more coins",
-                                            overflow: TextOverflow.ellipsis,
-                                            maxLines: 5,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                overflow: TextOverflow.ellipsis,
-                                                color: secondaryColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w300,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                SizedBox(height: 20),
-
-                                // Wallet
-                                kIsWeb
-                                    ? Container(
-                                        margin:
-                                            EdgeInsets.fromLTRB(10, 0, 10, 10),
-                                        width: 270,
-                                        height: 200,
-                                        padding: const EdgeInsets.fromLTRB(
-                                            18, 10, 18, 10),
-                                        decoration: BoxDecoration(
+                                          isDense: true,
+                                          menuMaxHeight: 200,
                                           borderRadius:
-                                              BorderRadius.circular(10.0),
-                                          // gradient: const LinearGradient(
-                                          //   begin: Alignment.topLeft,
-                                          //   end: Alignment.bottomRight,
-                                          //   colors: [
-                                          //     Colors.blue,
-                                          //     Colors.green,
-                                          //   ],
-                                          // ),
-                                          image: DecorationImage(
-                                            image: AssetImage(cardsData[
-                                                selectedNetworkId]!['image']),
-                                            fit: BoxFit.fitHeight,
-                                          ),
-                                        ),
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment.start,
-                                              children: [
-                                                Jazzicon.getIconWidget(
-                                                    Jazzicon.getJazziconData(
-                                                        160,
-                                                        address: publicKey),
-                                                    size: 20),
-                                                SizedBox(
-                                                  width: 5,
-                                                ),
-                                                Container(
-                                                  width: 160,
-                                                  child:
-                                                      DropdownButtonHideUnderline(
-                                                    child: DropdownButton<int>(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              20.0),
-                                                      dropdownColor:
-                                                          darkPrimaryColor,
-                                                      focusColor: cardsData[
-                                                              selectedNetworkId]![
-                                                          'color'],
-                                                      iconEnabledColor: cardsData[
-                                                              selectedNetworkId]![
-                                                          'color'],
-                                                      alignment:
-                                                          Alignment.centerLeft,
-                                                      onChanged:
-                                                          (walletIndex) async {
-                                                        await sharedPreferences!
-                                                            .setString(
-                                                                "selectedWalletIndex",
-                                                                walletIndex
-                                                                    .toString());
-                                                        setState(() {
-                                                          selectedWalletIndex =
-                                                              walletIndex
-                                                                  .toString();
-                                                          loading = true;
-                                                        });
-                                                        _refresh();
-                                                      },
-                                                      hint: Container(
-                                                        width: 130,
-                                                        child: Text(
-                                                          selectedWalletName,
-                                                          overflow: TextOverflow
-                                                              .ellipsis,
-                                                          textAlign:
-                                                              TextAlign.start,
-                                                          style: GoogleFonts
-                                                              .montserrat(
-                                                            textStyle:
-                                                                TextStyle(
-                                                              color: cardsData[
-                                                                      selectedNetworkId]![
-                                                                  'color'],
-                                                              fontSize: 20,
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w700,
-                                                            ),
-                                                          ),
-                                                        ),
-                                                      ),
-                                                      items: [
-                                                        for (Map wallet
-                                                            in wallets)
-                                                          DropdownMenuItem<int>(
-                                                            value:
-                                                                wallets.indexOf(
-                                                                        wallet) +
-                                                                    1,
-                                                            child: Row(
-                                                              children: [
-                                                                Jazzicon.getIconWidget(
-                                                                    Jazzicon.getJazziconData(
-                                                                        160,
-                                                                        address:
-                                                                            wallet['publicKey']),
-                                                                    size: 15),
-                                                                SizedBox(
-                                                                  width: 10,
-                                                                ),
-                                                                Container(
-                                                                  width: 100,
-                                                                  child: Text(
-                                                                    wallet[wallets
-                                                                            .indexOf(wallet) +
-                                                                        1],
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    style: GoogleFonts
-                                                                        .montserrat(
-                                                                      textStyle:
-                                                                          const TextStyle(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        fontSize:
-                                                                            20,
-                                                                        fontWeight:
-                                                                            FontWeight.w700,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                ),
-                                                              ],
-                                                            ),
-                                                          ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                            Text(
-                                              selectedWalletBalance
-                                                      .getValueInUnit(
-                                                          selectedEtherUnit)
-                                                      .toString() +
-                                                  "  " +
-                                                  "UZSO",
-                                              overflow: TextOverflow.ellipsis,
-                                              maxLines: 2,
-                                              textAlign: TextAlign.start,
-                                              style: GoogleFonts.montserrat(
-                                                textStyle: TextStyle(
-                                                  color: cardsData[
-                                                          selectedNetworkId]![
-                                                      'color'],
-                                                  fontSize: 30,
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                              ),
-                                            ),
-                                            Spacer(),
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Expanded(
-                                                  child: Text(
-                                                    publicKey,
-                                                    maxLines: 2,
-                                                    overflow:
-                                                        TextOverflow.ellipsis,
-                                                    textAlign: TextAlign.start,
-                                                    style:
-                                                        GoogleFonts.montserrat(
-                                                      textStyle: TextStyle(
-                                                        color: cardsData[
-                                                                selectedNetworkId]![
-                                                            'color'],
-                                                        fontSize: 15,
-                                                        fontWeight:
-                                                            FontWeight.w400,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  width: 30,
-                                                  child: IconButton(
-                                                    padding: EdgeInsets.zero,
-                                                    onPressed: () async {
-                                                      await Clipboard.setData(
-                                                          ClipboardData(
-                                                              text: publicKey));
-                                                      showNotification(
-                                                          'Copied',
-                                                          'Public key copied',
-                                                          greenColor);
-                                                    },
-                                                    icon: Icon(
-                                                      CupertinoIcons.doc,
-                                                      color: cardsData[
-                                                              selectedNetworkId]![
-                                                          'color'],
-                                                    ),
-                                                  ),
-                                                ),
-                                                Container(
-                                                  width: 30,
-                                                  child: IconButton(
-                                                    padding: EdgeInsets.zero,
-                                                    onPressed: () {
-                                                      _scaffoldKey.currentState!
-                                                          .openDrawer();
-                                                    },
-                                                    icon: Icon(
-                                                      CupertinoIcons.settings,
-                                                      color: cardsData[
-                                                              selectedNetworkId]![
-                                                          'color'],
-                                                    ),
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
-                                      )
-                                    : CarouselSlider(
-                                        options: CarouselOptions(
-                                          enableInfiniteScroll: false,
-                                          initialPage: appData!
-                                              .get('AVAILABLE_OZOD_NETWORKS')
-                                              .keys
-                                              .toList()
-                                              .indexOf(selectedNetworkId),
-                                          height: 210.0,
-                                          onPageChanged: (index, reason) async {
-                                            List networkIds = [];
-                                            for (String id in appData!
-                                                .get('AVAILABLE_OZOD_NETWORKS')
-                                                .keys) {
-                                              if (appData!.get(
-                                                      'AVAILABLE_OZOD_NETWORKS')[
-                                                  id]['active']) {
-                                                networkIds.add(id);
-                                              }
-                                            }
-                                            String networkId =
-                                                networkIds[index];
+                                              BorderRadius.circular(40.0),
+                                          dropdownColor: darkPrimaryColor,
+                                          // focusColor: whiteColor,
+                                          iconEnabledColor: secondaryColor,
+                                          alignment: Alignment.centerLeft,
+                                          onChanged: (networkId) async {
+                                            setState(() {
+                                              loading = true;
+                                            });
                                             await sharedPreferences!.setString(
                                                 "selectedNetworkId",
                                                 appData!
@@ -1565,1531 +1340,796 @@ class _HomeScreenState extends State<HomeScreen> {
                                                       'AVAILABLE_OZOD_NETWORKS')[
                                                   networkId]['name'];
                                             });
-                                            _refresh(
-                                              isLoading: false,
-                                            );
+                                            _refresh();
                                           },
-                                        ),
-                                        items: [
-                                          for (String networkId in appData!
-                                              .get('AVAILABLE_OZOD_NETWORKS')
-                                              .keys)
-                                            if (appData!.get(
-                                                    'AVAILABLE_OZOD_NETWORKS')[
-                                                networkId]['active'])
-                                              Builder(
-                                                builder:
-                                                    (BuildContext context) {
-                                                  return Container(
-                                                    margin: EdgeInsets.fromLTRB(
-                                                        10, 0, 10, 10),
-                                                    width: 270,
-                                                    height: 200,
-                                                    padding: const EdgeInsets
-                                                            .fromLTRB(
-                                                        18, 10, 18, 10),
-                                                    decoration: BoxDecoration(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              10.0),
-                                                      // gradient: const LinearGradient(
-                                                      //   begin: Alignment.topLeft,
-                                                      //   end: Alignment.bottomRight,
-                                                      //   colors: [
-                                                      //     Colors.blue,
-                                                      //     Colors.green,
-                                                      //   ],
-                                                      // ),
-                                                      image: DecorationImage(
-                                                        image: AssetImage(
-                                                            cardsData[
-                                                                    networkId]![
-                                                                'image']),
-                                                        fit: BoxFit.fitHeight,
-                                                      ),
+                                          hint: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceEvenly,
+                                            children: [
+                                              Image.network(
+                                                appData!.get(
+                                                        'AVAILABLE_OZOD_NETWORKS')[
+                                                    selectedNetworkId]['image'],
+                                                width: 30,
+                                              ),
+                                              SizedBox(
+                                                width: 5,
+                                              ),
+                                              Container(
+                                                // width: size.width * 0.6 - 20,
+                                                child: Text(
+                                                  selectedNetworkName,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  textAlign: TextAlign.center,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: const TextStyle(
+                                                      color: secondaryColor,
+                                                      fontSize: 15,
+                                                      fontWeight:
+                                                          FontWeight.w700,
                                                     ),
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                          items: [
+                                            for (String networkId in appData!
+                                                .get('AVAILABLE_OZOD_NETWORKS')
+                                                .keys)
+                                              if (appData!.get(
+                                                      'AVAILABLE_OZOD_NETWORKS')[
+                                                  networkId]['active'])
+                                                DropdownMenuItem<String>(
+                                                  value: networkId,
+                                                  child: Container(
+                                                    margin:
+                                                        EdgeInsets.symmetric(
+                                                            vertical: 10),
+                                                    child: Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
                                                               .start,
                                                       children: [
-                                                        Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            Jazzicon.getIconWidget(
-                                                                Jazzicon.getJazziconData(
-                                                                    160,
-                                                                    address:
-                                                                        publicKey),
-                                                                size: 20),
-                                                            SizedBox(
-                                                              width: 5,
-                                                            ),
-                                                            Container(
-                                                              width: 160,
-                                                              child:
-                                                                  DropdownButtonHideUnderline(
-                                                                child:
-                                                                    DropdownButton<
-                                                                        int>(
-                                                                  borderRadius:
-                                                                      BorderRadius
-                                                                          .circular(
-                                                                              20.0),
-                                                                  dropdownColor:
-                                                                      darkPrimaryColor,
-                                                                  focusColor:
-                                                                      cardsData[
-                                                                              networkId]![
-                                                                          'color'],
-                                                                  iconEnabledColor:
-                                                                      cardsData[
-                                                                              networkId]![
-                                                                          'color'],
-                                                                  alignment:
-                                                                      Alignment
-                                                                          .centerLeft,
-                                                                  onChanged:
-                                                                      (walletIndex) async {
-                                                                    await sharedPreferences!.setString(
-                                                                        "selectedWalletIndex",
-                                                                        walletIndex
-                                                                            .toString());
-                                                                    setState(
-                                                                        () {
-                                                                      selectedWalletIndex =
-                                                                          walletIndex
-                                                                              .toString();
-                                                                      loading =
-                                                                          true;
-                                                                    });
-                                                                    _refresh();
-                                                                  },
-                                                                  hint:
-                                                                      Container(
-                                                                    width: 130,
-                                                                    child: Text(
-                                                                      selectedWalletName,
-                                                                      overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
-                                                                      textAlign:
-                                                                          TextAlign
-                                                                              .start,
-                                                                      style: GoogleFonts
-                                                                          .montserrat(
-                                                                        textStyle:
-                                                                            TextStyle(
-                                                                          color:
-                                                                              cardsData[networkId]!['color'],
-                                                                          fontSize:
-                                                                              20,
-                                                                          fontWeight:
-                                                                              FontWeight.w700,
-                                                                        ),
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                                  items: [
-                                                                    for (Map wallet
-                                                                        in wallets)
-                                                                      DropdownMenuItem<
-                                                                          int>(
-                                                                        value:
-                                                                            wallets.indexOf(wallet) +
-                                                                                1,
-                                                                        child:
-                                                                            Row(
-                                                                          children: [
-                                                                            Jazzicon.getIconWidget(Jazzicon.getJazziconData(160, address: wallet['publicKey']),
-                                                                                size: 15),
-                                                                            SizedBox(
-                                                                              width: 10,
-                                                                            ),
-                                                                            Container(
-                                                                              width: 100,
-                                                                              child: Text(
-                                                                                wallet[wallets.indexOf(wallet) + 1],
-                                                                                overflow: TextOverflow.ellipsis,
-                                                                                style: GoogleFonts.montserrat(
-                                                                                  textStyle: const TextStyle(
-                                                                                    color: secondaryColor,
-                                                                                    fontSize: 20,
-                                                                                    fontWeight: FontWeight.w700,
-                                                                                  ),
-                                                                                ),
-                                                                              ),
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
+                                                        Image.network(
+                                                          appData!.get(
+                                                                  'AVAILABLE_OZOD_NETWORKS')[
+                                                              networkId]['image'],
+                                                          width: 30,
                                                         ),
+                                                        SizedBox(
+                                                          width: 5,
+                                                        ),
+                                                        // Image + symbol
                                                         Text(
-                                                          selectedWalletBalance
-                                                                  .getValueInUnit(
-                                                                      selectedEtherUnit)
-                                                                  .toString() +
-                                                              "  " +
-                                                              "UZSO",
+                                                          appData!.get(
+                                                                  'AVAILABLE_OZOD_NETWORKS')[
+                                                              networkId]['name'],
                                                           overflow: TextOverflow
                                                               .ellipsis,
                                                           maxLines: 2,
-                                                          textAlign:
-                                                              TextAlign.start,
                                                           style: GoogleFonts
                                                               .montserrat(
                                                             textStyle:
-                                                                TextStyle(
-                                                              color: cardsData[
-                                                                      networkId]![
-                                                                  'color'],
-                                                              fontSize: 30,
+                                                                const TextStyle(
+                                                              color:
+                                                                  secondaryColor,
+                                                              fontSize: 20,
                                                               fontWeight:
                                                                   FontWeight
                                                                       .w700,
                                                             ),
                                                           ),
                                                         ),
-                                                        Spacer(),
-                                                        Row(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .spaceBetween,
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(height: 20),
+
+                                    // Alerts
+                                    if (appData!
+                                            .get('AVAILABLE_ETHER_NETWORKS')[
+                                        selectedNetworkId]['is_testnet'])
+                                      Container(
+                                        margin: EdgeInsets.symmetric(
+                                            horizontal: 40),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.red, width: 1.0),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        padding: EdgeInsets.all(15),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              CupertinoIcons
+                                                  .exclamationmark_circle,
+                                              color: Colors.red,
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                "This is a test blockchain network. Assets in this chain do not have real value",
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 5,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    color: Colors.red,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w300,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    if (gasTxsLeft < 0)
+                                      Container(
+                                        margin: EdgeInsets.symmetric(
+                                            horizontal: 40, vertical: 10),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                              color: Colors.red, width: 1.0),
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        padding: EdgeInsets.all(15),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              CupertinoIcons
+                                                  .exclamationmark_circle,
+                                              color: Colors.red,
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Expanded(
+                                              child: Text(
+                                                "You ran out of gas. Buy more coins",
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 5,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    color: secondaryColor,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w300,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    SizedBox(height: 20),
+
+                                    // Wallet
+                                    kIsWeb
+                                        ? Container(
+                                            key: keyButton2,
+                                            margin: EdgeInsets.fromLTRB(
+                                                10, 0, 10, 10),
+                                            width: 270,
+                                            height: 200,
+                                            padding: const EdgeInsets.fromLTRB(
+                                                18, 10, 18, 10),
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(10.0),
+                                              // gradient: const LinearGradient(
+                                              //   begin: Alignment.topLeft,
+                                              //   end: Alignment.bottomRight,
+                                              //   colors: [
+                                              //     Colors.blue,
+                                              //     Colors.green,
+                                              //   ],
+                                              // ),
+                                              image: DecorationImage(
+                                                image: AssetImage(cardsData[
+                                                        selectedNetworkId]![
+                                                    'image']),
+                                                fit: BoxFit.fitHeight,
+                                              ),
+                                            ),
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment.start,
+                                                  children: [
+                                                    Jazzicon.getIconWidget(
+                                                        Jazzicon
+                                                            .getJazziconData(
+                                                                160,
+                                                                address:
+                                                                    publicKey),
+                                                        size: 20),
+                                                    SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    Container(
+                                                      width: 160,
+                                                      child:
+                                                          DropdownButtonHideUnderline(
+                                                        child:
+                                                            DropdownButton<int>(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      20.0),
+                                                          dropdownColor:
+                                                              darkPrimaryColor,
+                                                          focusColor: cardsData[
+                                                                  selectedNetworkId]![
+                                                              'color'],
+                                                          iconEnabledColor:
+                                                              cardsData[
+                                                                      selectedNetworkId]![
+                                                                  'color'],
+                                                          alignment: Alignment
+                                                              .centerLeft,
+                                                          onChanged:
+                                                              (walletIndex) async {
+                                                            await sharedPreferences!
+                                                                .setString(
+                                                                    "selectedWalletIndex",
+                                                                    walletIndex
+                                                                        .toString());
+                                                            setState(() {
+                                                              selectedWalletIndex =
+                                                                  walletIndex
+                                                                      .toString();
+                                                              loading = true;
+                                                            });
+                                                            _refresh();
+                                                          },
+                                                          hint: Container(
+                                                            width: 130,
+                                                            child: Text(
+                                                              selectedWalletName,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .start,
+                                                              style: GoogleFonts
+                                                                  .montserrat(
+                                                                textStyle:
+                                                                    TextStyle(
+                                                                  color: cardsData[
+                                                                          selectedNetworkId]![
+                                                                      'color'],
+                                                                  fontSize: 20,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          items: [
+                                                            for (Map wallet
+                                                                in wallets)
+                                                              DropdownMenuItem<
+                                                                  int>(
+                                                                value: wallets
+                                                                        .indexOf(
+                                                                            wallet) +
+                                                                    1,
+                                                                child: Row(
+                                                                  children: [
+                                                                    Jazzicon.getIconWidget(
+                                                                        Jazzicon.getJazziconData(
+                                                                            160,
+                                                                            address: wallet[
+                                                                                'publicKey']),
+                                                                        size:
+                                                                            15),
+                                                                    SizedBox(
+                                                                      width: 10,
+                                                                    ),
+                                                                    Container(
+                                                                      width:
+                                                                          100,
+                                                                      child:
+                                                                          Text(
+                                                                        wallet[wallets.indexOf(wallet) +
+                                                                            1],
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        style: GoogleFonts
+                                                                            .montserrat(
+                                                                          textStyle:
+                                                                              const TextStyle(
+                                                                            color:
+                                                                                secondaryColor,
+                                                                            fontSize:
+                                                                                20,
+                                                                            fontWeight:
+                                                                                FontWeight.w700,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                Text(
+                                                  selectedWalletBalance
+                                                          .getValueInUnit(
+                                                              selectedEtherUnit)
+                                                          .toString() +
+                                                      "  " +
+                                                      "UZSO",
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                  maxLines: 2,
+                                                  textAlign: TextAlign.start,
+                                                  style: GoogleFonts.montserrat(
+                                                    textStyle: TextStyle(
+                                                      color: cardsData[
+                                                              selectedNetworkId]![
+                                                          'color'],
+                                                      fontSize: 30,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Spacer(),
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    Expanded(
+                                                      child: Text(
+                                                        publicKey,
+                                                        maxLines: 2,
+                                                        overflow: TextOverflow
+                                                            .ellipsis,
+                                                        textAlign:
+                                                            TextAlign.start,
+                                                        style: GoogleFonts
+                                                            .montserrat(
+                                                          textStyle: TextStyle(
+                                                            color: cardsData[
+                                                                    selectedNetworkId]![
+                                                                'color'],
+                                                            fontSize: 15,
+                                                            fontWeight:
+                                                                FontWeight.w400,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width: 30,
+                                                      child: IconButton(
+                                                        padding:
+                                                            EdgeInsets.zero,
+                                                        onPressed: () async {
+                                                          await Clipboard.setData(
+                                                              ClipboardData(
+                                                                  text:
+                                                                      publicKey));
+                                                          showNotification(
+                                                              'Copied',
+                                                              'Public key copied',
+                                                              greenColor);
+                                                        },
+                                                        icon: Icon(
+                                                          CupertinoIcons.doc,
+                                                          color: cardsData[
+                                                                  selectedNetworkId]![
+                                                              'color'],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                    Container(
+                                                      width: 30,
+                                                      child: IconButton(
+                                                        padding:
+                                                            EdgeInsets.zero,
+                                                        onPressed: () {
+                                                          _scaffoldKey
+                                                              .currentState!
+                                                              .openDrawer();
+                                                        },
+                                                        icon: Icon(
+                                                          CupertinoIcons
+                                                              .settings,
+                                                          color: cardsData[
+                                                                  selectedNetworkId]![
+                                                              'color'],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
+                                            ),
+                                          )
+                                        : CarouselSlider(
+                                            key: keyButton2,
+                                            options: CarouselOptions(
+                                              enableInfiniteScroll: false,
+                                              initialPage: appData!
+                                                  .get(
+                                                      'AVAILABLE_OZOD_NETWORKS')
+                                                  .keys
+                                                  .toList()
+                                                  .indexOf(selectedNetworkId),
+                                              height: 210.0,
+                                              onPageChanged:
+                                                  (index, reason) async {
+                                                List networkIds = [];
+                                                for (String id in appData!
+                                                    .get(
+                                                        'AVAILABLE_OZOD_NETWORKS')
+                                                    .keys) {
+                                                  if (appData!.get(
+                                                          'AVAILABLE_OZOD_NETWORKS')[
+                                                      id]['active']) {
+                                                    networkIds.add(id);
+                                                  }
+                                                }
+                                                String networkId =
+                                                    networkIds[index];
+                                                await sharedPreferences!.setString(
+                                                    "selectedNetworkId",
+                                                    appData!
+                                                        .get('AVAILABLE_OZOD_NETWORKS')[
+                                                            networkId]['id']
+                                                        .toString());
+                                                await sharedPreferences!.setString(
+                                                    "selectedNetworkName",
+                                                    appData!
+                                                        .get('AVAILABLE_OZOD_NETWORKS')[
+                                                            networkId]['name']
+                                                        .toString());
+                                                setState(() {
+                                                  selectedNetworkId = appData!.get(
+                                                          'AVAILABLE_OZOD_NETWORKS')[
+                                                      networkId]['id'];
+                                                  selectedNetworkName = appData!
+                                                          .get(
+                                                              'AVAILABLE_OZOD_NETWORKS')[
+                                                      networkId]['name'];
+                                                });
+                                                _refresh(
+                                                  isLoading: false,
+                                                );
+                                              },
+                                            ),
+                                            items: [
+                                              for (String networkId in appData!
+                                                  .get(
+                                                      'AVAILABLE_OZOD_NETWORKS')
+                                                  .keys)
+                                                if (appData!.get(
+                                                        'AVAILABLE_OZOD_NETWORKS')[
+                                                    networkId]['active'])
+                                                  Builder(
+                                                    builder:
+                                                        (BuildContext context) {
+                                                      return Container(
+                                                        margin:
+                                                            EdgeInsets.fromLTRB(
+                                                                10, 0, 10, 10),
+                                                        width: 270,
+                                                        height: 200,
+                                                        padding:
+                                                            const EdgeInsets
+                                                                    .fromLTRB(
+                                                                18, 10, 18, 10),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(
+                                                                      10.0),
+                                                          // gradient: const LinearGradient(
+                                                          //   begin: Alignment.topLeft,
+                                                          //   end: Alignment.bottomRight,
+                                                          //   colors: [
+                                                          //     Colors.blue,
+                                                          //     Colors.green,
+                                                          //   ],
+                                                          // ),
+                                                          image:
+                                                              DecorationImage(
+                                                            image: AssetImage(
+                                                                cardsData[
+                                                                        networkId]![
+                                                                    'image']),
+                                                            fit: BoxFit
+                                                                .fitHeight,
+                                                          ),
+                                                        ),
+                                                        child: Column(
                                                           crossAxisAlignment:
                                                               CrossAxisAlignment
                                                                   .start,
                                                           children: [
-                                                            Expanded(
-                                                              child: Text(
-                                                                publicKey,
-                                                                maxLines: 2,
-                                                                overflow:
-                                                                    TextOverflow
-                                                                        .ellipsis,
-                                                                textAlign:
-                                                                    TextAlign
-                                                                        .start,
-                                                                style: GoogleFonts
-                                                                    .montserrat(
-                                                                  textStyle:
-                                                                      TextStyle(
-                                                                    color: cardsData[
-                                                                            networkId]![
-                                                                        'color'],
-                                                                    fontSize:
-                                                                        15,
-                                                                    fontWeight:
-                                                                        FontWeight
-                                                                            .w400,
-                                                                  ),
+                                                            Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                Jazzicon.getIconWidget(
+                                                                    Jazzicon.getJazziconData(
+                                                                        160,
+                                                                        address:
+                                                                            publicKey),
+                                                                    size: 20),
+                                                                SizedBox(
+                                                                  width: 5,
                                                                 ),
-                                                              ),
-                                                            ),
-                                                            Container(
-                                                              width: 30,
-                                                              child: IconButton(
-                                                                padding:
-                                                                    EdgeInsets
-                                                                        .zero,
-                                                                onPressed:
-                                                                    () async {
-                                                                  await Clipboard.setData(
-                                                                      ClipboardData(
-                                                                          text:
-                                                                              publicKey));
-                                                                  showNotification(
-                                                                      'Copied',
-                                                                      'Public key copied',
-                                                                      greenColor);
-                                                                },
-                                                                icon: Icon(
-                                                                  CupertinoIcons
-                                                                      .doc,
-                                                                  color: cardsData[
-                                                                          networkId]![
-                                                                      'color'],
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            Container(
-                                                              width: 30,
-                                                              child: IconButton(
-                                                                padding:
-                                                                    EdgeInsets
-                                                                        .zero,
-                                                                onPressed:
-                                                                    () async {
-                                                                  _scaffoldKey
-                                                                      .currentState!
-                                                                      .openDrawer();
-                                                                },
-                                                                icon: Icon(
-                                                                  CupertinoIcons
-                                                                      .settings,
-                                                                  color: cardsData[
-                                                                          networkId]![
-                                                                      'color'],
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  );
-                                                },
-                                              ),
-                                        ],
-                                      ),
-                                SizedBox(height: 20),
-
-                                // Buttons
-                                Container(
-                                  width: size.width * 0.9,
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceEvenly,
-                                    children: [
-                                      // Invoice button
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          RawMaterialButton(
-                                            constraints: const BoxConstraints(
-                                                minWidth: 70, minHeight: 60),
-                                            fillColor: secondaryColor,
-                                            shape: CircleBorder(),
-                                            onPressed: () {
-                                              // QR Scanner
-                                              showDialog(
-                                                  barrierDismissible: false,
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) {
-                                                    return StatefulBuilder(
-                                                      builder: (context,
-                                                          StateSetter
-                                                              setState) {
-                                                        return AlertDialog(
-                                                          backgroundColor:
-                                                              darkPrimaryColor,
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        20.0),
-                                                          ),
-                                                          title: const Text(
-                                                            'QR Code',
-                                                            style: TextStyle(
-                                                                color:
-                                                                    secondaryColor),
-                                                          ),
-                                                          content:
-                                                              SingleChildScrollView(
-                                                            child: Container(
-                                                              width:
-                                                                  size.width *
-                                                                      0.9,
-                                                              height:
-                                                                  size.height *
-                                                                      0.4,
-                                                              margin: EdgeInsets
-                                                                  .all(0),
-                                                              child: Column(
-                                                                children: [
-                                                                  Container(
-                                                                    height: 300,
-                                                                    padding:
-                                                                        const EdgeInsets.all(
-                                                                            10),
-                                                                    decoration:
-                                                                        BoxDecoration(
+                                                                Container(
+                                                                  width: 160,
+                                                                  child:
+                                                                      DropdownButtonHideUnderline(
+                                                                    child:
+                                                                        DropdownButton<
+                                                                            int>(
                                                                       borderRadius:
                                                                           BorderRadius.circular(
                                                                               20.0),
-                                                                      gradient:
-                                                                          const LinearGradient(
-                                                                        begin: Alignment
-                                                                            .topLeft,
-                                                                        end: Alignment
-                                                                            .bottomRight,
-                                                                        colors: [
+                                                                      dropdownColor:
                                                                           darkPrimaryColor,
-                                                                          primaryColor
-                                                                        ],
-                                                                      ),
-                                                                    ),
-                                                                    child:
-                                                                        MobileScanner(
-                                                                      allowDuplicates:
-                                                                          false,
-                                                                      onDetect:
-                                                                          (barcode,
-                                                                              args) async {
-                                                                        if (barcode.rawValue ==
-                                                                            null) {
-                                                                          showNotification(
-                                                                              'Failed',
-                                                                              'Failed to find code',
-                                                                              Colors.red);
-                                                                        } else {
-                                                                          try {
-                                                                            firestore.DocumentSnapshot
-                                                                                invoice =
-                                                                                await firestore.FirebaseFirestore.instance.collection('invoices').doc(barcode.rawValue).get();
-                                                                            if (invoice.exists) {
-                                                                              if (invoice.get('networkId') == selectedNetworkId) {
-                                                                                if (invoice.get('status') != '10') {
-                                                                                  EtherAmount etherGas = await web3client!.getGasPrice();
-                                                                                  BigInt estimateGas = await web3client!.estimateGas(
-                                                                                    sender: EthereumAddress.fromHex(publicKey),
-                                                                                    to: EthereumAddress.fromHex(invoice.get('to')),
-                                                                                  );
-                                                                                  // Confirmation
-                                                                                  showDialog(
-                                                                                      barrierDismissible: false,
-                                                                                      context: context,
-                                                                                      builder: (BuildContext context) {
-                                                                                        return StatefulBuilder(
-                                                                                          builder: (context, StateSetter setState) {
-                                                                                            return AlertDialog(
-                                                                                              backgroundColor: darkPrimaryColor,
-                                                                                              shape: RoundedRectangleBorder(
-                                                                                                borderRadius: BorderRadius.circular(20.0),
-                                                                                              ),
-                                                                                              title: const Text(
-                                                                                                'Cofirmation',
-                                                                                                style: TextStyle(color: secondaryColor),
-                                                                                              ),
-                                                                                              content: SingleChildScrollView(
-                                                                                                child: Container(
-                                                                                                  child: Column(
-                                                                                                    crossAxisAlignment: CrossAxisAlignment.center,
-                                                                                                    children: [
-                                                                                                      Container(
-                                                                                                        padding: const EdgeInsets.all(10),
-                                                                                                        decoration: BoxDecoration(
-                                                                                                          borderRadius: BorderRadius.circular(20.0),
-                                                                                                          gradient: const LinearGradient(
-                                                                                                            begin: Alignment.topLeft,
-                                                                                                            end: Alignment.bottomRight,
-                                                                                                            colors: [
-                                                                                                              primaryColor,
-                                                                                                              darkPrimaryColor,
-                                                                                                            ],
-                                                                                                          ),
-                                                                                                        ),
-                                                                                                        child: Column(
-                                                                                                          children: [
-                                                                                                            Row(
-                                                                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                                              children: [
-                                                                                                                Jazzicon.getIconWidget(Jazzicon.getJazziconData(160, address: publicKey), size: 25),
-                                                                                                                SizedBox(
-                                                                                                                  width: 10,
-                                                                                                                ),
-                                                                                                                Expanded(
-                                                                                                                  child: Text(
-                                                                                                                    selectedWalletName,
-                                                                                                                    overflow: TextOverflow.ellipsis,
-                                                                                                                    maxLines: 3,
-                                                                                                                    textAlign: TextAlign.start,
-                                                                                                                    style: GoogleFonts.montserrat(
-                                                                                                                      textStyle: const TextStyle(
-                                                                                                                        color: secondaryColor,
-                                                                                                                        fontSize: 25,
-                                                                                                                        fontWeight: FontWeight.w700,
-                                                                                                                      ),
-                                                                                                                    ),
-                                                                                                                  ),
-                                                                                                                ),
-                                                                                                              ],
-                                                                                                            ),
-                                                                                                            SizedBox(
-                                                                                                              height: 20,
-                                                                                                            ),
-                                                                                                            Row(
-                                                                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                                              children: [
-                                                                                                                Image.network(
-                                                                                                                  appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['image'],
-                                                                                                                  width: 20,
-                                                                                                                ),
-                                                                                                                SizedBox(
-                                                                                                                  width: 10,
-                                                                                                                ),
-                                                                                                                Expanded(
-                                                                                                                  child: Text(
-                                                                                                                    appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['name'],
-                                                                                                                    overflow: TextOverflow.ellipsis,
-                                                                                                                    maxLines: 3,
-                                                                                                                    textAlign: TextAlign.start,
-                                                                                                                    style: GoogleFonts.montserrat(
-                                                                                                                      textStyle: const TextStyle(
-                                                                                                                        color: secondaryColor,
-                                                                                                                        fontSize: 20,
-                                                                                                                        fontWeight: FontWeight.w400,
-                                                                                                                      ),
-                                                                                                                    ),
-                                                                                                                  ),
-                                                                                                                ),
-                                                                                                              ],
-                                                                                                            ),
-                                                                                                          ],
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                      const SizedBox(
-                                                                                                        height: 20,
-                                                                                                      ),
-                                                                                                      Text(
-                                                                                                        "Amount",
-                                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                                        maxLines: 3,
-                                                                                                        textAlign: TextAlign.center,
-                                                                                                        style: GoogleFonts.montserrat(
-                                                                                                          textStyle: const TextStyle(
-                                                                                                            color: secondaryColor,
-                                                                                                            fontSize: 25,
-                                                                                                            fontWeight: FontWeight.w700,
-                                                                                                          ),
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                      const SizedBox(
-                                                                                                        height: 10,
-                                                                                                      ),
-                                                                                                      Text(
-                                                                                                        NumberFormat.compact().format(double.parse(invoice.get('amount'))),
-                                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                                        maxLines: 3,
-                                                                                                        textAlign: TextAlign.center,
-                                                                                                        style: GoogleFonts.montserrat(
-                                                                                                          textStyle: const TextStyle(
-                                                                                                            overflow: TextOverflow.ellipsis,
-                                                                                                            color: secondaryColor,
-                                                                                                            fontSize: 60,
-                                                                                                            fontWeight: FontWeight.w700,
-                                                                                                          ),
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                      const SizedBox(
-                                                                                                        height: 10,
-                                                                                                      ),
-                                                                                                      Container(
-                                                                                                        child: Row(
-                                                                                                          mainAxisAlignment: MainAxisAlignment.center,
-                                                                                                          children: [
-                                                                                                            Jazzicon.getIconWidget(Jazzicon.getJazziconData(160, address: invoice.get('coinId')), size: 25),
-                                                                                                            SizedBox(
-                                                                                                              width: 10,
-                                                                                                            ),
-                                                                                                            Container(
-                                                                                                              width: 100,
-                                                                                                              child: Text(
-                                                                                                                invoice.get('coinSymbol'),
-                                                                                                                overflow: TextOverflow.ellipsis,
-                                                                                                                textAlign: TextAlign.start,
-                                                                                                                style: GoogleFonts.montserrat(
-                                                                                                                  textStyle: const TextStyle(
-                                                                                                                    color: secondaryColor,
-                                                                                                                    fontSize: 25,
-                                                                                                                    fontWeight: FontWeight.w700,
-                                                                                                                  ),
-                                                                                                                ),
-                                                                                                              ),
-                                                                                                            ),
-                                                                                                          ],
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                      SizedBox(
-                                                                                                        height: 20,
-                                                                                                      ),
-                                                                                                      Container(
-                                                                                                        decoration: BoxDecoration(
-                                                                                                          border: Border.all(color: secondaryColor, width: 1.0),
-                                                                                                          borderRadius: BorderRadius.circular(20),
-                                                                                                        ),
-                                                                                                        padding: EdgeInsets.all(15),
-                                                                                                        child: Column(
-                                                                                                          mainAxisAlignment: MainAxisAlignment.center,
-                                                                                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                                                                                          children: [
-                                                                                                            // Ether gas
-                                                                                                            Container(
-                                                                                                              child: Row(
-                                                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                                                children: [
-                                                                                                                  Container(
-                                                                                                                    width: size.width * 0.2,
-                                                                                                                    child: Text(
-                                                                                                                      "Gas price",
-                                                                                                                      overflow: TextOverflow.ellipsis,
-                                                                                                                      maxLines: 3,
-                                                                                                                      textAlign: TextAlign.start,
-                                                                                                                      style: GoogleFonts.montserrat(
-                                                                                                                        textStyle: const TextStyle(
-                                                                                                                          overflow: TextOverflow.ellipsis,
-                                                                                                                          color: secondaryColor,
-                                                                                                                          fontSize: 15,
-                                                                                                                          fontWeight: FontWeight.w300,
-                                                                                                                        ),
-                                                                                                                      ),
-                                                                                                                    ),
-                                                                                                                  ),
-                                                                                                                  SizedBox(
-                                                                                                                    width: 5,
-                                                                                                                  ),
-                                                                                                                  Container(
-                                                                                                                    width: size.width * 0.2,
-                                                                                                                    child: Text(
-                                                                                                                      "${etherGas.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
-                                                                                                                      overflow: TextOverflow.ellipsis,
-                                                                                                                      maxLines: 3,
-                                                                                                                      textAlign: TextAlign.end,
-                                                                                                                      style: GoogleFonts.montserrat(
-                                                                                                                        textStyle: const TextStyle(
-                                                                                                                          overflow: TextOverflow.ellipsis,
-                                                                                                                          color: secondaryColor,
-                                                                                                                          fontSize: 15,
-                                                                                                                          fontWeight: FontWeight.w300,
-                                                                                                                        ),
-                                                                                                                      ),
-                                                                                                                    ),
-                                                                                                                  ),
-                                                                                                                ],
-                                                                                                              ),
-                                                                                                            ),
-                                                                                                            const SizedBox(
-                                                                                                              height: 10,
-                                                                                                            ),
-                                                                                                            // Estimate gas amount
-                                                                                                            Container(
-                                                                                                              child: Row(
-                                                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                                                children: [
-                                                                                                                  Container(
-                                                                                                                    width: size.width * 0.2,
-                                                                                                                    child: Text(
-                                                                                                                      "Estimate gas amount",
-                                                                                                                      overflow: TextOverflow.ellipsis,
-                                                                                                                      maxLines: 5,
-                                                                                                                      textAlign: TextAlign.start,
-                                                                                                                      style: GoogleFonts.montserrat(
-                                                                                                                        textStyle: const TextStyle(
-                                                                                                                          overflow: TextOverflow.ellipsis,
-                                                                                                                          color: secondaryColor,
-                                                                                                                          fontSize: 13,
-                                                                                                                          fontWeight: FontWeight.w300,
-                                                                                                                        ),
-                                                                                                                      ),
-                                                                                                                    ),
-                                                                                                                  ),
-                                                                                                                  SizedBox(
-                                                                                                                    width: 5,
-                                                                                                                  ),
-                                                                                                                  Container(
-                                                                                                                    width: size.width * 0.2,
-                                                                                                                    child: Text(
-                                                                                                                      "$estimateGas",
-                                                                                                                      overflow: TextOverflow.ellipsis,
-                                                                                                                      maxLines: 3,
-                                                                                                                      textAlign: TextAlign.end,
-                                                                                                                      style: GoogleFonts.montserrat(
-                                                                                                                        textStyle: const TextStyle(
-                                                                                                                          overflow: TextOverflow.ellipsis,
-                                                                                                                          color: secondaryColor,
-                                                                                                                          fontSize: 15,
-                                                                                                                          fontWeight: FontWeight.w300,
-                                                                                                                        ),
-                                                                                                                      ),
-                                                                                                                    ),
-                                                                                                                  ),
-                                                                                                                ],
-                                                                                                              ),
-                                                                                                            ),
-                                                                                                            const SizedBox(
-                                                                                                              height: 10,
-                                                                                                            ),
-                                                                                                            Row(
-                                                                                                              children: [
-                                                                                                                Icon(
-                                                                                                                  CupertinoIcons.exclamationmark_circle,
-                                                                                                                  color: secondaryColor,
-                                                                                                                ),
-                                                                                                                SizedBox(
-                                                                                                                  width: 5,
-                                                                                                                ),
-                                                                                                                Expanded(
-                                                                                                                  child: Text(
-                                                                                                                    "Estimate gas price might be significantly higher that the actual price",
-                                                                                                                    overflow: TextOverflow.ellipsis,
-                                                                                                                    maxLines: 5,
-                                                                                                                    textAlign: TextAlign.start,
-                                                                                                                    style: GoogleFonts.montserrat(
-                                                                                                                      textStyle: const TextStyle(
-                                                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                                                        color: secondaryColor,
-                                                                                                                        fontSize: 10,
-                                                                                                                        fontWeight: FontWeight.w300,
-                                                                                                                      ),
-                                                                                                                    ),
-                                                                                                                  ),
-                                                                                                                ),
-                                                                                                              ],
-                                                                                                            ),
-                                                                                                            const SizedBox(
-                                                                                                              height: 10,
-                                                                                                            ),
-                                                                                                            Divider(
-                                                                                                              color: secondaryColor,
-                                                                                                            ),
-                                                                                                            Row(
-                                                                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                                              children: [
-                                                                                                                Container(
-                                                                                                                  width: size.width * 0.2,
-                                                                                                                  child: Text(
-                                                                                                                    "Total gas price",
-                                                                                                                    overflow: TextOverflow.ellipsis,
-                                                                                                                    maxLines: 3,
-                                                                                                                    textAlign: TextAlign.start,
-                                                                                                                    style: GoogleFonts.montserrat(
-                                                                                                                      textStyle: const TextStyle(
-                                                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                                                        color: secondaryColor,
-                                                                                                                        fontSize: 15,
-                                                                                                                        fontWeight: FontWeight.w600,
-                                                                                                                      ),
-                                                                                                                    ),
-                                                                                                                  ),
-                                                                                                                ),
-                                                                                                                SizedBox(
-                                                                                                                  width: 5,
-                                                                                                                ),
-                                                                                                                Container(
-                                                                                                                  width: size.width * 0.2,
-                                                                                                                  child: Text(
-                                                                                                                    "${(etherGas.getValueInUnit(EtherUnit.gwei) * estimateGas.toDouble()).toStringAsFixed(2)} GWEI",
-                                                                                                                    overflow: TextOverflow.ellipsis,
-                                                                                                                    maxLines: 3,
-                                                                                                                    textAlign: TextAlign.end,
-                                                                                                                    style: GoogleFonts.montserrat(
-                                                                                                                      textStyle: const TextStyle(
-                                                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                                                        color: secondaryColor,
-                                                                                                                        fontSize: 15,
-                                                                                                                        fontWeight: FontWeight.w600,
-                                                                                                                      ),
-                                                                                                                    ),
-                                                                                                                  ),
-                                                                                                                ),
-                                                                                                              ],
-                                                                                                            ),
-                                                                                                          ],
-                                                                                                        ),
-                                                                                                      ),
-                                                                                                      SizedBox(
-                                                                                                        height: 20,
-                                                                                                      ),
-                                                                                                      RoundedButton(
-                                                                                                        pw: 250,
-                                                                                                        ph: 45,
-                                                                                                        text: 'CONFIRM',
-                                                                                                        press: () async {
-                                                                                                          Navigator.of(context).pop(true);
-                                                                                                          Navigator.of(context).pop(true);
-                                                                                                          await firestore.FirebaseFirestore.instance.collection('invoices').doc(invoice.id).update({
-                                                                                                            'status': '1',
-                                                                                                            'from': publicKey,
-                                                                                                          });
-                                                                                                          BigInt chainId = await web3client!.getChainId();
-                                                                                                          firestore.DocumentSnapshot invoiceCoin = await firestore.FirebaseFirestore.instance.collection('stablecoins').doc(invoice.get('coinId')).get();
-                                                                                                          DeployedContract invoiceCoinContract = DeployedContract(ContractAbi.fromJson(jsonEncode(jsonDecode(invoiceCoin.get('contract_abi'))), "UZSOImplementation"), EthereumAddress.fromHex(invoiceCoin.id));
-
-                                                                                                          Transaction transaction = await Transaction.callContract(
-                                                                                                            contract: invoiceCoinContract,
-                                                                                                            function: invoiceCoinContract.function('transfer'),
-                                                                                                            parameters: [
-                                                                                                              EthereumAddress.fromHex(invoice.get('to')),
-                                                                                                              BigInt.from((double.parse(invoice.get('amount')) * BigInt.from(pow(10, 18)).toDouble())),
-                                                                                                            ],
-                                                                                                          );
-                                                                                                          String notifTitle = "Success 2371617";
-                                                                                                          String notifBody = "Transaction made";
-                                                                                                          Color notifColor = Colors.green;
-
-                                                                                                          // ignore: unused_local_variable
-                                                                                                          bool txSuccess = true;
-                                                                                                          String transactionResult = await web3client!
-                                                                                                              .sendTransaction(
-                                                                                                            EthPrivateKey.fromHex(privateKey),
-                                                                                                            transaction,
-                                                                                                            chainId: chainId.toInt(),
-                                                                                                          )
-                                                                                                              .onError((error, stackTrace) {
-                                                                                                            notifTitle = "Error";
-                                                                                                            notifBody = error.toString() == 'RPCError: got code -32000 with msg "gas required exceeds allowance (0)".' ? "Not enough gas. Buy ether" : error.toString();
-                                                                                                            notifColor = Colors.red;
-                                                                                                            txSuccess = false;
-                                                                                                            showNotification(notifTitle, notifBody, notifColor);
-                                                                                                            return error.toString();
-                                                                                                          });
-                                                                                                          if (txSuccess) {
-                                                                                                            checkTx(transactionResult, invoice);
-                                                                                                          }
-                                                                                                        },
-                                                                                                        color: secondaryColor,
-                                                                                                        textColor: darkPrimaryColor,
-                                                                                                      ),
-                                                                                                      const SizedBox(
-                                                                                                        height: 20,
-                                                                                                      ),
-                                                                                                    ],
-                                                                                                  ),
-                                                                                                ),
-                                                                                              ),
-                                                                                              actions: <Widget>[
-                                                                                                TextButton(
-                                                                                                  onPressed: () {
-                                                                                                    Navigator.of(context).pop(false);
-                                                                                                    Navigator.of(context).pop(false);
-                                                                                                  },
-                                                                                                  child: const Text(
-                                                                                                    'Cancel',
-                                                                                                    style: TextStyle(color: Colors.red),
-                                                                                                  ),
-                                                                                                ),
-                                                                                              ],
-                                                                                            );
-                                                                                          },
-                                                                                        );
-                                                                                      });
-                                                                                } else {
-                                                                                  Navigator.of(context).pop(true);
-                                                                                  showNotification('Failed', 'Invoice already paid', Colors.red);
-                                                                                }
-                                                                              } else {
-                                                                                Navigator.of(context).pop(true);
-                                                                                showNotification('Failed', 'Wrong network', Colors.red);
-                                                                              }
-                                                                            } else {
-                                                                              Navigator.of(context).pop(true);
-                                                                              showNotification('Failed', 'Invoice not found', Colors.red);
-                                                                            }
-                                                                          } catch (e) {
-                                                                            Navigator.of(context).pop(true);
-                                                                            showNotification(
-                                                                                'Failed',
-                                                                                'Something went wrong',
-                                                                                Colors.red);
-                                                                          }
-                                                                        }
+                                                                      focusColor:
+                                                                          cardsData[networkId]![
+                                                                              'color'],
+                                                                      iconEnabledColor:
+                                                                          cardsData[networkId]![
+                                                                              'color'],
+                                                                      alignment:
+                                                                          Alignment
+                                                                              .centerLeft,
+                                                                      onChanged:
+                                                                          (walletIndex) async {
+                                                                        await sharedPreferences!.setString(
+                                                                            "selectedWalletIndex",
+                                                                            walletIndex.toString());
+                                                                        setState(
+                                                                            () {
+                                                                          selectedWalletIndex =
+                                                                              walletIndex.toString();
+                                                                          loading =
+                                                                              true;
+                                                                        });
+                                                                        _refresh();
                                                                       },
-                                                                    ),
-                                                                  ),
-                                                                  SizedBox(
-                                                                    height: 10,
-                                                                  ),
-                                                                  SizedBox(
-                                                                    height: 20,
-                                                                  ),
-                                                                ],
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          actions: <Widget>[
-                                                            TextButton(
-                                                              onPressed: () =>
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pop(
-                                                                          false),
-                                                              child: const Text(
-                                                                'Ok',
-                                                                style: TextStyle(
-                                                                    color:
-                                                                        secondaryColor),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        );
-                                                      },
-                                                    );
-                                                  });
-                                            },
-                                            child: Icon(
-                                              CupertinoIcons.qrcode,
-                                              color: darkPrimaryColor,
-                                            ),
-                                          ),
-                                          Text(
-                                            "Invoice",
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: secondaryColor,
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-
-                                      // Send button
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          RawMaterialButton(
-                                            constraints: const BoxConstraints(
-                                                minWidth: 70, minHeight: 60),
-                                            fillColor: secondaryColor,
-                                            shape: CircleBorder(),
-                                            onPressed: () async {
-                                              setState(() {
-                                                loading = true;
-                                              });
-
-                                              Navigator.push(
-                                                context,
-                                                SlideRightRoute(
-                                                  page: SendOzodScreen(
-                                                    web3client: web3client!,
-                                                    walletIndex:
-                                                        selectedWalletIndex,
-                                                    networkId:
-                                                        selectedNetworkId,
-                                                    coin: {
-                                                      'id': uzsoFirebase!.id,
-                                                      'contract': uzsoContract,
-                                                      'symbol': uzsoFirebase!
-                                                          .get('symbol'),
-                                                    },
-                                                  ),
-                                                ),
-                                              );
-
-                                              setState(() {
-                                                loading = false;
-                                              });
-                                            },
-                                            child: Icon(
-                                              CupertinoIcons.arrow_up,
-                                              color: darkPrimaryColor,
-                                            ),
-                                          ),
-                                          Text(
-                                            "Send",
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: secondaryColor,
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-
-                                      // Receive button
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          RawMaterialButton(
-                                            constraints: const BoxConstraints(
-                                                minWidth: 70, minHeight: 60),
-                                            fillColor: secondaryColor,
-                                            shape: CircleBorder(),
-                                            onPressed: () {
-                                              showDialog(
-                                                  barrierDismissible: false,
-                                                  context: context,
-                                                  builder:
-                                                      (BuildContext context) {
-                                                    return StatefulBuilder(
-                                                      builder: (context,
-                                                          StateSetter
-                                                              setState) {
-                                                        return AlertDialog(
-                                                          backgroundColor:
-                                                              darkPrimaryColor,
-                                                          shape:
-                                                              RoundedRectangleBorder(
-                                                            borderRadius:
-                                                                BorderRadius
-                                                                    .circular(
-                                                                        20.0),
-                                                          ),
-                                                          title: const Text(
-                                                            'QR Code',
-                                                            style: TextStyle(
-                                                                color:
-                                                                    secondaryColor),
-                                                          ),
-                                                          content:
-                                                              SingleChildScrollView(
-                                                            child: Container(
-                                                              width:
-                                                                  size.width *
-                                                                      0.9,
-                                                              height:
-                                                                  size.height *
-                                                                      0.4,
-                                                              margin: EdgeInsets
-                                                                  .all(10),
-                                                              child: Column(
-                                                                children: [
-                                                                  Container(
-                                                                    padding:
-                                                                        const EdgeInsets.all(
-                                                                            20),
-                                                                    decoration:
-                                                                        BoxDecoration(
-                                                                      borderRadius:
-                                                                          BorderRadius.circular(
-                                                                              20.0),
-                                                                      gradient:
-                                                                          const LinearGradient(
-                                                                        begin: Alignment
-                                                                            .topLeft,
-                                                                        end: Alignment
-                                                                            .bottomRight,
-                                                                        colors: [
-                                                                          darkPrimaryColor,
-                                                                          primaryColor
-                                                                        ],
-                                                                      ),
-                                                                    ),
-                                                                    child:
-                                                                        QrImage(
-                                                                      data: EthereumAddress.fromHex(
-                                                                              publicKey)
-                                                                          .addressBytes
-                                                                          .toString(),
-                                                                      foregroundColor:
-                                                                          secondaryColor,
-                                                                    ),
-                                                                  ),
-                                                                  SizedBox(
-                                                                    height: 10,
-                                                                  ),
-                                                                  Row(
-                                                                    mainAxisAlignment:
-                                                                        MainAxisAlignment
-                                                                            .spaceBetween,
-                                                                    children: [
-                                                                      Expanded(
+                                                                      hint:
+                                                                          Container(
+                                                                        width:
+                                                                            130,
                                                                         child:
                                                                             Text(
-                                                                          publicKey,
+                                                                          selectedWalletName,
                                                                           overflow:
                                                                               TextOverflow.ellipsis,
-                                                                          maxLines:
-                                                                              10,
                                                                           textAlign:
                                                                               TextAlign.start,
                                                                           style:
                                                                               GoogleFonts.montserrat(
                                                                             textStyle:
-                                                                                const TextStyle(
-                                                                              color: secondaryColor,
-                                                                              fontSize: 15,
-                                                                              fontWeight: FontWeight.w500,
+                                                                                TextStyle(
+                                                                              color: cardsData[networkId]!['color'],
+                                                                              fontSize: 20,
+                                                                              fontWeight: FontWeight.w700,
                                                                             ),
                                                                           ),
                                                                         ),
                                                                       ),
-                                                                      Container(
-                                                                        width:
-                                                                            30,
-                                                                        child:
-                                                                            IconButton(
-                                                                          padding:
-                                                                              EdgeInsets.zero,
-                                                                          onPressed:
-                                                                              () async {
-                                                                            await Clipboard.setData(ClipboardData(text: publicKey));
-                                                                            showNotification(
-                                                                                'Copied',
-                                                                                'Public key copied',
-                                                                                greenColor);
-                                                                          },
-                                                                          icon:
-                                                                              Icon(
-                                                                            CupertinoIcons.doc,
-                                                                            color:
-                                                                                secondaryColor,
+                                                                      items: [
+                                                                        for (Map wallet
+                                                                            in wallets)
+                                                                          DropdownMenuItem<
+                                                                              int>(
+                                                                            value:
+                                                                                wallets.indexOf(wallet) + 1,
+                                                                            child:
+                                                                                Row(
+                                                                              children: [
+                                                                                Jazzicon.getIconWidget(Jazzicon.getJazziconData(160, address: wallet['publicKey']), size: 15),
+                                                                                SizedBox(
+                                                                                  width: 10,
+                                                                                ),
+                                                                                Container(
+                                                                                  width: 100,
+                                                                                  child: Text(
+                                                                                    wallet[wallets.indexOf(wallet) + 1],
+                                                                                    overflow: TextOverflow.ellipsis,
+                                                                                    style: GoogleFonts.montserrat(
+                                                                                      textStyle: const TextStyle(
+                                                                                        color: secondaryColor,
+                                                                                        fontSize: 20,
+                                                                                        fontWeight: FontWeight.w700,
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ],
+                                                                            ),
                                                                           ),
-                                                                        ),
-                                                                      ),
-                                                                    ],
+                                                                      ],
+                                                                    ),
                                                                   ),
-                                                                  SizedBox(
-                                                                    height: 20,
-                                                                  ),
-                                                                ],
+                                                                ),
+                                                              ],
+                                                            ),
+                                                            Text(
+                                                              selectedWalletBalance
+                                                                      .getValueInUnit(
+                                                                          selectedEtherUnit)
+                                                                      .toString() +
+                                                                  "  " +
+                                                                  "UZSO",
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .ellipsis,
+                                                              maxLines: 2,
+                                                              textAlign:
+                                                                  TextAlign
+                                                                      .start,
+                                                              style: GoogleFonts
+                                                                  .montserrat(
+                                                                textStyle:
+                                                                    TextStyle(
+                                                                  color: cardsData[
+                                                                          networkId]![
+                                                                      'color'],
+                                                                  fontSize: 30,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w700,
+                                                                ),
                                                               ),
                                                             ),
-                                                          ),
-                                                          actions: <Widget>[
-                                                            TextButton(
-                                                              onPressed: () =>
-                                                                  Navigator.of(
-                                                                          context)
-                                                                      .pop(
-                                                                          false),
-                                                              child: const Text(
-                                                                'Ok',
-                                                                style: TextStyle(
-                                                                    color:
-                                                                        secondaryColor),
-                                                              ),
+                                                            Spacer(),
+                                                            Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .spaceBetween,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                Expanded(
+                                                                  child: Text(
+                                                                    publicKey,
+                                                                    maxLines: 2,
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .start,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          TextStyle(
+                                                                        color: cardsData[networkId]![
+                                                                            'color'],
+                                                                        fontSize:
+                                                                            15,
+                                                                        fontWeight:
+                                                                            FontWeight.w400,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Container(
+                                                                  width: 30,
+                                                                  child:
+                                                                      IconButton(
+                                                                    padding:
+                                                                        EdgeInsets
+                                                                            .zero,
+                                                                    onPressed:
+                                                                        () async {
+                                                                      await Clipboard.setData(
+                                                                          ClipboardData(
+                                                                              text: publicKey));
+                                                                      showNotification(
+                                                                          'Copied',
+                                                                          'Public key copied',
+                                                                          greenColor);
+                                                                    },
+                                                                    icon: Icon(
+                                                                      CupertinoIcons
+                                                                          .doc,
+                                                                      color: cardsData[
+                                                                              networkId]![
+                                                                          'color'],
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Container(
+                                                                  width: 30,
+                                                                  child:
+                                                                      IconButton(
+                                                                    padding:
+                                                                        EdgeInsets
+                                                                            .zero,
+                                                                    onPressed:
+                                                                        () async {
+                                                                      _scaffoldKey
+                                                                          .currentState!
+                                                                          .openDrawer();
+                                                                    },
+                                                                    icon: Icon(
+                                                                      CupertinoIcons
+                                                                          .settings,
+                                                                      color: cardsData[
+                                                                              networkId]![
+                                                                          'color'],
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
                                                             ),
                                                           ],
-                                                        );
-                                                      },
-                                                    );
-                                                  });
-                                            },
-                                            child: Icon(
-                                              CupertinoIcons.arrow_down,
-                                              color: darkPrimaryColor,
-                                            ),
-                                          ),
-                                          Text(
-                                            "Receive",
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: secondaryColor,
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          )
-                                        ],
-                                      ),
-
-                                      // Buy button
-                                      Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          RawMaterialButton(
-                                            constraints: const BoxConstraints(
-                                                minWidth: 70, minHeight: 60),
-                                            fillColor: secondaryColor,
-                                            shape: CircleBorder(),
-                                            onPressed: () {
-                                              if (kIsWeb) {
-                                                showNotification(
-                                                    'Coming soon',
-                                                    'Not supported for web',
-                                                    Colors.orange);
-                                              } else {
-                                                showDialog(
-                                                    barrierDismissible: false,
-                                                    context: context,
-                                                    builder:
-                                                        (BuildContext context) {
-                                                      return StatefulBuilder(
-                                                        builder: (context,
-                                                            StateSetter
-                                                                setState) {
-                                                          return AlertDialog(
-                                                            backgroundColor:
-                                                                lightPrimaryColor,
-                                                            shape:
-                                                                RoundedRectangleBorder(
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          20.0),
-                                                            ),
-                                                            title: const Text(
-                                                              'Method',
-                                                              style: TextStyle(
-                                                                  color:
-                                                                      darkPrimaryColor),
-                                                            ),
-                                                            content:
-                                                                SingleChildScrollView(
-                                                              child: Container(
-                                                                margin:
-                                                                    EdgeInsets
-                                                                        .all(
-                                                                            10),
-                                                                child: Column(
-                                                                  children: [
-                                                                    // PayMe
-                                                                    Row(
-                                                                      mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .spaceEvenly,
-                                                                      children: [
-                                                                        Image
-                                                                            .asset(
-                                                                          "assets/images/payme.png",
-                                                                          width:
-                                                                              80,
-                                                                        ),
-                                                                        SizedBox(
-                                                                          width:
-                                                                              10,
-                                                                        ),
-                                                                        Expanded(
-                                                                          child:
-                                                                              RoundedButton(
-                                                                            pw: 250,
-                                                                            ph: 45,
-                                                                            text:
-                                                                                'PayMe',
-                                                                            press:
-                                                                                () {
-                                                                              Navigator.push(
-                                                                                context,
-                                                                                SlideRightRoute(
-                                                                                  page: BuyOzodPaymeScreen(
-                                                                                    walletIndex: selectedWalletIndex,
-                                                                                    web3client: web3client!,
-                                                                                  ),
-                                                                                ),
-                                                                              );
-                                                                            },
-                                                                            color:
-                                                                                secondaryColor,
-                                                                            textColor:
-                                                                                darkPrimaryColor,
-                                                                          ),
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                    const SizedBox(
-                                                                      height:
-                                                                          20,
-                                                                    ),
-                                                                    // Octo
-                                                                    Row(
-                                                                      mainAxisAlignment:
-                                                                          MainAxisAlignment
-                                                                              .spaceEvenly,
-                                                                      children: [
-                                                                        Image
-                                                                            .asset(
-                                                                          "assets/images/octo.png",
-                                                                          width:
-                                                                              80,
-                                                                        ),
-                                                                        SizedBox(
-                                                                          width:
-                                                                              10,
-                                                                        ),
-                                                                        Expanded(
-                                                                          child:
-                                                                              RoundedButton(
-                                                                            pw: 250,
-                                                                            ph: 45,
-                                                                            text:
-                                                                                'Octo',
-                                                                            press:
-                                                                                () {
-                                                                              Navigator.push(
-                                                                                context,
-                                                                                SlideRightRoute(
-                                                                                  page: BuyOzodOctoScreen(
-                                                                                    walletIndex: selectedWalletIndex,
-                                                                                    web3client: web3client!,
-                                                                                    selectedNetworkId: selectedNetworkId,
-                                                                                    contract: uzsoContract!,
-                                                                                  ),
-                                                                                ),
-                                                                              );
-                                                                            },
-                                                                            color:
-                                                                                Colors.blue,
-                                                                            textColor:
-                                                                                whiteColor,
-                                                                          ),
-                                                                        ),
-                                                                      ],
-                                                                    ),
-                                                                    const SizedBox(
-                                                                      height:
-                                                                          20,
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            actions: <Widget>[
-                                                              TextButton(
-                                                                onPressed: () =>
-                                                                    Navigator.of(
-                                                                            context)
-                                                                        .pop(
-                                                                            false),
-                                                                child:
-                                                                    const Text(
-                                                                  'Ok',
-                                                                  style: TextStyle(
-                                                                      color:
-                                                                          darkPrimaryColor),
-                                                                ),
-                                                              ),
-                                                            ],
-                                                          );
-                                                        },
+                                                        ),
                                                       );
-                                                    });
-                                              }
-                                            },
-                                            child: Icon(
-                                              CupertinoIcons.money_dollar,
-                                              color: darkPrimaryColor,
-                                            ),
-                                          ),
-                                          Text(
-                                            "Buy",
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: secondaryColor,
-                                                fontSize: 20,
-                                                fontWeight: FontWeight.w700,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-
-                                // Gas Indicator
-                                Container(
-                                  margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
-                                  width: size.width * 0.8,
-                                  // height: 200,
-                                  padding: const EdgeInsets.all(15),
-                                  decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20.0),
-                                    gradient: LinearGradient(
-                                      begin: Alignment.topLeft,
-                                      end: Alignment.bottomRight,
-                                      colors: gasTxsLeft < 1
-                                          ? [
-                                              Colors.red,
-                                              Colors.orange,
-                                            ]
-                                          : [
-                                              Colors.blue,
-                                              Colors.green,
-                                            ],
-                                    ),
-                                  ),
-                                  child: ExpansionTile(
-                                    tilePadding: EdgeInsets.zero,
-                                    childrenPadding: EdgeInsets.zero,
-                                    expandedCrossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    expandedAlignment: Alignment.center,
-                                    trailing: SizedBox.shrink(),
-                                    backgroundColor: Colors.transparent,
-                                    title: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Gas Indicator",
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.start,
-                                          maxLines: 2,
-                                          style: GoogleFonts.montserrat(
-                                            textStyle: const TextStyle(
-                                              color: whiteColor,
-                                              fontSize: 25,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        Text(
-                                          "~ ${NumberFormat.compact().format(gasTxsLeft)} Txs left",
-                                          overflow: TextOverflow.ellipsis,
-                                          textAlign: TextAlign.start,
-                                          maxLines: 2,
-                                          style: GoogleFonts.montserrat(
-                                            textStyle: const TextStyle(
-                                              color: whiteColor,
-                                              fontSize: 23,
-                                              fontWeight: FontWeight.w700,
-                                            ),
-                                          ),
-                                        ),
-                                        SizedBox(
-                                          height: 10,
-                                        ),
-                                        Center(
-                                          child: RoundedButton(
-                                            pw: 150,
-                                            ph: 35,
-                                            text: 'Top up gas',
-                                            press: () {
-                                              if (kIsWeb) {
-                                                showNotification(
-                                                    'Coming soon',
-                                                    'Not supported for web',
-                                                    Colors.orange);
-                                              } else {
-                                                Navigator.push(
-                                                  context,
-                                                  SlideRightRoute(
-                                                      page: BuyCryptoScreen(
-                                                    walletIndex:
-                                                        selectedWalletIndex,
-                                                    web3client: web3client!,
-                                                  )),
-                                                );
-                                              }
-                                            },
-                                            color: whiteColor,
-                                            textColor: darkPrimaryColor,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          SizedBox(
-                                            height: 20,
-                                          ),
-                                          Text(
-                                            "${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            maxLines: 4,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: whiteColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 10,
-                                          ),
-                                          Divider(
-                                            color: whiteColor,
-                                          ),
-                                          Text(
-                                            "Gas price: ${estimateGasPrice.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            maxLines: 4,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: whiteColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 5,
-                                          ),
-                                          Text(
-                                            "Estimate gas amount: $estimateGasAmount",
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            maxLines: 4,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: whiteColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 10,
-                                          ),
-                                          Text(
-                                            "Total gas needed: ${(estimateGasPrice.getValueInUnit(EtherUnit.gwei) * estimateGasAmount.toDouble()).toStringAsFixed(2)} GWEI",
-                                            overflow: TextOverflow.ellipsis,
-                                            textAlign: TextAlign.start,
-                                            maxLines: 4,
-                                            style: GoogleFonts.montserrat(
-                                              textStyle: const TextStyle(
-                                                color: whiteColor,
-                                                fontSize: 15,
-                                                fontWeight: FontWeight.w400,
-                                              ),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            height: 20,
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 50),
-
-                                // Txs
-                                selectedWalletTxs.length != 0
-                                    ? Container(
-                                        width: size.width * 0.9,
-                                        child: Column(
-                                          children: [
-                                            Align(
-                                              alignment: Alignment.centerLeft,
-                                              child: Text(
-                                                "Activity",
-                                                overflow: TextOverflow.ellipsis,
-                                                textAlign: TextAlign.start,
-                                                style: GoogleFonts.montserrat(
-                                                  textStyle: const TextStyle(
-                                                    color: secondaryColor,
-                                                    fontSize: 40,
-                                                    fontWeight: FontWeight.w700,
+                                                    },
                                                   ),
-                                                ),
-                                              ),
-                                            ),
-                                            SizedBox(
-                                              height: 30,
-                                            ),
-                                            for (Map tx
-                                                in selectedWalletTxs.take(5))
-                                              CupertinoButton(
-                                                padding: EdgeInsets.zero,
+                                            ],
+                                          ),
+                                    SizedBox(height: 20),
+
+                                    // Buttons
+                                    Container(
+                                      width: size.width * 0.9,
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceEvenly,
+                                        children: [
+                                          // Invoice button
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              RawMaterialButton(
+                                                constraints:
+                                                    const BoxConstraints(
+                                                        minWidth: 70,
+                                                        minHeight: 60),
+                                                fillColor: secondaryColor,
+                                                shape: CircleBorder(),
                                                 onPressed: () {
+                                                  // QR Scanner
                                                   showDialog(
-                                                      barrierDismissible: true,
+                                                      barrierDismissible: false,
                                                       context: context,
                                                       builder: (BuildContext
                                                           context) {
@@ -3108,7 +2148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                             20.0),
                                                               ),
                                                               title: const Text(
-                                                                'Transaction',
+                                                                'QR Code',
                                                                 style: TextStyle(
                                                                     color:
                                                                         secondaryColor),
@@ -3117,484 +2157,502 @@ class _HomeScreenState extends State<HomeScreen> {
                                                                   SingleChildScrollView(
                                                                 child:
                                                                     Container(
+                                                                  width:
+                                                                      size.width *
+                                                                          0.9,
+                                                                  height:
+                                                                      size.height *
+                                                                          0.4,
+                                                                  margin:
+                                                                      EdgeInsets
+                                                                          .all(
+                                                                              0),
                                                                   child: Column(
-                                                                    crossAxisAlignment:
-                                                                        CrossAxisAlignment
-                                                                            .center,
                                                                     children: [
-                                                                      Text(
-                                                                        "Amount",
-                                                                        overflow:
-                                                                            TextOverflow.ellipsis,
-                                                                        maxLines:
-                                                                            3,
-                                                                        textAlign:
-                                                                            TextAlign.center,
-                                                                        style: GoogleFonts
-                                                                            .montserrat(
-                                                                          textStyle:
-                                                                              const TextStyle(
-                                                                            color:
-                                                                                secondaryColor,
-                                                                            fontSize:
-                                                                                25,
-                                                                            fontWeight:
-                                                                                FontWeight.w700,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                      const SizedBox(
-                                                                        height:
-                                                                            10,
-                                                                      ),
-                                                                      Text(
-                                                                        NumberFormat.compact().format(BigInt.parse(tx['value']) /
-                                                                            BigInt.from(pow(10,
-                                                                                int.parse(tx['tokenDecimal'])))),
-                                                                        overflow:
-                                                                            TextOverflow.ellipsis,
-                                                                        maxLines:
-                                                                            3,
-                                                                        textAlign:
-                                                                            TextAlign.center,
-                                                                        style: GoogleFonts
-                                                                            .montserrat(
-                                                                          textStyle:
-                                                                              const TextStyle(
-                                                                            overflow:
-                                                                                TextOverflow.ellipsis,
-                                                                            color:
-                                                                                secondaryColor,
-                                                                            fontSize:
-                                                                                60,
-                                                                            fontWeight:
-                                                                                FontWeight.w700,
-                                                                          ),
-                                                                        ),
-                                                                      ),
-                                                                      const SizedBox(
-                                                                        height:
-                                                                            10,
-                                                                      ),
                                                                       Container(
+                                                                        height:
+                                                                            300,
+                                                                        padding:
+                                                                            const EdgeInsets.all(10),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(20.0),
+                                                                          gradient:
+                                                                              const LinearGradient(
+                                                                            begin:
+                                                                                Alignment.topLeft,
+                                                                            end:
+                                                                                Alignment.bottomRight,
+                                                                            colors: [
+                                                                              darkPrimaryColor,
+                                                                              primaryColor
+                                                                            ],
+                                                                          ),
+                                                                        ),
                                                                         child:
-                                                                            Row(
-                                                                          mainAxisAlignment:
-                                                                              MainAxisAlignment.center,
-                                                                          children: [
-                                                                            Jazzicon.getIconWidget(Jazzicon.getJazziconData(160, address: tx['contractAddress']),
-                                                                                size: 25),
-                                                                            SizedBox(
-                                                                              width: 10,
-                                                                            ),
-                                                                            Container(
-                                                                              width: 100,
-                                                                              child: Text(
-                                                                                tx['tokenSymbol'],
-                                                                                overflow: TextOverflow.ellipsis,
-                                                                                textAlign: TextAlign.start,
-                                                                                style: GoogleFonts.montserrat(
-                                                                                  textStyle: const TextStyle(
-                                                                                    color: secondaryColor,
-                                                                                    fontSize: 25,
-                                                                                    fontWeight: FontWeight.w700,
-                                                                                  ),
-                                                                                ),
-                                                                              ),
-                                                                            ),
-                                                                          ],
+                                                                            MobileScanner(
+                                                                          allowDuplicates:
+                                                                              false,
+                                                                          onDetect:
+                                                                              (barcode, args) async {
+                                                                            if (barcode.rawValue ==
+                                                                                null) {
+                                                                              showNotification('Failed', 'Failed to find code', Colors.red);
+                                                                            } else {
+                                                                              try {
+                                                                                firestore.DocumentSnapshot invoice = await firestore.FirebaseFirestore.instance.collection('invoices').doc(barcode.rawValue).get();
+                                                                                if (invoice.exists) {
+                                                                                  if (invoice.get('networkId') == selectedNetworkId) {
+                                                                                    if (invoice.get('status') != '10') {
+                                                                                      EtherAmount etherGas = await web3client!.getGasPrice();
+                                                                                      BigInt estimateGas = await web3client!.estimateGas(
+                                                                                        sender: EthereumAddress.fromHex(publicKey),
+                                                                                        to: EthereumAddress.fromHex(invoice.get('to')),
+                                                                                      );
+                                                                                      // Confirmation
+                                                                                      showDialog(
+                                                                                          barrierDismissible: false,
+                                                                                          context: context,
+                                                                                          builder: (BuildContext context) {
+                                                                                            return StatefulBuilder(
+                                                                                              builder: (context, StateSetter setState) {
+                                                                                                return AlertDialog(
+                                                                                                  backgroundColor: darkPrimaryColor,
+                                                                                                  shape: RoundedRectangleBorder(
+                                                                                                    borderRadius: BorderRadius.circular(20.0),
+                                                                                                  ),
+                                                                                                  title: const Text(
+                                                                                                    'Cofirmation',
+                                                                                                    style: TextStyle(color: secondaryColor),
+                                                                                                  ),
+                                                                                                  content: SingleChildScrollView(
+                                                                                                    child: Container(
+                                                                                                      child: Column(
+                                                                                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                                                                                        children: [
+                                                                                                          Container(
+                                                                                                            padding: const EdgeInsets.all(10),
+                                                                                                            decoration: BoxDecoration(
+                                                                                                              borderRadius: BorderRadius.circular(20.0),
+                                                                                                              gradient: const LinearGradient(
+                                                                                                                begin: Alignment.topLeft,
+                                                                                                                end: Alignment.bottomRight,
+                                                                                                                colors: [
+                                                                                                                  primaryColor,
+                                                                                                                  darkPrimaryColor,
+                                                                                                                ],
+                                                                                                              ),
+                                                                                                            ),
+                                                                                                            child: Column(
+                                                                                                              children: [
+                                                                                                                Row(
+                                                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                                  children: [
+                                                                                                                    Jazzicon.getIconWidget(Jazzicon.getJazziconData(160, address: publicKey), size: 25),
+                                                                                                                    SizedBox(
+                                                                                                                      width: 10,
+                                                                                                                    ),
+                                                                                                                    Expanded(
+                                                                                                                      child: Text(
+                                                                                                                        selectedWalletName,
+                                                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                                                        maxLines: 3,
+                                                                                                                        textAlign: TextAlign.start,
+                                                                                                                        style: GoogleFonts.montserrat(
+                                                                                                                          textStyle: const TextStyle(
+                                                                                                                            color: secondaryColor,
+                                                                                                                            fontSize: 25,
+                                                                                                                            fontWeight: FontWeight.w700,
+                                                                                                                          ),
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                    ),
+                                                                                                                  ],
+                                                                                                                ),
+                                                                                                                SizedBox(
+                                                                                                                  height: 20,
+                                                                                                                ),
+                                                                                                                Row(
+                                                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                                  children: [
+                                                                                                                    Image.network(
+                                                                                                                      appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['image'],
+                                                                                                                      width: 20,
+                                                                                                                    ),
+                                                                                                                    SizedBox(
+                                                                                                                      width: 10,
+                                                                                                                    ),
+                                                                                                                    Expanded(
+                                                                                                                      child: Text(
+                                                                                                                        appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['name'],
+                                                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                                                        maxLines: 3,
+                                                                                                                        textAlign: TextAlign.start,
+                                                                                                                        style: GoogleFonts.montserrat(
+                                                                                                                          textStyle: const TextStyle(
+                                                                                                                            color: secondaryColor,
+                                                                                                                            fontSize: 20,
+                                                                                                                            fontWeight: FontWeight.w400,
+                                                                                                                          ),
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                    ),
+                                                                                                                  ],
+                                                                                                                ),
+                                                                                                              ],
+                                                                                                            ),
+                                                                                                          ),
+                                                                                                          const SizedBox(
+                                                                                                            height: 20,
+                                                                                                          ),
+                                                                                                          Text(
+                                                                                                            "Amount",
+                                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                                            maxLines: 3,
+                                                                                                            textAlign: TextAlign.center,
+                                                                                                            style: GoogleFonts.montserrat(
+                                                                                                              textStyle: const TextStyle(
+                                                                                                                color: secondaryColor,
+                                                                                                                fontSize: 25,
+                                                                                                                fontWeight: FontWeight.w700,
+                                                                                                              ),
+                                                                                                            ),
+                                                                                                          ),
+                                                                                                          const SizedBox(
+                                                                                                            height: 10,
+                                                                                                          ),
+                                                                                                          Text(
+                                                                                                            NumberFormat.compact().format(double.parse(invoice.get('amount'))),
+                                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                                            maxLines: 3,
+                                                                                                            textAlign: TextAlign.center,
+                                                                                                            style: GoogleFonts.montserrat(
+                                                                                                              textStyle: const TextStyle(
+                                                                                                                overflow: TextOverflow.ellipsis,
+                                                                                                                color: secondaryColor,
+                                                                                                                fontSize: 60,
+                                                                                                                fontWeight: FontWeight.w700,
+                                                                                                              ),
+                                                                                                            ),
+                                                                                                          ),
+                                                                                                          const SizedBox(
+                                                                                                            height: 10,
+                                                                                                          ),
+                                                                                                          Container(
+                                                                                                            child: Row(
+                                                                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                                                                              children: [
+                                                                                                                Jazzicon.getIconWidget(Jazzicon.getJazziconData(160, address: invoice.get('coinId')), size: 25),
+                                                                                                                SizedBox(
+                                                                                                                  width: 10,
+                                                                                                                ),
+                                                                                                                Container(
+                                                                                                                  width: 100,
+                                                                                                                  child: Text(
+                                                                                                                    invoice.get('coinSymbol'),
+                                                                                                                    overflow: TextOverflow.ellipsis,
+                                                                                                                    textAlign: TextAlign.start,
+                                                                                                                    style: GoogleFonts.montserrat(
+                                                                                                                      textStyle: const TextStyle(
+                                                                                                                        color: secondaryColor,
+                                                                                                                        fontSize: 25,
+                                                                                                                        fontWeight: FontWeight.w700,
+                                                                                                                      ),
+                                                                                                                    ),
+                                                                                                                  ),
+                                                                                                                ),
+                                                                                                              ],
+                                                                                                            ),
+                                                                                                          ),
+                                                                                                          SizedBox(
+                                                                                                            height: 20,
+                                                                                                          ),
+                                                                                                          Container(
+                                                                                                            decoration: BoxDecoration(
+                                                                                                              border: Border.all(color: secondaryColor, width: 1.0),
+                                                                                                              borderRadius: BorderRadius.circular(20),
+                                                                                                            ),
+                                                                                                            padding: EdgeInsets.all(15),
+                                                                                                            child: Column(
+                                                                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                                              children: [
+                                                                                                                // Ether gas
+                                                                                                                Container(
+                                                                                                                  child: Row(
+                                                                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                                    children: [
+                                                                                                                      Container(
+                                                                                                                        width: size.width * 0.2,
+                                                                                                                        child: Text(
+                                                                                                                          "Gas price",
+                                                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                                                          maxLines: 3,
+                                                                                                                          textAlign: TextAlign.start,
+                                                                                                                          style: GoogleFonts.montserrat(
+                                                                                                                            textStyle: const TextStyle(
+                                                                                                                              overflow: TextOverflow.ellipsis,
+                                                                                                                              color: secondaryColor,
+                                                                                                                              fontSize: 15,
+                                                                                                                              fontWeight: FontWeight.w300,
+                                                                                                                            ),
+                                                                                                                          ),
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                      SizedBox(
+                                                                                                                        width: 5,
+                                                                                                                      ),
+                                                                                                                      Container(
+                                                                                                                        width: size.width * 0.2,
+                                                                                                                        child: Text(
+                                                                                                                          "${etherGas.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                                                          maxLines: 3,
+                                                                                                                          textAlign: TextAlign.end,
+                                                                                                                          style: GoogleFonts.montserrat(
+                                                                                                                            textStyle: const TextStyle(
+                                                                                                                              overflow: TextOverflow.ellipsis,
+                                                                                                                              color: secondaryColor,
+                                                                                                                              fontSize: 15,
+                                                                                                                              fontWeight: FontWeight.w300,
+                                                                                                                            ),
+                                                                                                                          ),
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                ),
+                                                                                                                const SizedBox(
+                                                                                                                  height: 10,
+                                                                                                                ),
+                                                                                                                // Estimate gas amount
+                                                                                                                Container(
+                                                                                                                  child: Row(
+                                                                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                                    children: [
+                                                                                                                      Container(
+                                                                                                                        width: size.width * 0.2,
+                                                                                                                        child: Text(
+                                                                                                                          "Estimate gas amount",
+                                                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                                                          maxLines: 5,
+                                                                                                                          textAlign: TextAlign.start,
+                                                                                                                          style: GoogleFonts.montserrat(
+                                                                                                                            textStyle: const TextStyle(
+                                                                                                                              overflow: TextOverflow.ellipsis,
+                                                                                                                              color: secondaryColor,
+                                                                                                                              fontSize: 13,
+                                                                                                                              fontWeight: FontWeight.w300,
+                                                                                                                            ),
+                                                                                                                          ),
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                      SizedBox(
+                                                                                                                        width: 5,
+                                                                                                                      ),
+                                                                                                                      Container(
+                                                                                                                        width: size.width * 0.2,
+                                                                                                                        child: Text(
+                                                                                                                          "$estimateGas",
+                                                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                                                          maxLines: 3,
+                                                                                                                          textAlign: TextAlign.end,
+                                                                                                                          style: GoogleFonts.montserrat(
+                                                                                                                            textStyle: const TextStyle(
+                                                                                                                              overflow: TextOverflow.ellipsis,
+                                                                                                                              color: secondaryColor,
+                                                                                                                              fontSize: 15,
+                                                                                                                              fontWeight: FontWeight.w300,
+                                                                                                                            ),
+                                                                                                                          ),
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                    ],
+                                                                                                                  ),
+                                                                                                                ),
+                                                                                                                const SizedBox(
+                                                                                                                  height: 10,
+                                                                                                                ),
+                                                                                                                Row(
+                                                                                                                  children: [
+                                                                                                                    Icon(
+                                                                                                                      CupertinoIcons.exclamationmark_circle,
+                                                                                                                      color: secondaryColor,
+                                                                                                                    ),
+                                                                                                                    SizedBox(
+                                                                                                                      width: 5,
+                                                                                                                    ),
+                                                                                                                    Expanded(
+                                                                                                                      child: Text(
+                                                                                                                        "Estimate gas price might be significantly higher that the actual price",
+                                                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                                                        maxLines: 5,
+                                                                                                                        textAlign: TextAlign.start,
+                                                                                                                        style: GoogleFonts.montserrat(
+                                                                                                                          textStyle: const TextStyle(
+                                                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                                                            color: secondaryColor,
+                                                                                                                            fontSize: 10,
+                                                                                                                            fontWeight: FontWeight.w300,
+                                                                                                                          ),
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                    ),
+                                                                                                                  ],
+                                                                                                                ),
+                                                                                                                const SizedBox(
+                                                                                                                  height: 10,
+                                                                                                                ),
+                                                                                                                Divider(
+                                                                                                                  color: secondaryColor,
+                                                                                                                ),
+                                                                                                                Row(
+                                                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                                                  children: [
+                                                                                                                    Container(
+                                                                                                                      width: size.width * 0.2,
+                                                                                                                      child: Text(
+                                                                                                                        "Total gas price",
+                                                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                                                        maxLines: 3,
+                                                                                                                        textAlign: TextAlign.start,
+                                                                                                                        style: GoogleFonts.montserrat(
+                                                                                                                          textStyle: const TextStyle(
+                                                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                                                            color: secondaryColor,
+                                                                                                                            fontSize: 15,
+                                                                                                                            fontWeight: FontWeight.w600,
+                                                                                                                          ),
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                    ),
+                                                                                                                    SizedBox(
+                                                                                                                      width: 5,
+                                                                                                                    ),
+                                                                                                                    Container(
+                                                                                                                      width: size.width * 0.2,
+                                                                                                                      child: Text(
+                                                                                                                        "${(etherGas.getValueInUnit(EtherUnit.gwei) * estimateGas.toDouble()).toStringAsFixed(2)} GWEI",
+                                                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                                                        maxLines: 3,
+                                                                                                                        textAlign: TextAlign.end,
+                                                                                                                        style: GoogleFonts.montserrat(
+                                                                                                                          textStyle: const TextStyle(
+                                                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                                                            color: secondaryColor,
+                                                                                                                            fontSize: 15,
+                                                                                                                            fontWeight: FontWeight.w600,
+                                                                                                                          ),
+                                                                                                                        ),
+                                                                                                                      ),
+                                                                                                                    ),
+                                                                                                                  ],
+                                                                                                                ),
+                                                                                                              ],
+                                                                                                            ),
+                                                                                                          ),
+                                                                                                          SizedBox(
+                                                                                                            height: 20,
+                                                                                                          ),
+                                                                                                          RoundedButton(
+                                                                                                            pw: 250,
+                                                                                                            ph: 45,
+                                                                                                            text: 'CONFIRM',
+                                                                                                            press: () async {
+                                                                                                              Navigator.of(context).pop(true);
+                                                                                                              Navigator.of(context).pop(true);
+                                                                                                              await firestore.FirebaseFirestore.instance.collection('invoices').doc(invoice.id).update({
+                                                                                                                'status': '1',
+                                                                                                                'from': publicKey,
+                                                                                                              });
+                                                                                                              BigInt chainId = await web3client!.getChainId();
+                                                                                                              firestore.DocumentSnapshot invoiceCoin = await firestore.FirebaseFirestore.instance.collection('stablecoins').doc(invoice.get('coinId')).get();
+                                                                                                              DeployedContract invoiceCoinContract = DeployedContract(ContractAbi.fromJson(jsonEncode(jsonDecode(invoiceCoin.get('contract_abi'))), "UZSOImplementation"), EthereumAddress.fromHex(invoiceCoin.id));
+
+                                                                                                              Transaction transaction = await Transaction.callContract(
+                                                                                                                contract: invoiceCoinContract,
+                                                                                                                function: invoiceCoinContract.function('transfer'),
+                                                                                                                parameters: [
+                                                                                                                  EthereumAddress.fromHex(invoice.get('to')),
+                                                                                                                  BigInt.from((double.parse(invoice.get('amount')) * BigInt.from(pow(10, 18)).toDouble())),
+                                                                                                                ],
+                                                                                                              );
+                                                                                                              String notifTitle = "Success 2371617";
+                                                                                                              String notifBody = "Transaction made";
+                                                                                                              Color notifColor = Colors.green;
+
+                                                                                                              // ignore: unused_local_variable
+                                                                                                              bool txSuccess = true;
+                                                                                                              String transactionResult = await web3client!
+                                                                                                                  .sendTransaction(
+                                                                                                                EthPrivateKey.fromHex(privateKey),
+                                                                                                                transaction,
+                                                                                                                chainId: chainId.toInt(),
+                                                                                                              )
+                                                                                                                  .onError((error, stackTrace) {
+                                                                                                                notifTitle = "Error";
+                                                                                                                notifBody = error.toString() == 'RPCError: got code -32000 with msg "gas required exceeds allowance (0)".' ? "Not enough gas. Buy ether" : error.toString();
+                                                                                                                notifColor = Colors.red;
+                                                                                                                txSuccess = false;
+                                                                                                                showNotification(notifTitle, notifBody, notifColor);
+                                                                                                                return error.toString();
+                                                                                                              });
+                                                                                                              if (txSuccess) {
+                                                                                                                checkTx(transactionResult, invoice);
+                                                                                                              }
+                                                                                                            },
+                                                                                                            color: secondaryColor,
+                                                                                                            textColor: darkPrimaryColor,
+                                                                                                          ),
+                                                                                                          const SizedBox(
+                                                                                                            height: 20,
+                                                                                                          ),
+                                                                                                        ],
+                                                                                                      ),
+                                                                                                    ),
+                                                                                                  ),
+                                                                                                  actions: <Widget>[
+                                                                                                    TextButton(
+                                                                                                      onPressed: () {
+                                                                                                        Navigator.of(context).pop(false);
+                                                                                                        Navigator.of(context).pop(false);
+                                                                                                      },
+                                                                                                      child: const Text(
+                                                                                                        'Cancel',
+                                                                                                        style: TextStyle(color: Colors.red),
+                                                                                                      ),
+                                                                                                    ),
+                                                                                                  ],
+                                                                                                );
+                                                                                              },
+                                                                                            );
+                                                                                          });
+                                                                                    } else {
+                                                                                      Navigator.of(context).pop(true);
+                                                                                      showNotification('Failed', 'Invoice already paid', Colors.red);
+                                                                                    }
+                                                                                  } else {
+                                                                                    Navigator.of(context).pop(true);
+                                                                                    showNotification('Failed', 'Wrong network', Colors.red);
+                                                                                  }
+                                                                                } else {
+                                                                                  Navigator.of(context).pop(true);
+                                                                                  showNotification('Failed', 'Invoice not found', Colors.red);
+                                                                                }
+                                                                              } catch (e) {
+                                                                                Navigator.of(context).pop(true);
+                                                                                showNotification('Failed', 'Something went wrong', Colors.red);
+                                                                              }
+                                                                            }
+                                                                          },
                                                                         ),
                                                                       ),
                                                                       SizedBox(
                                                                         height:
-                                                                            20,
+                                                                            10,
                                                                       ),
-                                                                      Container(
-                                                                        decoration:
-                                                                            BoxDecoration(
-                                                                          border: Border.all(
-                                                                              color: secondaryColor,
-                                                                              width: 1.0),
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(20),
-                                                                        ),
-                                                                        padding:
-                                                                            EdgeInsets.all(15),
-                                                                        child:
-                                                                            Column(
-                                                                          mainAxisAlignment:
-                                                                              MainAxisAlignment.center,
-                                                                          crossAxisAlignment:
-                                                                              CrossAxisAlignment.start,
-                                                                          children: [
-                                                                            // Date
-                                                                            Container(
-                                                                              child: Row(
-                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                children: [
-                                                                                  Container(
-                                                                                    width: size.width * 0.2,
-                                                                                    child: Text(
-                                                                                      "Date",
-                                                                                      overflow: TextOverflow.ellipsis,
-                                                                                      maxLines: 3,
-                                                                                      textAlign: TextAlign.start,
-                                                                                      style: GoogleFonts.montserrat(
-                                                                                        textStyle: const TextStyle(
-                                                                                          overflow: TextOverflow.ellipsis,
-                                                                                          color: secondaryColor,
-                                                                                          fontSize: 15,
-                                                                                          fontWeight: FontWeight.w300,
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                  SizedBox(
-                                                                                    width: 5,
-                                                                                  ),
-                                                                                  Container(
-                                                                                    width: size.width * 0.3,
-                                                                                    child: Text(
-                                                                                      DateFormat.yMMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000)).toString() + " / " + DateFormat.Hm().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000)).toString(),
-                                                                                      overflow: TextOverflow.ellipsis,
-                                                                                      maxLines: 2,
-                                                                                      textAlign: TextAlign.end,
-                                                                                      style: GoogleFonts.montserrat(
-                                                                                        textStyle: const TextStyle(
-                                                                                          overflow: TextOverflow.ellipsis,
-                                                                                          color: secondaryColor,
-                                                                                          fontSize: 15,
-                                                                                          fontWeight: FontWeight.w300,
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                            ),
-                                                                            const SizedBox(
-                                                                              height: 10,
-                                                                            ),
-                                                                            // Hash
-                                                                            Container(
-                                                                              child: CupertinoButton(
-                                                                                onPressed: () async {
-                                                                                  await Clipboard.setData(
-                                                                                    ClipboardData(text: privateKey),
-                                                                                  );
-                                                                                  showNotification('Copied', 'Copied', greenColor);
-                                                                                },
-                                                                                padding: EdgeInsets.zero,
-                                                                                child: Row(
-                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                  children: [
-                                                                                    Container(
-                                                                                      width: size.width * 0.2,
-                                                                                      child: Text(
-                                                                                        "Tx Hash",
-                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                        maxLines: 3,
-                                                                                        textAlign: TextAlign.start,
-                                                                                        style: GoogleFonts.montserrat(
-                                                                                          textStyle: const TextStyle(
-                                                                                            overflow: TextOverflow.ellipsis,
-                                                                                            color: secondaryColor,
-                                                                                            fontSize: 15,
-                                                                                            fontWeight: FontWeight.w300,
-                                                                                          ),
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                    SizedBox(
-                                                                                      width: 5,
-                                                                                    ),
-                                                                                    Container(
-                                                                                      width: size.width * 0.3,
-                                                                                      child: Text(
-                                                                                        tx['hash'],
-                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                        maxLines: 1,
-                                                                                        textAlign: TextAlign.end,
-                                                                                        style: GoogleFonts.montserrat(
-                                                                                          textStyle: const TextStyle(
-                                                                                            overflow: TextOverflow.ellipsis,
-                                                                                            color: secondaryColor,
-                                                                                            fontSize: 15,
-                                                                                            fontWeight: FontWeight.w300,
-                                                                                          ),
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ],
-                                                                                ),
-                                                                              ),
-                                                                            ),
-                                                                            const SizedBox(
-                                                                              height: 0,
-                                                                            ),
-                                                                            // From
-                                                                            Container(
-                                                                              child: CupertinoButton(
-                                                                                onPressed: () async {
-                                                                                  await Clipboard.setData(
-                                                                                    ClipboardData(text: privateKey),
-                                                                                  );
-                                                                                  showNotification('Copied', 'Copied', greenColor);
-                                                                                },
-                                                                                padding: EdgeInsets.zero,
-                                                                                child: Row(
-                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                  children: [
-                                                                                    Container(
-                                                                                      width: size.width * 0.2,
-                                                                                      child: Text(
-                                                                                        "From",
-                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                        maxLines: 3,
-                                                                                        textAlign: TextAlign.start,
-                                                                                        style: GoogleFonts.montserrat(
-                                                                                          textStyle: const TextStyle(
-                                                                                            overflow: TextOverflow.ellipsis,
-                                                                                            color: secondaryColor,
-                                                                                            fontSize: 15,
-                                                                                            fontWeight: FontWeight.w300,
-                                                                                          ),
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                    SizedBox(
-                                                                                      width: 5,
-                                                                                    ),
-                                                                                    Container(
-                                                                                      width: size.width * 0.3,
-                                                                                      child: Text(
-                                                                                        tx['from'],
-                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                        maxLines: 1,
-                                                                                        textAlign: TextAlign.end,
-                                                                                        style: GoogleFonts.montserrat(
-                                                                                          textStyle: const TextStyle(
-                                                                                            overflow: TextOverflow.ellipsis,
-                                                                                            color: secondaryColor,
-                                                                                            fontSize: 15,
-                                                                                            fontWeight: FontWeight.w300,
-                                                                                          ),
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ],
-                                                                                ),
-                                                                              ),
-                                                                            ),
-                                                                            const SizedBox(
-                                                                              height: 0,
-                                                                            ),
-                                                                            // To
-                                                                            Container(
-                                                                              child: CupertinoButton(
-                                                                                onPressed: () async {
-                                                                                  await Clipboard.setData(
-                                                                                    ClipboardData(text: privateKey),
-                                                                                  );
-                                                                                  showNotification('Copied', 'Copied', greenColor);
-                                                                                },
-                                                                                padding: EdgeInsets.zero,
-                                                                                child: Row(
-                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                  children: [
-                                                                                    Container(
-                                                                                      width: size.width * 0.2,
-                                                                                      child: Text(
-                                                                                        "To",
-                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                        maxLines: 1,
-                                                                                        textAlign: TextAlign.start,
-                                                                                        style: GoogleFonts.montserrat(
-                                                                                          textStyle: const TextStyle(
-                                                                                            overflow: TextOverflow.ellipsis,
-                                                                                            color: secondaryColor,
-                                                                                            fontSize: 15,
-                                                                                            fontWeight: FontWeight.w300,
-                                                                                          ),
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                    SizedBox(
-                                                                                      width: 5,
-                                                                                    ),
-                                                                                    Container(
-                                                                                      width: size.width * 0.3,
-                                                                                      child: Text(
-                                                                                        tx['to'],
-                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                        maxLines: 1,
-                                                                                        textAlign: TextAlign.end,
-                                                                                        style: GoogleFonts.montserrat(
-                                                                                          textStyle: const TextStyle(
-                                                                                            overflow: TextOverflow.ellipsis,
-                                                                                            color: secondaryColor,
-                                                                                            fontSize: 15,
-                                                                                            fontWeight: FontWeight.w300,
-                                                                                          ),
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ],
-                                                                                ),
-                                                                              ),
-                                                                            ),
-
-                                                                            const SizedBox(
-                                                                              height: 30,
-                                                                            ),
-                                                                            Divider(
-                                                                              color: secondaryColor,
-                                                                            ),
-                                                                            // Ether gas
-                                                                            Container(
-                                                                              child: Row(
-                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                children: [
-                                                                                  Container(
-                                                                                    width: size.width * 0.2,
-                                                                                    child: Text(
-                                                                                      "Gas price",
-                                                                                      overflow: TextOverflow.ellipsis,
-                                                                                      maxLines: 3,
-                                                                                      textAlign: TextAlign.start,
-                                                                                      style: GoogleFonts.montserrat(
-                                                                                        textStyle: const TextStyle(
-                                                                                          overflow: TextOverflow.ellipsis,
-                                                                                          color: secondaryColor,
-                                                                                          fontSize: 15,
-                                                                                          fontWeight: FontWeight.w300,
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                  SizedBox(
-                                                                                    width: 5,
-                                                                                  ),
-                                                                                  Container(
-                                                                                    width: size.width * 0.2,
-                                                                                    child: Text(
-                                                                                      "${EtherAmount.fromUnitAndValue(EtherUnit.wei, tx['gasPrice']).getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
-                                                                                      overflow: TextOverflow.ellipsis,
-                                                                                      maxLines: 3,
-                                                                                      textAlign: TextAlign.end,
-                                                                                      style: GoogleFonts.montserrat(
-                                                                                        textStyle: const TextStyle(
-                                                                                          overflow: TextOverflow.ellipsis,
-                                                                                          color: secondaryColor,
-                                                                                          fontSize: 15,
-                                                                                          fontWeight: FontWeight.w300,
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                            ),
-                                                                            const SizedBox(
-                                                                              height: 10,
-                                                                            ),
-                                                                            // Gas used
-                                                                            Container(
-                                                                              child: Row(
-                                                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                                children: [
-                                                                                  Container(
-                                                                                    width: size.width * 0.2,
-                                                                                    child: Text(
-                                                                                      "Gas used",
-                                                                                      overflow: TextOverflow.ellipsis,
-                                                                                      maxLines: 5,
-                                                                                      textAlign: TextAlign.start,
-                                                                                      style: GoogleFonts.montserrat(
-                                                                                        textStyle: const TextStyle(
-                                                                                          overflow: TextOverflow.ellipsis,
-                                                                                          color: secondaryColor,
-                                                                                          fontSize: 13,
-                                                                                          fontWeight: FontWeight.w300,
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                  SizedBox(
-                                                                                    width: 5,
-                                                                                  ),
-                                                                                  Container(
-                                                                                    width: size.width * 0.2,
-                                                                                    child: Text(
-                                                                                      "${tx['gasUsed']}",
-                                                                                      overflow: TextOverflow.ellipsis,
-                                                                                      maxLines: 3,
-                                                                                      textAlign: TextAlign.end,
-                                                                                      style: GoogleFonts.montserrat(
-                                                                                        textStyle: const TextStyle(
-                                                                                          overflow: TextOverflow.ellipsis,
-                                                                                          color: secondaryColor,
-                                                                                          fontSize: 15,
-                                                                                          fontWeight: FontWeight.w300,
-                                                                                        ),
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ],
-                                                                              ),
-                                                                            ),
-                                                                            const SizedBox(
-                                                                              height: 10,
-                                                                            ),
-                                                                            Divider(
-                                                                              color: secondaryColor,
-                                                                            ),
-                                                                            Row(
-                                                                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                                                              children: [
-                                                                                Container(
-                                                                                  width: size.width * 0.2,
-                                                                                  child: Text(
-                                                                                    "Total gas",
-                                                                                    overflow: TextOverflow.ellipsis,
-                                                                                    maxLines: 3,
-                                                                                    textAlign: TextAlign.start,
-                                                                                    style: GoogleFonts.montserrat(
-                                                                                      textStyle: const TextStyle(
-                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                        color: secondaryColor,
-                                                                                        fontSize: 15,
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                                SizedBox(
-                                                                                  width: 5,
-                                                                                ),
-                                                                                Container(
-                                                                                  width: size.width * 0.2,
-                                                                                  child: Text(
-                                                                                    "${(EtherAmount.fromUnitAndValue(EtherUnit.wei, tx['gasPrice']).getValueInUnit(EtherUnit.gwei) * double.parse(tx['gasUsed'])).toStringAsFixed(2)} GWEI",
-                                                                                    overflow: TextOverflow.ellipsis,
-                                                                                    maxLines: 3,
-                                                                                    textAlign: TextAlign.end,
-                                                                                    style: GoogleFonts.montserrat(
-                                                                                      textStyle: const TextStyle(
-                                                                                        overflow: TextOverflow.ellipsis,
-                                                                                        color: secondaryColor,
-                                                                                        fontSize: 15,
-                                                                                        fontWeight: FontWeight.w600,
-                                                                                      ),
-                                                                                    ),
-                                                                                  ),
-                                                                                ),
-                                                                              ],
-                                                                            ),
-                                                                          ],
-                                                                        ),
-                                                                      ),
-                                                                      const SizedBox(
+                                                                      SizedBox(
                                                                         height:
                                                                             20,
                                                                       ),
@@ -3604,13 +2662,11 @@ class _HomeScreenState extends State<HomeScreen> {
                                                               ),
                                                               actions: <Widget>[
                                                                 TextButton(
-                                                                  onPressed:
-                                                                      () {
-                                                                    Navigator.of(
-                                                                            context)
-                                                                        .pop(
-                                                                            false);
-                                                                  },
+                                                                  onPressed: () =>
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop(
+                                                                              false),
                                                                   child:
                                                                       const Text(
                                                                     'Ok',
@@ -3625,266 +2681,1439 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         );
                                                       });
                                                 },
-                                                child: Container(
-                                                  decoration: BoxDecoration(
-                                                    border: Border.all(
-                                                        color: secondaryColor,
-                                                        width: 1.0),
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            20),
+                                                child: Icon(
+                                                  CupertinoIcons.qrcode,
+                                                  color: darkPrimaryColor,
+                                                ),
+                                              ),
+                                              Text(
+                                                "Invoice",
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: secondaryColor,
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.w700,
                                                   ),
-                                                  padding:
-                                                      const EdgeInsets.all(10),
-                                                  margin: EdgeInsets.only(
-                                                      bottom: 10),
-                                                  child: Row(
-                                                    mainAxisAlignment:
-                                                        MainAxisAlignment
-                                                            .spaceEvenly,
-                                                    children: [
-                                                      // Icons + Date
-                                                      Container(
-                                                        width: size.width * 0.1,
-                                                        child: Column(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .center,
-                                                          children: [
-                                                            tx['from'] ==
-                                                                    publicKey
-                                                                ? Icon(
-                                                                    CupertinoIcons
-                                                                        .arrow_up_circle_fill,
-                                                                    color:
-                                                                        secondaryColor,
-                                                                  )
-                                                                : Icon(
-                                                                    CupertinoIcons
-                                                                        .arrow_down_circle_fill,
-                                                                    color: Colors
-                                                                        .green,
-                                                                  ),
-                                                            Text(
-                                                              "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000))}",
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .start,
-                                                              style: GoogleFonts
-                                                                  .montserrat(
-                                                                textStyle:
-                                                                    const TextStyle(
-                                                                  color:
-                                                                      secondaryColor,
-                                                                  fontSize: 9,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w600,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
+                                                ),
+                                              )
+                                            ],
+                                          ),
+
+                                          // Send button
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              RawMaterialButton(
+                                                constraints:
+                                                    const BoxConstraints(
+                                                        minWidth: 70,
+                                                        minHeight: 60),
+                                                fillColor: secondaryColor,
+                                                shape: CircleBorder(),
+                                                onPressed: () async {
+                                                  setState(() {
+                                                    loading = true;
+                                                  });
+
+                                                  Navigator.push(
+                                                    context,
+                                                    SlideRightRoute(
+                                                      page: SendOzodScreen(
+                                                        web3client: web3client!,
+                                                        walletIndex:
+                                                            selectedWalletIndex,
+                                                        networkId:
+                                                            selectedNetworkId,
+                                                        coin: {
+                                                          'id':
+                                                              uzsoFirebase!.id,
+                                                          'contract':
+                                                              uzsoContract,
+                                                          'symbol':
+                                                              uzsoFirebase!.get(
+                                                                  'symbol'),
+                                                        },
                                                       ),
-                                                      Container(
-                                                        width: size.width * 0.4,
-                                                        child: Column(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .center,
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            tx['from'] ==
-                                                                    publicKey
-                                                                ? Text(
-                                                                    "Sent",
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    textAlign:
-                                                                        TextAlign
-                                                                            .start,
-                                                                    style: GoogleFonts
-                                                                        .montserrat(
-                                                                      textStyle:
-                                                                          const TextStyle(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        fontSize:
-                                                                            25,
-                                                                        fontWeight:
-                                                                            FontWeight.w700,
-                                                                      ),
-                                                                    ),
-                                                                  )
-                                                                : Text(
-                                                                    "Received",
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    textAlign:
-                                                                        TextAlign
-                                                                            .start,
-                                                                    style: GoogleFonts
-                                                                        .montserrat(
-                                                                      textStyle:
-                                                                          const TextStyle(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        fontSize:
-                                                                            25,
-                                                                        fontWeight:
-                                                                            FontWeight.w700,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                            tx['from'] ==
-                                                                        publicKey &&
-                                                                    !selectedWalletAssetsData
-                                                                        .keys
-                                                                        .contains(
-                                                                            tx['to'])
-                                                                ? Text(
-                                                                    "To ${tx['to']}",
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    textAlign:
-                                                                        TextAlign
-                                                                            .start,
-                                                                    maxLines: 2,
-                                                                    style: GoogleFonts
-                                                                        .montserrat(
-                                                                      textStyle:
-                                                                          const TextStyle(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        fontSize:
-                                                                            10,
-                                                                        fontWeight:
-                                                                            FontWeight.w400,
-                                                                      ),
-                                                                    ),
-                                                                  )
-                                                                : Text(
-                                                                    "From ${tx['from']}",
-                                                                    overflow:
-                                                                        TextOverflow
-                                                                            .ellipsis,
-                                                                    maxLines: 2,
-                                                                    textAlign:
-                                                                        TextAlign
-                                                                            .start,
-                                                                    style: GoogleFonts
-                                                                        .montserrat(
-                                                                      textStyle:
-                                                                          const TextStyle(
-                                                                        color:
-                                                                            secondaryColor,
-                                                                        fontSize:
-                                                                            10,
-                                                                        fontWeight:
-                                                                            FontWeight.w400,
-                                                                      ),
-                                                                    ),
-                                                                  ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                      Container(
-                                                        width: size.width * 0.2,
-                                                        child: Column(
-                                                          mainAxisAlignment:
-                                                              MainAxisAlignment
-                                                                  .center,
-                                                          children: [
-                                                            Text(
-                                                              !selectedWalletAssetsData
-                                                                      .keys
-                                                                      .contains(tx[
-                                                                          'to'])
-                                                                  ? NumberFormat.compact().format(EtherAmount.fromUnitAndValue(
-                                                                          EtherUnit
-                                                                              .wei,
-                                                                          tx[
-                                                                              'value'])
-                                                                      .getValueInUnit(
-                                                                          selectedEtherUnit))
-                                                                  : "N/A",
-                                                              maxLines: 2,
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .start,
-                                                              style: GoogleFonts
-                                                                  .montserrat(
-                                                                textStyle:
-                                                                    const TextStyle(
-                                                                  color:
-                                                                      secondaryColor,
-                                                                  fontSize: 15,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w700,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                            Text(
-                                                              !selectedWalletAssetsData
-                                                                      .keys
-                                                                      .contains(tx[
-                                                                          'to'])
-                                                                  ? "UZSO"
-                                                                      .toString()
-                                                                  : selectedWalletAssetsData[
-                                                                      tx['to']],
-                                                              overflow:
-                                                                  TextOverflow
-                                                                      .ellipsis,
-                                                              textAlign:
-                                                                  TextAlign
-                                                                      .start,
-                                                              style: GoogleFonts
-                                                                  .montserrat(
-                                                                textStyle:
-                                                                    const TextStyle(
-                                                                  color:
-                                                                      secondaryColor,
-                                                                  fontSize: 20,
-                                                                  fontWeight:
-                                                                      FontWeight
-                                                                          .w400,
-                                                                ),
-                                                              ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      ),
-                                                    ],
+                                                    ),
+                                                  );
+
+                                                  setState(() {
+                                                    loading = false;
+                                                  });
+                                                },
+                                                child: Icon(
+                                                  CupertinoIcons.arrow_up,
+                                                  color: darkPrimaryColor,
+                                                ),
+                                              ),
+                                              Text(
+                                                "Send",
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: secondaryColor,
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.w700,
                                                   ),
                                                 ),
                                               ),
+                                            ],
+                                          ),
+
+                                          // Receive button
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              RawMaterialButton(
+                                                constraints:
+                                                    const BoxConstraints(
+                                                        minWidth: 70,
+                                                        minHeight: 60),
+                                                fillColor: secondaryColor,
+                                                shape: CircleBorder(),
+                                                onPressed: () {
+                                                  showDialog(
+                                                      barrierDismissible: false,
+                                                      context: context,
+                                                      builder: (BuildContext
+                                                          context) {
+                                                        return StatefulBuilder(
+                                                          builder: (context,
+                                                              StateSetter
+                                                                  setState) {
+                                                            return AlertDialog(
+                                                              backgroundColor:
+                                                                  darkPrimaryColor,
+                                                              shape:
+                                                                  RoundedRectangleBorder(
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            20.0),
+                                                              ),
+                                                              title: const Text(
+                                                                'QR Code',
+                                                                style: TextStyle(
+                                                                    color:
+                                                                        secondaryColor),
+                                                              ),
+                                                              content:
+                                                                  SingleChildScrollView(
+                                                                child:
+                                                                    Container(
+                                                                  width:
+                                                                      size.width *
+                                                                          0.9,
+                                                                  height:
+                                                                      size.height *
+                                                                          0.4,
+                                                                  margin:
+                                                                      EdgeInsets
+                                                                          .all(
+                                                                              10),
+                                                                  child: Column(
+                                                                    children: [
+                                                                      Container(
+                                                                        padding:
+                                                                            const EdgeInsets.all(20),
+                                                                        decoration:
+                                                                            BoxDecoration(
+                                                                          borderRadius:
+                                                                              BorderRadius.circular(20.0),
+                                                                          gradient:
+                                                                              const LinearGradient(
+                                                                            begin:
+                                                                                Alignment.topLeft,
+                                                                            end:
+                                                                                Alignment.bottomRight,
+                                                                            colors: [
+                                                                              darkPrimaryColor,
+                                                                              primaryColor
+                                                                            ],
+                                                                          ),
+                                                                        ),
+                                                                        child:
+                                                                            QrImage(
+                                                                          data: EthereumAddress.fromHex(publicKey)
+                                                                              .addressBytes
+                                                                              .toString(),
+                                                                          foregroundColor:
+                                                                              secondaryColor,
+                                                                        ),
+                                                                      ),
+                                                                      SizedBox(
+                                                                        height:
+                                                                            10,
+                                                                      ),
+                                                                      Row(
+                                                                        mainAxisAlignment:
+                                                                            MainAxisAlignment.spaceBetween,
+                                                                        children: [
+                                                                          Expanded(
+                                                                            child:
+                                                                                Text(
+                                                                              publicKey,
+                                                                              overflow: TextOverflow.ellipsis,
+                                                                              maxLines: 10,
+                                                                              textAlign: TextAlign.start,
+                                                                              style: GoogleFonts.montserrat(
+                                                                                textStyle: const TextStyle(
+                                                                                  color: secondaryColor,
+                                                                                  fontSize: 15,
+                                                                                  fontWeight: FontWeight.w500,
+                                                                                ),
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                          Container(
+                                                                            width:
+                                                                                30,
+                                                                            child:
+                                                                                IconButton(
+                                                                              padding: EdgeInsets.zero,
+                                                                              onPressed: () async {
+                                                                                await Clipboard.setData(ClipboardData(text: publicKey));
+                                                                                showNotification('Copied', 'Public key copied', greenColor);
+                                                                              },
+                                                                              icon: Icon(
+                                                                                CupertinoIcons.doc,
+                                                                                color: secondaryColor,
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                      SizedBox(
+                                                                        height:
+                                                                            20,
+                                                                      ),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                              actions: <Widget>[
+                                                                TextButton(
+                                                                  onPressed: () =>
+                                                                      Navigator.of(
+                                                                              context)
+                                                                          .pop(
+                                                                              false),
+                                                                  child:
+                                                                      const Text(
+                                                                    'Ok',
+                                                                    style: TextStyle(
+                                                                        color:
+                                                                            secondaryColor),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            );
+                                                          },
+                                                        );
+                                                      });
+                                                },
+                                                child: Icon(
+                                                  CupertinoIcons.arrow_down,
+                                                  color: darkPrimaryColor,
+                                                ),
+                                              ),
+                                              Text(
+                                                "Receive",
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: secondaryColor,
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              )
+                                            ],
+                                          ),
+
+                                          // Buy button
+                                          Column(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              RawMaterialButton(
+                                                constraints:
+                                                    const BoxConstraints(
+                                                        minWidth: 70,
+                                                        minHeight: 60),
+                                                fillColor: secondaryColor,
+                                                shape: CircleBorder(),
+                                                onPressed: () {
+                                                  if (kIsWeb) {
+                                                    showNotification(
+                                                        'Coming soon',
+                                                        'Not supported for web',
+                                                        Colors.orange);
+                                                  } else {
+                                                    showDialog(
+                                                        barrierDismissible:
+                                                            false,
+                                                        context: context,
+                                                        builder: (BuildContext
+                                                            context) {
+                                                          return StatefulBuilder(
+                                                            builder: (context,
+                                                                StateSetter
+                                                                    setState) {
+                                                              return AlertDialog(
+                                                                backgroundColor:
+                                                                    lightPrimaryColor,
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              20.0),
+                                                                ),
+                                                                title:
+                                                                    const Text(
+                                                                  'Method',
+                                                                  style: TextStyle(
+                                                                      color:
+                                                                          darkPrimaryColor),
+                                                                ),
+                                                                content:
+                                                                    SingleChildScrollView(
+                                                                  child:
+                                                                      Container(
+                                                                    margin: EdgeInsets
+                                                                        .all(
+                                                                            10),
+                                                                    child:
+                                                                        Column(
+                                                                      children: [
+                                                                        // PayMe
+                                                                        Row(
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.spaceEvenly,
+                                                                          children: [
+                                                                            Image.asset(
+                                                                              "assets/images/payme.png",
+                                                                              width: 80,
+                                                                            ),
+                                                                            SizedBox(
+                                                                              width: 10,
+                                                                            ),
+                                                                            Expanded(
+                                                                              child: RoundedButton(
+                                                                                pw: 250,
+                                                                                ph: 45,
+                                                                                text: 'PayMe',
+                                                                                press: () {
+                                                                                  Navigator.push(
+                                                                                    context,
+                                                                                    SlideRightRoute(
+                                                                                      page: BuyOzodPaymeScreen(
+                                                                                        walletIndex: selectedWalletIndex,
+                                                                                        web3client: web3client!,
+                                                                                      ),
+                                                                                    ),
+                                                                                  );
+                                                                                },
+                                                                                color: secondaryColor,
+                                                                                textColor: darkPrimaryColor,
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                        const SizedBox(
+                                                                          height:
+                                                                              20,
+                                                                        ),
+                                                                        // Octo
+                                                                        Row(
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.spaceEvenly,
+                                                                          children: [
+                                                                            Image.asset(
+                                                                              "assets/images/octo.png",
+                                                                              width: 80,
+                                                                            ),
+                                                                            SizedBox(
+                                                                              width: 10,
+                                                                            ),
+                                                                            Expanded(
+                                                                              child: RoundedButton(
+                                                                                pw: 250,
+                                                                                ph: 45,
+                                                                                text: 'Octo',
+                                                                                press: () {
+                                                                                  Navigator.push(
+                                                                                    context,
+                                                                                    SlideRightRoute(
+                                                                                      page: BuyOzodOctoScreen(
+                                                                                        walletIndex: selectedWalletIndex,
+                                                                                        web3client: web3client!,
+                                                                                        selectedNetworkId: selectedNetworkId,
+                                                                                        contract: uzsoContract!,
+                                                                                      ),
+                                                                                    ),
+                                                                                  );
+                                                                                },
+                                                                                color: Colors.blue,
+                                                                                textColor: whiteColor,
+                                                                              ),
+                                                                            ),
+                                                                          ],
+                                                                        ),
+                                                                        const SizedBox(
+                                                                          height:
+                                                                              20,
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                actions: <
+                                                                    Widget>[
+                                                                  TextButton(
+                                                                    onPressed: () =>
+                                                                        Navigator.of(context)
+                                                                            .pop(false),
+                                                                    child:
+                                                                        const Text(
+                                                                      'Ok',
+                                                                      style: TextStyle(
+                                                                          color:
+                                                                              darkPrimaryColor),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+                                                        });
+                                                  }
+                                                },
+                                                child: Icon(
+                                                  CupertinoIcons.money_dollar,
+                                                  color: darkPrimaryColor,
+                                                ),
+                                              ),
+                                              Text(
+                                                "Buy",
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: secondaryColor,
+                                                    fontSize: 20,
+                                                    fontWeight: FontWeight.w700,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+
+                                    // Gas Indicator
+                                    Container(
+                                      key: keyButton3,
+                                      margin:
+                                          EdgeInsets.fromLTRB(10, 0, 10, 10),
+                                      width: size.width * 0.8,
+                                      // height: 200,
+                                      padding: const EdgeInsets.all(15),
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: gasTxsLeft < 1
+                                              ? [
+                                                  Colors.red,
+                                                  Colors.orange,
+                                                ]
+                                              : [
+                                                  Colors.blue,
+                                                  Colors.green,
+                                                ],
+                                        ),
+                                      ),
+                                      child: ExpansionTile(
+                                        tilePadding: EdgeInsets.zero,
+                                        childrenPadding: EdgeInsets.zero,
+                                        expandedCrossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        expandedAlignment: Alignment.center,
+                                        trailing: SizedBox.shrink(),
+                                        backgroundColor: Colors.transparent,
+                                        title: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Gas Indicator",
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.start,
+                                              maxLines: 2,
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  color: whiteColor,
+                                                  fontSize: 25,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 10,
+                                            ),
+                                            Text(
+                                              "~ ${NumberFormat.compact().format(gasTxsLeft)} Txs left",
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.start,
+                                              maxLines: 2,
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  color: whiteColor,
+                                                  fontSize: 23,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                            SizedBox(
+                                              height: 10,
+                                            ),
+                                            Center(
+                                              child: RoundedButton(
+                                                pw: 150,
+                                                ph: 35,
+                                                text: 'Top up gas',
+                                                press: () {
+                                                  if (kIsWeb) {
+                                                    showNotification(
+                                                        'Coming soon',
+                                                        'Not supported for web',
+                                                        Colors.orange);
+                                                  } else {
+                                                    Navigator.push(
+                                                      context,
+                                                      SlideRightRoute(
+                                                          page: BuyCryptoScreen(
+                                                        walletIndex:
+                                                            selectedWalletIndex,
+                                                        web3client: web3client!,
+                                                      )),
+                                                    );
+                                                  }
+                                                },
+                                                color: whiteColor,
+                                                textColor: darkPrimaryColor,
+                                              ),
+                                            ),
                                           ],
                                         ),
-                                      )
-                                    : Container(),
+                                        children: [
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              SizedBox(
+                                                height: 20,
+                                              ),
+                                              Text(
+                                                "${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                maxLines: 4,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: whiteColor,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                height: 10,
+                                              ),
+                                              Divider(
+                                                color: whiteColor,
+                                              ),
+                                              Text(
+                                                "Gas price: ${estimateGasPrice.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                maxLines: 4,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: whiteColor,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                height: 5,
+                                              ),
+                                              Text(
+                                                "Estimate gas amount: $estimateGasAmount",
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                maxLines: 4,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: whiteColor,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                height: 10,
+                                              ),
+                                              Text(
+                                                "Total gas needed: ${(estimateGasPrice.getValueInUnit(EtherUnit.gwei) * estimateGasAmount.toDouble()).toStringAsFixed(2)} GWEI",
+                                                overflow: TextOverflow.ellipsis,
+                                                textAlign: TextAlign.start,
+                                                maxLines: 4,
+                                                style: GoogleFonts.montserrat(
+                                                  textStyle: const TextStyle(
+                                                    color: whiteColor,
+                                                    fontSize: 15,
+                                                    fontWeight: FontWeight.w400,
+                                                  ),
+                                                ),
+                                              ),
+                                              SizedBox(
+                                                height: 20,
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 50),
 
-                                SizedBox(
-                                  height: 100,
+                                    // Txs
+                                    selectedWalletTxs.length != 0
+                                        ? Container(
+                                            width: size.width * 0.9,
+                                            child: Column(
+                                              children: [
+                                                Align(
+                                                  alignment:
+                                                      Alignment.centerLeft,
+                                                  child: Text(
+                                                    "Activity",
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    textAlign: TextAlign.start,
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      textStyle:
+                                                          const TextStyle(
+                                                        color: secondaryColor,
+                                                        fontSize: 40,
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                                SizedBox(
+                                                  height: 30,
+                                                ),
+                                                for (Map tx in selectedWalletTxs
+                                                    .take(5))
+                                                  CupertinoButton(
+                                                    padding: EdgeInsets.zero,
+                                                    onPressed: () {
+                                                      showDialog(
+                                                          barrierDismissible:
+                                                              true,
+                                                          context: context,
+                                                          builder: (BuildContext
+                                                              context) {
+                                                            return StatefulBuilder(
+                                                              builder: (context,
+                                                                  StateSetter
+                                                                      setState) {
+                                                                return AlertDialog(
+                                                                  backgroundColor:
+                                                                      darkPrimaryColor,
+                                                                  shape:
+                                                                      RoundedRectangleBorder(
+                                                                    borderRadius:
+                                                                        BorderRadius.circular(
+                                                                            20.0),
+                                                                  ),
+                                                                  title:
+                                                                      const Text(
+                                                                    'Transaction',
+                                                                    style: TextStyle(
+                                                                        color:
+                                                                            secondaryColor),
+                                                                  ),
+                                                                  content:
+                                                                      SingleChildScrollView(
+                                                                    child:
+                                                                        Container(
+                                                                      child:
+                                                                          Column(
+                                                                        crossAxisAlignment:
+                                                                            CrossAxisAlignment.center,
+                                                                        children: [
+                                                                          Text(
+                                                                            "Amount",
+                                                                            overflow:
+                                                                                TextOverflow.ellipsis,
+                                                                            maxLines:
+                                                                                3,
+                                                                            textAlign:
+                                                                                TextAlign.center,
+                                                                            style:
+                                                                                GoogleFonts.montserrat(
+                                                                              textStyle: const TextStyle(
+                                                                                color: secondaryColor,
+                                                                                fontSize: 25,
+                                                                                fontWeight: FontWeight.w700,
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                          const SizedBox(
+                                                                            height:
+                                                                                10,
+                                                                          ),
+                                                                          Text(
+                                                                            NumberFormat.compact().format(BigInt.parse(tx['value']) /
+                                                                                BigInt.from(pow(10, int.parse(tx['tokenDecimal'])))),
+                                                                            overflow:
+                                                                                TextOverflow.ellipsis,
+                                                                            maxLines:
+                                                                                3,
+                                                                            textAlign:
+                                                                                TextAlign.center,
+                                                                            style:
+                                                                                GoogleFonts.montserrat(
+                                                                              textStyle: const TextStyle(
+                                                                                overflow: TextOverflow.ellipsis,
+                                                                                color: secondaryColor,
+                                                                                fontSize: 60,
+                                                                                fontWeight: FontWeight.w700,
+                                                                              ),
+                                                                            ),
+                                                                          ),
+                                                                          const SizedBox(
+                                                                            height:
+                                                                                10,
+                                                                          ),
+                                                                          Container(
+                                                                            child:
+                                                                                Row(
+                                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                                              children: [
+                                                                                Jazzicon.getIconWidget(Jazzicon.getJazziconData(160, address: tx['contractAddress']), size: 25),
+                                                                                SizedBox(
+                                                                                  width: 10,
+                                                                                ),
+                                                                                Container(
+                                                                                  width: 100,
+                                                                                  child: Text(
+                                                                                    tx['tokenSymbol'],
+                                                                                    overflow: TextOverflow.ellipsis,
+                                                                                    textAlign: TextAlign.start,
+                                                                                    style: GoogleFonts.montserrat(
+                                                                                      textStyle: const TextStyle(
+                                                                                        color: secondaryColor,
+                                                                                        fontSize: 25,
+                                                                                        fontWeight: FontWeight.w700,
+                                                                                      ),
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                          ),
+                                                                          SizedBox(
+                                                                            height:
+                                                                                20,
+                                                                          ),
+                                                                          Container(
+                                                                            decoration:
+                                                                                BoxDecoration(
+                                                                              border: Border.all(color: secondaryColor, width: 1.0),
+                                                                              borderRadius: BorderRadius.circular(20),
+                                                                            ),
+                                                                            padding:
+                                                                                EdgeInsets.all(15),
+                                                                            child:
+                                                                                Column(
+                                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                                              crossAxisAlignment: CrossAxisAlignment.start,
+                                                                              children: [
+                                                                                // Date
+                                                                                Container(
+                                                                                  child: Row(
+                                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                    children: [
+                                                                                      Container(
+                                                                                        width: size.width * 0.2,
+                                                                                        child: Text(
+                                                                                          "Date",
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          maxLines: 3,
+                                                                                          textAlign: TextAlign.start,
+                                                                                          style: GoogleFonts.montserrat(
+                                                                                            textStyle: const TextStyle(
+                                                                                              overflow: TextOverflow.ellipsis,
+                                                                                              color: secondaryColor,
+                                                                                              fontSize: 15,
+                                                                                              fontWeight: FontWeight.w300,
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      SizedBox(
+                                                                                        width: 5,
+                                                                                      ),
+                                                                                      Container(
+                                                                                        width: size.width * 0.3,
+                                                                                        child: Text(
+                                                                                          DateFormat.yMMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000)).toString() + " / " + DateFormat.Hm().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000)).toString(),
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          maxLines: 2,
+                                                                                          textAlign: TextAlign.end,
+                                                                                          style: GoogleFonts.montserrat(
+                                                                                            textStyle: const TextStyle(
+                                                                                              overflow: TextOverflow.ellipsis,
+                                                                                              color: secondaryColor,
+                                                                                              fontSize: 15,
+                                                                                              fontWeight: FontWeight.w300,
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
+                                                                                ),
+                                                                                const SizedBox(
+                                                                                  height: 10,
+                                                                                ),
+                                                                                // Hash
+                                                                                Container(
+                                                                                  child: CupertinoButton(
+                                                                                    onPressed: () async {
+                                                                                      await Clipboard.setData(
+                                                                                        ClipboardData(text: privateKey),
+                                                                                      );
+                                                                                      showNotification('Copied', 'Copied', greenColor);
+                                                                                    },
+                                                                                    padding: EdgeInsets.zero,
+                                                                                    child: Row(
+                                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                      children: [
+                                                                                        Container(
+                                                                                          width: size.width * 0.2,
+                                                                                          child: Text(
+                                                                                            "Tx Hash",
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            maxLines: 3,
+                                                                                            textAlign: TextAlign.start,
+                                                                                            style: GoogleFonts.montserrat(
+                                                                                              textStyle: const TextStyle(
+                                                                                                overflow: TextOverflow.ellipsis,
+                                                                                                color: secondaryColor,
+                                                                                                fontSize: 15,
+                                                                                                fontWeight: FontWeight.w300,
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                        SizedBox(
+                                                                                          width: 5,
+                                                                                        ),
+                                                                                        Container(
+                                                                                          width: size.width * 0.3,
+                                                                                          child: Text(
+                                                                                            tx['hash'],
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            maxLines: 1,
+                                                                                            textAlign: TextAlign.end,
+                                                                                            style: GoogleFonts.montserrat(
+                                                                                              textStyle: const TextStyle(
+                                                                                                overflow: TextOverflow.ellipsis,
+                                                                                                color: secondaryColor,
+                                                                                                fontSize: 15,
+                                                                                                fontWeight: FontWeight.w300,
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                                const SizedBox(
+                                                                                  height: 0,
+                                                                                ),
+                                                                                // From
+                                                                                Container(
+                                                                                  child: CupertinoButton(
+                                                                                    onPressed: () async {
+                                                                                      await Clipboard.setData(
+                                                                                        ClipboardData(text: privateKey),
+                                                                                      );
+                                                                                      showNotification('Copied', 'Copied', greenColor);
+                                                                                    },
+                                                                                    padding: EdgeInsets.zero,
+                                                                                    child: Row(
+                                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                      children: [
+                                                                                        Container(
+                                                                                          width: size.width * 0.2,
+                                                                                          child: Text(
+                                                                                            "From",
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            maxLines: 3,
+                                                                                            textAlign: TextAlign.start,
+                                                                                            style: GoogleFonts.montserrat(
+                                                                                              textStyle: const TextStyle(
+                                                                                                overflow: TextOverflow.ellipsis,
+                                                                                                color: secondaryColor,
+                                                                                                fontSize: 15,
+                                                                                                fontWeight: FontWeight.w300,
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                        SizedBox(
+                                                                                          width: 5,
+                                                                                        ),
+                                                                                        Container(
+                                                                                          width: size.width * 0.3,
+                                                                                          child: Text(
+                                                                                            tx['from'],
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            maxLines: 1,
+                                                                                            textAlign: TextAlign.end,
+                                                                                            style: GoogleFonts.montserrat(
+                                                                                              textStyle: const TextStyle(
+                                                                                                overflow: TextOverflow.ellipsis,
+                                                                                                color: secondaryColor,
+                                                                                                fontSize: 15,
+                                                                                                fontWeight: FontWeight.w300,
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+                                                                                const SizedBox(
+                                                                                  height: 0,
+                                                                                ),
+                                                                                // To
+                                                                                Container(
+                                                                                  child: CupertinoButton(
+                                                                                    onPressed: () async {
+                                                                                      await Clipboard.setData(
+                                                                                        ClipboardData(text: privateKey),
+                                                                                      );
+                                                                                      showNotification('Copied', 'Copied', greenColor);
+                                                                                    },
+                                                                                    padding: EdgeInsets.zero,
+                                                                                    child: Row(
+                                                                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                      children: [
+                                                                                        Container(
+                                                                                          width: size.width * 0.2,
+                                                                                          child: Text(
+                                                                                            "To",
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            maxLines: 1,
+                                                                                            textAlign: TextAlign.start,
+                                                                                            style: GoogleFonts.montserrat(
+                                                                                              textStyle: const TextStyle(
+                                                                                                overflow: TextOverflow.ellipsis,
+                                                                                                color: secondaryColor,
+                                                                                                fontSize: 15,
+                                                                                                fontWeight: FontWeight.w300,
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                        SizedBox(
+                                                                                          width: 5,
+                                                                                        ),
+                                                                                        Container(
+                                                                                          width: size.width * 0.3,
+                                                                                          child: Text(
+                                                                                            tx['to'],
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            maxLines: 1,
+                                                                                            textAlign: TextAlign.end,
+                                                                                            style: GoogleFonts.montserrat(
+                                                                                              textStyle: const TextStyle(
+                                                                                                overflow: TextOverflow.ellipsis,
+                                                                                                color: secondaryColor,
+                                                                                                fontSize: 15,
+                                                                                                fontWeight: FontWeight.w300,
+                                                                                              ),
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ],
+                                                                                    ),
+                                                                                  ),
+                                                                                ),
+
+                                                                                const SizedBox(
+                                                                                  height: 30,
+                                                                                ),
+                                                                                Divider(
+                                                                                  color: secondaryColor,
+                                                                                ),
+                                                                                // Ether gas
+                                                                                Container(
+                                                                                  child: Row(
+                                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                    children: [
+                                                                                      Container(
+                                                                                        width: size.width * 0.2,
+                                                                                        child: Text(
+                                                                                          "Gas price",
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          maxLines: 3,
+                                                                                          textAlign: TextAlign.start,
+                                                                                          style: GoogleFonts.montserrat(
+                                                                                            textStyle: const TextStyle(
+                                                                                              overflow: TextOverflow.ellipsis,
+                                                                                              color: secondaryColor,
+                                                                                              fontSize: 15,
+                                                                                              fontWeight: FontWeight.w300,
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      SizedBox(
+                                                                                        width: 5,
+                                                                                      ),
+                                                                                      Container(
+                                                                                        width: size.width * 0.2,
+                                                                                        child: Text(
+                                                                                          "${EtherAmount.fromUnitAndValue(EtherUnit.wei, tx['gasPrice']).getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          maxLines: 3,
+                                                                                          textAlign: TextAlign.end,
+                                                                                          style: GoogleFonts.montserrat(
+                                                                                            textStyle: const TextStyle(
+                                                                                              overflow: TextOverflow.ellipsis,
+                                                                                              color: secondaryColor,
+                                                                                              fontSize: 15,
+                                                                                              fontWeight: FontWeight.w300,
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
+                                                                                ),
+                                                                                const SizedBox(
+                                                                                  height: 10,
+                                                                                ),
+                                                                                // Gas used
+                                                                                Container(
+                                                                                  child: Row(
+                                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                    children: [
+                                                                                      Container(
+                                                                                        width: size.width * 0.2,
+                                                                                        child: Text(
+                                                                                          "Gas used",
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          maxLines: 5,
+                                                                                          textAlign: TextAlign.start,
+                                                                                          style: GoogleFonts.montserrat(
+                                                                                            textStyle: const TextStyle(
+                                                                                              overflow: TextOverflow.ellipsis,
+                                                                                              color: secondaryColor,
+                                                                                              fontSize: 13,
+                                                                                              fontWeight: FontWeight.w300,
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                      SizedBox(
+                                                                                        width: 5,
+                                                                                      ),
+                                                                                      Container(
+                                                                                        width: size.width * 0.2,
+                                                                                        child: Text(
+                                                                                          "${tx['gasUsed']}",
+                                                                                          overflow: TextOverflow.ellipsis,
+                                                                                          maxLines: 3,
+                                                                                          textAlign: TextAlign.end,
+                                                                                          style: GoogleFonts.montserrat(
+                                                                                            textStyle: const TextStyle(
+                                                                                              overflow: TextOverflow.ellipsis,
+                                                                                              color: secondaryColor,
+                                                                                              fontSize: 15,
+                                                                                              fontWeight: FontWeight.w300,
+                                                                                            ),
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
+                                                                                ),
+                                                                                const SizedBox(
+                                                                                  height: 10,
+                                                                                ),
+                                                                                Divider(
+                                                                                  color: secondaryColor,
+                                                                                ),
+                                                                                Row(
+                                                                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                                  children: [
+                                                                                    Container(
+                                                                                      width: size.width * 0.2,
+                                                                                      child: Text(
+                                                                                        "Total gas",
+                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                        maxLines: 3,
+                                                                                        textAlign: TextAlign.start,
+                                                                                        style: GoogleFonts.montserrat(
+                                                                                          textStyle: const TextStyle(
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            color: secondaryColor,
+                                                                                            fontSize: 15,
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                    SizedBox(
+                                                                                      width: 5,
+                                                                                    ),
+                                                                                    Container(
+                                                                                      width: size.width * 0.2,
+                                                                                      child: Text(
+                                                                                        "${(EtherAmount.fromUnitAndValue(EtherUnit.wei, tx['gasPrice']).getValueInUnit(EtherUnit.gwei) * double.parse(tx['gasUsed'])).toStringAsFixed(2)} GWEI",
+                                                                                        overflow: TextOverflow.ellipsis,
+                                                                                        maxLines: 3,
+                                                                                        textAlign: TextAlign.end,
+                                                                                        style: GoogleFonts.montserrat(
+                                                                                          textStyle: const TextStyle(
+                                                                                            overflow: TextOverflow.ellipsis,
+                                                                                            color: secondaryColor,
+                                                                                            fontSize: 15,
+                                                                                            fontWeight: FontWeight.w600,
+                                                                                          ),
+                                                                                        ),
+                                                                                      ),
+                                                                                    ),
+                                                                                  ],
+                                                                                ),
+                                                                              ],
+                                                                            ),
+                                                                          ),
+                                                                          const SizedBox(
+                                                                            height:
+                                                                                20,
+                                                                          ),
+                                                                        ],
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                  actions: <
+                                                                      Widget>[
+                                                                    TextButton(
+                                                                      onPressed:
+                                                                          () {
+                                                                        Navigator.of(context)
+                                                                            .pop(false);
+                                                                      },
+                                                                      child:
+                                                                          const Text(
+                                                                        'Ok',
+                                                                        style: TextStyle(
+                                                                            color:
+                                                                                secondaryColor),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                );
+                                                              },
+                                                            );
+                                                          });
+                                                    },
+                                                    child: Container(
+                                                      decoration: BoxDecoration(
+                                                        border: Border.all(
+                                                            color:
+                                                                secondaryColor,
+                                                            width: 1.0),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(20),
+                                                      ),
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                              10),
+                                                      margin: EdgeInsets.only(
+                                                          bottom: 10),
+                                                      child: Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceEvenly,
+                                                        children: [
+                                                          // Icons + Date
+                                                          Container(
+                                                            width: size.width *
+                                                                0.1,
+                                                            child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                tx['from'] ==
+                                                                        publicKey
+                                                                    ? Icon(
+                                                                        CupertinoIcons
+                                                                            .arrow_up_circle_fill,
+                                                                        color:
+                                                                            secondaryColor,
+                                                                      )
+                                                                    : Icon(
+                                                                        CupertinoIcons
+                                                                            .arrow_down_circle_fill,
+                                                                        color: Colors
+                                                                            .green,
+                                                                      ),
+                                                                Text(
+                                                                  "${DateFormat.MMMd().format(DateTime.fromMillisecondsSinceEpoch(int.parse(tx['timeStamp']) * 1000))}",
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          secondaryColor,
+                                                                      fontSize:
+                                                                          9,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          Container(
+                                                            width: size.width *
+                                                                0.4,
+                                                            child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              crossAxisAlignment:
+                                                                  CrossAxisAlignment
+                                                                      .start,
+                                                              children: [
+                                                                tx['from'] ==
+                                                                        publicKey
+                                                                    ? Text(
+                                                                        "Sent",
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        textAlign:
+                                                                            TextAlign.start,
+                                                                        style: GoogleFonts
+                                                                            .montserrat(
+                                                                          textStyle:
+                                                                              const TextStyle(
+                                                                            color:
+                                                                                secondaryColor,
+                                                                            fontSize:
+                                                                                25,
+                                                                            fontWeight:
+                                                                                FontWeight.w700,
+                                                                          ),
+                                                                        ),
+                                                                      )
+                                                                    : Text(
+                                                                        "Received",
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        textAlign:
+                                                                            TextAlign.start,
+                                                                        style: GoogleFonts
+                                                                            .montserrat(
+                                                                          textStyle:
+                                                                              const TextStyle(
+                                                                            color:
+                                                                                secondaryColor,
+                                                                            fontSize:
+                                                                                25,
+                                                                            fontWeight:
+                                                                                FontWeight.w700,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                                tx['from'] ==
+                                                                            publicKey &&
+                                                                        !selectedWalletAssetsData
+                                                                            .keys
+                                                                            .contains(tx['to'])
+                                                                    ? Text(
+                                                                        "To ${tx['to']}",
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        textAlign:
+                                                                            TextAlign.start,
+                                                                        maxLines:
+                                                                            2,
+                                                                        style: GoogleFonts
+                                                                            .montserrat(
+                                                                          textStyle:
+                                                                              const TextStyle(
+                                                                            color:
+                                                                                secondaryColor,
+                                                                            fontSize:
+                                                                                10,
+                                                                            fontWeight:
+                                                                                FontWeight.w400,
+                                                                          ),
+                                                                        ),
+                                                                      )
+                                                                    : Text(
+                                                                        "From ${tx['from']}",
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        maxLines:
+                                                                            2,
+                                                                        textAlign:
+                                                                            TextAlign.start,
+                                                                        style: GoogleFonts
+                                                                            .montserrat(
+                                                                          textStyle:
+                                                                              const TextStyle(
+                                                                            color:
+                                                                                secondaryColor,
+                                                                            fontSize:
+                                                                                10,
+                                                                            fontWeight:
+                                                                                FontWeight.w400,
+                                                                          ),
+                                                                        ),
+                                                                      ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          Container(
+                                                            width: size.width *
+                                                                0.2,
+                                                            child: Column(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                Text(
+                                                                  !selectedWalletAssetsData
+                                                                          .keys
+                                                                          .contains(tx[
+                                                                              'to'])
+                                                                      ? NumberFormat.compact().format(EtherAmount.fromUnitAndValue(
+                                                                              EtherUnit.wei,
+                                                                              tx['value'])
+                                                                          .getValueInUnit(selectedEtherUnit))
+                                                                      : "N/A",
+                                                                  maxLines: 2,
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          secondaryColor,
+                                                                      fontSize:
+                                                                          15,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w700,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Text(
+                                                                  !selectedWalletAssetsData
+                                                                          .keys
+                                                                          .contains(tx[
+                                                                              'to'])
+                                                                      ? "UZSO"
+                                                                          .toString()
+                                                                      : selectedWalletAssetsData[
+                                                                          tx['to']],
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .start,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          secondaryColor,
+                                                                      fontSize:
+                                                                          20,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w400,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ),
+                                              ],
+                                            ),
+                                          )
+                                        : Container(),
+
+                                    SizedBox(
+                                      height: 100,
+                                    ),
+                                  ],
                                 ),
-                              ],
+                              ),
                             ),
-                          ),
+                          ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
