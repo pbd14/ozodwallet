@@ -2377,7 +2377,6 @@ class _WalletScreenState extends State<WalletScreen> {
                                               CupertinoButton(
                                                 padding: EdgeInsets.zero,
                                                 onPressed: () {
-                                                  print(tx);
                                                   showDialog(
                                                       barrierDismissible: true,
                                                       context: context,

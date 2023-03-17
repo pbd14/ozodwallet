@@ -1,11 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:ozodwallet/Models/LanguageData.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
 import 'package:ozodwallet/Services/languages/languages.dart';
-import 'package:ozodwallet/Services/languages/locale_constant.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';

@@ -470,8 +470,6 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
 
                                     Navigator.pop(context);
                                   } catch (e) {
-                                    print("ERER");
-                                    print(e);
                                     setState(() {
                                       loading = false;
                                       error = 'Error. Try again later';
@@ -537,8 +535,6 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                           'Incorrect seed phrase', Colors.red);
                                     }
                                   } catch (e) {
-                                    print("ERER");
-                                    print(e);
                                     setState(() {
                                       loading = false;
                                       error = 'Error. Try again later';

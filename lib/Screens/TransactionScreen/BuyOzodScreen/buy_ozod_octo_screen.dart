@@ -903,8 +903,6 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                           },
                                         });
                                         try {
-                                          print("VFDVFD");
-                                          print(widget.selectedNetworkId);
                                           final resp = await FirebaseFunctions
                                               .instance
                                               .httpsCallable('mintToCustomer')
@@ -920,8 +918,6 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                           });
                                           switch (resp.data) {
                                             case "ERROR":
-                                              print('VGERREVER');
-                                              print(resp);
                                               notificationTitle = "Error";
                                               notificationBody =
                                                   "Servers are overloaded. Try again later";
@@ -950,8 +946,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                             "web3Transaction": resp.data,
                                           });
                                         } on FirebaseFunctionsException catch (e) {
-                                          print('VGERREVE1');
-                                          print(e);
+                                          
                                           notificationTitle = "Error";
                                           notificationBody =
                                               "Servers are overloaded. Please try again later";

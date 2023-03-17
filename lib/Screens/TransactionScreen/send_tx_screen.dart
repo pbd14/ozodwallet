@@ -1508,8 +1508,6 @@ class _SendTxScreenState extends State<SendTxScreen> {
       loadingString = "Pending transaction";
       loading = true;
     });
-    print("RGERG");
-    print(tx);
     try {
       var timeCounter = 0;
       timer = Timer.periodic(Duration(seconds: 10), (Timer t) async {
@@ -1517,8 +1515,6 @@ class _SendTxScreenState extends State<SendTxScreen> {
         TransactionReceipt? txReceipt =
             await widget.web3client.getTransactionReceipt(tx);
         timeCounter++;
-        print("GTEGTER");
-        print(txReceipt);
         if (timeCounter >= 12) {
           showNotification('Timeout', 'Timeout. Transaction is still pending',
               Colors.orange);

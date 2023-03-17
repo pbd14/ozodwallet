@@ -72,7 +72,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         sharedPreference!.setBool("isHomeTutorial", true);
       },
       onClickTarget: (target) {
-        print('onClickTarget: $target');
         if (target.keyTarget == keyButton2) {
           _scrollController.animateTo(200,
               duration: Duration(milliseconds: 500), curve: Curves.ease);
@@ -82,19 +81,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         //       duration: Duration(milliseconds: 500), curve: Curves.ease);
         // }
       },
-      onClickTargetWithTapPosition: (target, tapDetails) {
-        print("target: $target");
-        print(
-            "clicked at position local: ${tapDetails.localPosition} - global: ${tapDetails.globalPosition}");
-      },
-      onClickOverlay: (target) {
-        print('onClickOverlay: $target');
-      },
+      onClickTargetWithTapPosition: (target, tapDetails) {},
+      onClickOverlay: (target) {},
       onSkip: () {
-        print("skip");
       },
     );
-    print("EFFREF4");
   }
 
   List<TargetFocus> _createTargets() {
@@ -467,12 +458,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     valueTxs = uniqueJsonList.map((item) => jsonDecode(item)).toList();
 
     // Get gas indicator data
-    // print("GERGRE");
-    // print(await web3client!.getChainId());
-    // print(await web3client!.getGasPrice());
-    // print(await web3client!.estimateGas(
-    //   sender: EthereumAddress.fromHex(walletData['publicKey']),
-    // ));
     estimateGasPrice = await web3client!.getGasPrice();
     estimateGasAmount = await web3client!.estimateGas(
       sender: walletData['address'],
@@ -4126,8 +4111,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       loadingString = "Pending transaction";
       loading = true;
     });
-    print("RGERG");
-    print(tx);
     try {
       var timeCounter = 0;
       timer = Timer.periodic(Duration(seconds: 10), (Timer t) async {
@@ -4135,8 +4118,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         TransactionReceipt? txReceipt =
             await web3client!.getTransactionReceipt(tx);
         timeCounter++;
-        print("TXREC");
-        print(txReceipt);
         if (timeCounter >= 60) {
           showNotification('Timeout', 'Timeout. Transaction is still pending',
               Colors.orange);
