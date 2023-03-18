@@ -204,7 +204,14 @@ class _MainScreenState extends State<MainScreen> {
                     backgroundColor: darkPrimaryColor,
                     body: SingleChildScrollView(
                       child: Container(
-                        margin: const EdgeInsets.all(20),
+                        margin: kIsWeb
+                        ? size.width >= 600
+                            ? EdgeInsets.fromLTRB((size.width - 600) / 2 + 20,
+                                0, (size.width - 600) / 2 + 20, 20)
+                            : EdgeInsets.fromLTRB(20, 0, 20, 20)
+                        : io.Platform.isIOS
+                            ? const EdgeInsets.fromLTRB(20, 0, 20, 20)
+                            : const EdgeInsets.fromLTRB(20, 0, 20, 20),
                         child: Center(
                           child: Column(
                             children: [
@@ -236,7 +243,7 @@ class _MainScreenState extends State<MainScreen> {
                                 alignment: Alignment.centerRight,
                                 child: Text(
                                   'A Web3 wallet is a safe storage of your money on blockchain. It lets you control and own your money, without any intermediaries.',
-                                  textAlign: TextAlign.start,
+                                  textAlign: TextAlign.end,
                                   style: GoogleFonts.montserrat(
                                     textStyle: const TextStyle(
                                       color: secondaryColor,
