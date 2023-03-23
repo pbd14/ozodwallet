@@ -23,7 +23,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 SpinKitWave(
-                  color: lightPrimaryColor,
+                  color: secondaryColor,
                   size: 50.0,
                 ),
                 SizedBox(
@@ -37,7 +37,7 @@ class _LoadingScreenState extends State<LoadingScreen> {
                     textAlign: TextAlign.center,
                     style: GoogleFonts.montserrat(
                       textStyle: const TextStyle(
-                        color: lightPrimaryColor,
+                        color: secondaryColor,
                         fontSize: 25,
                         fontWeight: FontWeight.w700,
                       ),

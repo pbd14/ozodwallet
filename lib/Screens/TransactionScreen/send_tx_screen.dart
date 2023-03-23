@@ -406,9 +406,10 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                       context)
                                                                   .pop(true);
                                                               showNotification(
-                                                                  'Success',
-                                                                  'Public key found',
-                                                                  Colors.green);
+                                                                'Success',
+                                                                'Public key found',
+                                                                greenColor,
+                                                              );
                                                             }
                                                           }),
                                                     ),
@@ -1388,7 +1389,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                           String notifBody =
                                                               "Transaction made";
                                                           Color notifColor =
-                                                              Colors.green;
+                                                              greenColor,;
                                                           Transaction
                                                               transaction =
                                                               await Transaction
@@ -1526,7 +1527,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
         if (txReceipt != null) {
           timer!.cancel();
           if (txReceipt.status!) {
-            showNotification('Success', 'Transaction made', Colors.green);
+            showNotification('Success', 'Transaction made', greenColor,);
           } else {
             showNotification('Not Verified',
                 'Transaction was not verified. Check later', Colors.orange);

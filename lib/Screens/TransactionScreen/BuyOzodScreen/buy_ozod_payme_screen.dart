@@ -527,7 +527,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                     if (_formKey.currentState!.validate()) {
                                       String notificationTitle = "Success";
                                       String notificationBody = "Payment made";
-                                      Color notificaitonColor = Colors.green;
+                                      Color notificaitonColor = greenColor;
                                       bool paymentMade = false;
                                       setState(() {
                                         loading = true;

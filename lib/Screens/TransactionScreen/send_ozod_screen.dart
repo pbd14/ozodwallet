@@ -408,9 +408,10 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                                       context)
                                                                   .pop(true);
                                                               showNotification(
-                                                                  'Success',
-                                                                  'Public key found',
-                                                                  Colors.green);
+                                                                'Success',
+                                                                'Public key found',
+                                                                greenColor,
+                                                              );
                                                             }
                                                           }),
                                                     ),
@@ -1059,7 +1060,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                         String notifBody =
                                                             "Transaction made";
                                                         Color notifColor =
-                                                            Colors.green;
+                                                            greenColor;
 
                                                         // ignore: unused_local_variable
                                                         bool txSuccess = true;
@@ -1177,7 +1178,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
         if (txReceipt != null) {
           timer!.cancel();
           if (txReceipt.status!) {
-            showNotification('Success', 'Transaction made', Colors.green);
+            showNotification('Success', 'Transaction made', greenColor,);
           } else {
             showNotification('Not Verified',
                 'Transaction was not verified. Check later', Colors.orange);

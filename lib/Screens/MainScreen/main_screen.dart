@@ -42,7 +42,9 @@ class _MainScreenState extends State<MainScreen> {
       HomeScreen(
         refreshFunction: _refresh,
       ),
-      WalletScreen(),
+      WalletScreen(
+        refreshFunction: _refresh,
+      ),
       // LoyaltyScreen(),
       // WalletScreen(),
     ];
@@ -69,8 +71,8 @@ class _MainScreenState extends State<MainScreen> {
       PersistentBottomNavBarItem(
         icon: const Icon(Icons.wallet),
         title: ("Home"),
-        activeColorPrimary: secondaryColor,
-        activeColorSecondary: darkPrimaryColor,
+        activeColorPrimary: darkPrimaryColor,
+        activeColorSecondary: secondaryColor,
         inactiveColorPrimary: darkPrimaryColor,
         textStyle: GoogleFonts.montserrat(
           textStyle: const TextStyle(
@@ -83,8 +85,8 @@ class _MainScreenState extends State<MainScreen> {
       PersistentBottomNavBarItem(
         icon: const Icon(CupertinoIcons.suit_diamond_fill),
         title: ("Ethereum"),
-        activeColorPrimary: secondaryColor,
-        activeColorSecondary: darkPrimaryColor,
+        activeColorPrimary: darkPrimaryColor,
+        activeColorSecondary: secondaryColor,
         inactiveColorPrimary: darkPrimaryColor,
         textStyle: GoogleFonts.montserrat(
           textStyle: const TextStyle(
@@ -205,13 +207,16 @@ class _MainScreenState extends State<MainScreen> {
                     body: SingleChildScrollView(
                       child: Container(
                         margin: kIsWeb
-                        ? size.width >= 600
-                            ? EdgeInsets.fromLTRB((size.width - 600) / 2 + 20,
-                                0, (size.width - 600) / 2 + 20, 20)
-                            : EdgeInsets.fromLTRB(20, 0, 20, 20)
-                        : io.Platform.isIOS
-                            ? const EdgeInsets.fromLTRB(20, 0, 20, 20)
-                            : const EdgeInsets.fromLTRB(20, 0, 20, 20),
+                            ? size.width >= 600
+                                ? EdgeInsets.fromLTRB(
+                                    (size.width - 600) / 2 + 20,
+                                    0,
+                                    (size.width - 600) / 2 + 20,
+                                    20)
+                                : EdgeInsets.fromLTRB(20, 0, 20, 20)
+                            : io.Platform.isIOS
+                                ? const EdgeInsets.fromLTRB(20, 0, 20, 20)
+                                : const EdgeInsets.fromLTRB(20, 0, 20, 20),
                         child: Center(
                           child: Column(
                             children: [

@@ -731,7 +731,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                               String notificationBody =
                                                   "Payment made";
                                               Color notificaitonColor =
-                                                  Colors.green;
+                                                  greenColor,;
                                               bool paymentMade = false;
                                               setState(() {
                                                 loading1 = true;
@@ -860,7 +860,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                   press: () async {
                                     String notificationTitle = "Success";
                                     String notificationBody = "Payment made";
-                                    Color notificaitonColor = Colors.green;
+                                    Color notificaitonColor = greenColor,;
                                     bool paymentMade = false;
                                     setState(() {
                                       loading1 = true;
@@ -916,6 +916,8 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                             'blockchainNetwork':
                                                 widget.selectedNetworkId,
                                           });
+                                          print("FUNCDATA");
+                                          print(resp.data);
                                           switch (resp.data) {
                                             case "ERROR":
                                               notificationTitle = "Error";
@@ -946,7 +948,8 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                             "web3Transaction": resp.data,
                                           });
                                         } on FirebaseFunctionsException catch (e) {
-                                          
+                                          print('FIREBASE ERROR');
+                                          print(e);
                                           notificationTitle = "Error";
                                           notificationBody =
                                               "Servers are overloaded. Please try again later";
@@ -996,7 +999,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                       loading1 = false;
                                     });
                                   },
-                                  color: Colors.green,
+                                  color: greenColor,
                                   textColor: whiteColor,
                                 ),
                               ),

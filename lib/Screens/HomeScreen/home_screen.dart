@@ -34,11 +34,11 @@ import 'package:web3dart/web3dart.dart';
 class HomeScreen extends StatefulWidget {
   String error;
   Function refreshFunction;
-  HomeScreen(
-      {Key? key,
-      this.error = 'Something Went Wrong',
-      required this.refreshFunction})
-      : super(key: key);
+  HomeScreen({
+    Key? key,
+    this.error = 'Something Went Wrong',
+    required this.refreshFunction,
+  }) : super(key: key);
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -83,8 +83,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       },
       onClickTargetWithTapPosition: (target, tapDetails) {},
       onClickOverlay: (target) {},
-      onSkip: () {
-      },
+      onSkip: () {},
     );
   }
 
@@ -119,17 +118,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20.0),
                       child: Text(
-                      "There are many blockchain networks, which work separately. Think of them as Visa and MasterCard in traditional finance. We recommend POLYGON, because of its low fees",
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 10,
-                      style: GoogleFonts.montserrat(
-                        textStyle: const TextStyle(
-                          color: darkPrimaryColor,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
+                        "There are many blockchain networks, which work separately. Think of them as Visa and MasterCard in traditional finance. We recommend POLYGON, because of its low fees",
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 10,
+                        style: GoogleFonts.montserrat(
+                          textStyle: const TextStyle(
+                            color: darkPrimaryColor,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
                     ),
                   ],
                 ),
@@ -166,18 +165,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     ),
                     Padding(
                       padding: const EdgeInsets.only(top: 50.0),
-                      child:Text(
-                      "This is your wallet on selected blockchain network. Here you can see you balance of UZSO. Remember: 1 UZSO = 1000 UZS. At the bottom is your public key",
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 10,
-                      style: GoogleFonts.montserrat(
-                        textStyle: const TextStyle(
-                          color: darkPrimaryColor,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
+                      child: Text(
+                        "This is your wallet on selected blockchain network. Here you can see you balance of UZSO. Remember: 1 UZSO = 1000 UZS. At the bottom is your public key",
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 10,
+                        style: GoogleFonts.montserrat(
+                          textStyle: const TextStyle(
+                            color: darkPrimaryColor,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
                     ),
                   ],
                 ),
@@ -216,17 +215,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 20.0),
                       child: Text(
-                      "Gas indicator shows how much gas is left. To get more gas, you need to buy cryptocurrency of selected blockchain network. Remember that gas price may vary",
-                      overflow: TextOverflow.ellipsis,
-                      maxLines: 10,
-                      style: GoogleFonts.montserrat(
-                        textStyle: const TextStyle(
-                          color: darkPrimaryColor,
-                          fontSize: 15,
-                          fontWeight: FontWeight.w500,
+                        "Gas indicator shows how much gas is left. To get more gas, you need to buy cryptocurrency of selected blockchain network. Remember that gas price may vary",
+                        overflow: TextOverflow.ellipsis,
+                        maxLines: 10,
+                        style: GoogleFonts.montserrat(
+                          textStyle: const TextStyle(
+                            color: darkPrimaryColor,
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
                         ),
                       ),
-                    ),
                     ),
                   ],
                 ),
@@ -574,7 +573,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                               colors: [
-                                darkPrimaryColor,
                                 darkPrimaryColor,
                                 primaryColor,
                               ],
@@ -1296,8 +1294,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                           isDense: true,
                                           menuMaxHeight: 200,
                                           borderRadius:
-                                              BorderRadius.circular(40.0),
-                                          dropdownColor: darkPrimaryColor,
+                                              BorderRadius.circular(30.0),
+                                          dropdownColor: lightPrimaryColor,
                                           // focusColor: whiteColor,
                                           iconEnabledColor: secondaryColor,
                                           alignment: Alignment.centerLeft,
@@ -1399,7 +1397,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                             textStyle:
                                                                 const TextStyle(
                                                               color:
-                                                                  secondaryColor,
+                                                                  darkPrimaryColor,
                                                               fontSize: 20,
                                                               fontWeight:
                                                                   FontWeight
@@ -2565,7 +2563,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                                                               );
                                                                                                               String notifTitle = "Success 2371617";
                                                                                                               String notifBody = "Transaction made";
-                                                                                                              Color notifColor = Colors.green;
+                                                                                                              Color notifColor = greenColor;
 
                                                                                                               // ignore: unused_local_variable
                                                                                                               bool txSuccess = true;

@@ -17,13 +17,14 @@ void main() async {
       // name: 'Ozod Mobile Web',
       // options: DefaultFirebaseOptions.currentPlatform,
       options: FirebaseOptions(
-          apiKey: "AIzaSyCAJV40XWhTSjHECwJ-FvyP6tvEPcAOlS8",
-          authDomain: "ozod-finance.firebaseapp.com",
-          projectId: "ozod-finance",
-          storageBucket: "ozod-finance.appspot.com",
-          messagingSenderId: "31089423786",
-          appId: "1:31089423786:web:2f103a290b0e7703fd27d3",
-          measurementId: "G-5HF2H01K93"),
+        apiKey: "AIzaSyCAJV40XWhTSjHECwJ-FvyP6tvEPcAOlS8",
+        authDomain: "ozod-finance.firebaseapp.com",
+        projectId: "ozod-finance",
+        storageBucket: "ozod-finance.appspot.com",
+        messagingSenderId: "31089423786",
+        appId: "1:31089423786:web:2f103a290b0e7703fd27d3",
+        measurementId: "G-5HF2H01K93",
+      ),
     );
   } else {
     await Firebase.initializeApp();
