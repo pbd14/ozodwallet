@@ -1389,7 +1389,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                           String notifBody =
                                                               "Transaction made";
                                                           Color notifColor =
-                                                              greenColor,;
+                                                              greenColor;
                                                           Transaction
                                                               transaction =
                                                               await Transaction

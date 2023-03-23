@@ -731,7 +731,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                               String notificationBody =
                                                   "Payment made";
                                               Color notificaitonColor =
-                                                  greenColor,;
+                                                  greenColor;
                                               bool paymentMade = false;
                                               setState(() {
                                                 loading1 = true;
@@ -860,7 +860,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                   press: () async {
                                     String notificationTitle = "Success";
                                     String notificationBody = "Payment made";
-                                    Color notificaitonColor = greenColor,;
+                                    Color notificaitonColor = greenColor;
                                     bool paymentMade = false;
                                     setState(() {
                                       loading1 = true;
