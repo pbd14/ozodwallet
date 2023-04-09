@@ -2143,9 +2143,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                   width:
                                                                       size.width *
                                                                           0.9,
-                                                                  height:
-                                                                      size.height *
-                                                                          0.4,
+                                                                  height: 350,
                                                                   margin:
                                                                       EdgeInsets
                                                                           .all(
@@ -2760,145 +2758,141 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 fillColor: secondaryColor,
                                                 shape: CircleBorder(),
                                                 onPressed: () {
-                                                  showDialog(
-                                                      barrierDismissible: false,
-                                                      context: context,
-                                                      builder: (BuildContext
-                                                          context) {
-                                                        return StatefulBuilder(
-                                                          builder: (context,
-                                                              StateSetter
-                                                                  setState) {
-                                                            return AlertDialog(
-                                                              backgroundColor:
-                                                                  darkPrimaryColor,
-                                                              shape:
-                                                                  RoundedRectangleBorder(
-                                                                borderRadius:
-                                                                    BorderRadius
-                                                                        .circular(
-                                                                            20.0),
-                                                              ),
-                                                              title: const Text(
-                                                                'QR Code',
-                                                                style: TextStyle(
-                                                                    color:
-                                                                        secondaryColor),
-                                                              ),
-                                                              content:
-                                                                  SingleChildScrollView(
-                                                                child:
-                                                                    Container(
-                                                                  width:
-                                                                      size.width *
-                                                                          0.9,
-                                                                  height:
-                                                                      size.height *
-                                                                          0.4,
-                                                                  margin:
-                                                                      EdgeInsets
-                                                                          .all(
-                                                                              10),
-                                                                  child: Column(
-                                                                    children: [
+                                                  if (publicKey != 'Loading')
+                                                    showDialog(
+                                                        barrierDismissible:
+                                                            false,
+                                                        context: context,
+                                                        builder: (BuildContext
+                                                            context) {
+                                                          return StatefulBuilder(
+                                                            builder: (context,
+                                                                StateSetter
+                                                                    setState) {
+                                                              return AlertDialog(
+                                                                backgroundColor:
+                                                                    darkPrimaryColor,
+                                                                shape:
+                                                                    RoundedRectangleBorder(
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              20.0),
+                                                                ),
+                                                                title:
+                                                                    const Text(
+                                                                  'QR Code',
+                                                                  style: TextStyle(
+                                                                      color:
+                                                                          secondaryColor),
+                                                                ),
+                                                                content:
+                                                                    SingleChildScrollView(
+                                                                  child:
                                                                       Container(
-                                                                        padding:
-                                                                            const EdgeInsets.all(20),
-                                                                        decoration:
-                                                                            BoxDecoration(
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(20.0),
-                                                                          gradient:
-                                                                              const LinearGradient(
-                                                                            begin:
-                                                                                Alignment.topLeft,
-                                                                            end:
-                                                                                Alignment.bottomRight,
-                                                                            colors: [
-                                                                              darkPrimaryColor,
-                                                                              primaryColor
-                                                                            ],
+                                                                    width:
+                                                                        size.width *
+                                                                            0.9,
+                                                                    height:
+                                                                        size.height *
+                                                                            0.4,
+                                                                    margin: EdgeInsets
+                                                                        .all(
+                                                                            10),
+                                                                    child:
+                                                                        Column(
+                                                                      children: [
+                                                                        Container(
+                                                                          padding:
+                                                                              const EdgeInsets.all(20),
+                                                                          decoration:
+                                                                              BoxDecoration(
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(20.0),
+                                                                            gradient:
+                                                                                const LinearGradient(
+                                                                              begin: Alignment.topLeft,
+                                                                              end: Alignment.bottomRight,
+                                                                              colors: [
+                                                                                darkPrimaryColor,
+                                                                                primaryColor
+                                                                              ],
+                                                                            ),
+                                                                          ),
+                                                                          child:
+                                                                              QrImage(
+                                                                            data:
+                                                                                EthereumAddress.fromHex(publicKey).addressBytes.toString(),
+                                                                            foregroundColor:
+                                                                                secondaryColor,
                                                                           ),
                                                                         ),
-                                                                        child:
-                                                                            QrImage(
-                                                                          data: EthereumAddress.fromHex(publicKey)
-                                                                              .addressBytes
-                                                                              .toString(),
-                                                                          foregroundColor:
-                                                                              secondaryColor,
+                                                                        SizedBox(
+                                                                          height:
+                                                                              10,
                                                                         ),
-                                                                      ),
-                                                                      SizedBox(
-                                                                        height:
-                                                                            10,
-                                                                      ),
-                                                                      Row(
-                                                                        mainAxisAlignment:
-                                                                            MainAxisAlignment.spaceBetween,
-                                                                        children: [
-                                                                          Expanded(
-                                                                            child:
-                                                                                Text(
-                                                                              publicKey,
-                                                                              overflow: TextOverflow.ellipsis,
-                                                                              maxLines: 10,
-                                                                              textAlign: TextAlign.start,
-                                                                              style: GoogleFonts.montserrat(
-                                                                                textStyle: const TextStyle(
-                                                                                  color: secondaryColor,
-                                                                                  fontSize: 15,
-                                                                                  fontWeight: FontWeight.w500,
+                                                                        Row(
+                                                                          mainAxisAlignment:
+                                                                              MainAxisAlignment.spaceBetween,
+                                                                          children: [
+                                                                            Expanded(
+                                                                              child: Text(
+                                                                                publicKey,
+                                                                                overflow: TextOverflow.ellipsis,
+                                                                                maxLines: 10,
+                                                                                textAlign: TextAlign.start,
+                                                                                style: GoogleFonts.montserrat(
+                                                                                  textStyle: const TextStyle(
+                                                                                    color: secondaryColor,
+                                                                                    fontSize: 15,
+                                                                                    fontWeight: FontWeight.w500,
+                                                                                  ),
                                                                                 ),
                                                                               ),
                                                                             ),
-                                                                          ),
-                                                                          Container(
-                                                                            width:
-                                                                                30,
-                                                                            child:
-                                                                                IconButton(
-                                                                              padding: EdgeInsets.zero,
-                                                                              onPressed: () async {
-                                                                                await Clipboard.setData(ClipboardData(text: publicKey));
-                                                                                showNotification('Copied', 'Public key copied', greenColor);
-                                                                              },
-                                                                              icon: Icon(
-                                                                                CupertinoIcons.doc,
-                                                                                color: secondaryColor,
+                                                                            Container(
+                                                                              width: 30,
+                                                                              child: IconButton(
+                                                                                padding: EdgeInsets.zero,
+                                                                                onPressed: () async {
+                                                                                  await Clipboard.setData(ClipboardData(text: publicKey));
+                                                                                  showNotification('Copied', 'Public key copied', greenColor);
+                                                                                },
+                                                                                icon: Icon(
+                                                                                  CupertinoIcons.doc,
+                                                                                  color: secondaryColor,
+                                                                                ),
                                                                               ),
                                                                             ),
-                                                                          ),
-                                                                        ],
-                                                                      ),
-                                                                      SizedBox(
-                                                                        height:
-                                                                            20,
-                                                                      ),
-                                                                    ],
+                                                                          ],
+                                                                        ),
+                                                                        SizedBox(
+                                                                          height:
+                                                                              20,
+                                                                        ),
+                                                                      ],
+                                                                    ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                              actions: <Widget>[
-                                                                TextButton(
-                                                                  onPressed: () =>
-                                                                      Navigator.of(
-                                                                              context)
-                                                                          .pop(
-                                                                              false),
-                                                                  child:
-                                                                      const Text(
-                                                                    'Ok',
-                                                                    style: TextStyle(
-                                                                        color:
-                                                                            secondaryColor),
+                                                                actions: <
+                                                                    Widget>[
+                                                                  TextButton(
+                                                                    onPressed: () =>
+                                                                        Navigator.of(context)
+                                                                            .pop(false),
+                                                                    child:
+                                                                        const Text(
+                                                                      'Ok',
+                                                                      style: TextStyle(
+                                                                          color:
+                                                                              secondaryColor),
+                                                                    ),
                                                                   ),
-                                                                ),
-                                                              ],
-                                                            );
-                                                          },
-                                                        );
-                                                      });
+                                                                ],
+                                                              );
+                                                            },
+                                                          );
+                                                        });
                                                 },
                                                 child: Icon(
                                                   CupertinoIcons.arrow_down,

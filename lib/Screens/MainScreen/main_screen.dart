@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ozodwallet/Screens/AiScreen/ai_screen.dart';
 import 'package:ozodwallet/Screens/HomeScreen/home_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/wallet_screen.dart';
 import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
@@ -35,7 +36,7 @@ class _MainScreenState extends State<MainScreen> {
   StreamSubscription? firebaseVarsSubscription;
   StreamSubscription? walletExistsSubscription;
   final PersistentTabController _controller =
-      PersistentTabController(initialIndex: 0);
+      PersistentTabController(initialIndex: 1);
 
   List<Widget> _buildScreens() {
     return [
@@ -72,7 +73,7 @@ class _MainScreenState extends State<MainScreen> {
         icon: const Icon(Icons.wallet),
         title: ("Home"),
         activeColorPrimary: darkPrimaryColor,
-        activeColorSecondary: secondaryColor,
+        activeColorSecondary: lightPrimaryColor,
         inactiveColorPrimary: darkPrimaryColor,
         textStyle: GoogleFonts.montserrat(
           textStyle: const TextStyle(
@@ -86,7 +87,7 @@ class _MainScreenState extends State<MainScreen> {
         icon: const Icon(CupertinoIcons.suit_diamond_fill),
         title: ("Ethereum"),
         activeColorPrimary: darkPrimaryColor,
-        activeColorSecondary: secondaryColor,
+        activeColorSecondary: lightPrimaryColor,
         inactiveColorPrimary: darkPrimaryColor,
         textStyle: GoogleFonts.montserrat(
           textStyle: const TextStyle(
