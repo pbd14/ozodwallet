@@ -10,6 +10,9 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'Services/languages/locale_constant.dart';
 
+// flutter build web --web-renderer html --release
+// firebase deploy --only hosting:ozod-wallet 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb) {

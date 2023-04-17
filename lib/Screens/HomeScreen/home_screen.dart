@@ -258,6 +258,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       'image': "assets/images/card_polygon.png",
       'color': whiteColor,
     },
+    'aurora_testnet': {
+      'image': "assets/images/card_aurora.png",
+      'color': whiteColor,
+    },
   };
 
   String publicKey = 'Loading';
@@ -443,12 +447,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     Map walletData =
         await SafeStorageService().getWalletData(selectedWalletIndex);
 
-    // ENC CODE
-    // print("CODERGREGRE");
-    // EncryptionService encryptionService = EncryptionService();
-    // print(encryptionService.enc(
-    //     "https://rpc.ankr.com/premium-http/tron/e84adb6a22d3cb13dfeccf850187e9682510541afb194bd9232c8d2cd95bb328"));
-
     if (jsonDecode(uzsoFirebase!.get('contract_abi')) != null) {
       uzsoContract = DeployedContract(
           ContractAbi.fromJson(
@@ -459,7 +457,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     // get balance
     final responseBalance = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=tokenbalance&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=tokenbalance&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
     dynamic jsonBodyBalance = jsonDecode(responseBalance.body);
     EtherAmount valueBalance =
         EtherAmount.fromUnitAndValue(EtherUnit.wei, jsonBodyBalance['result']);
@@ -471,7 +469,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
     // get txs
     final response = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=tokentx&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&page=1&offset=10&startblock=0&endblock=99999999&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=tokentx&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&page=1&offset=10&startblock=0&endblock=99999999&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
     dynamic jsonBody = jsonDecode(response.body);
     List valueTxs = jsonBody['result'];
 
@@ -1878,8 +1876,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                               DecorationImage(
                                                             image: AssetImage(
                                                                 cardsData[
+                                                                        networkId] != null ? cardsData[
                                                                         networkId]![
-                                                                    'image']),
+                                                                    'image'] : "assets/images/card.png",),
                                                             fit: BoxFit
                                                                 .fitHeight,
                                                           ),

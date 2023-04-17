@@ -6,6 +6,7 @@ const Web3 = require('web3');
 // const Moralis = require("moralis").default;
 const ABI_UZSO_GOERLI = require("./abi_uzso_goerli.json");
 const ABI_UZSO_POLYGON_MUMBAI = require("./abi_uzso_polygon_mumbai.json");
+const ABI_UZSO_AURORA_TESTNET = require("./abi_uzso_aurora_testnet.json");
 
 var web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_QUICKNODE_GOERLI_URL))
 var ABI = ABI_UZSO_GOERLI;
@@ -19,11 +20,11 @@ exports.mintToCustomer = functions
         enforceAppCheck: false  // Requests without valid App Check tokens will be rejected.
     })
     .https.onCall(async (data, context) => {
-        if (context.app == undefined) {
-            throw new functions.https.HttpsError(
-                'failed-precondition',
-                'The function must be called from an App Check verified app.')
-        }
+        // if (context.app == undefined) {
+        //     throw new functions.https.HttpsError(
+        //         'failed-precondition',
+        //         'The function must be called from an App Check verified app.')
+        // }
 
 
         if (data.blockchainNetwork == 'goerli') {
@@ -34,6 +35,11 @@ exports.mintToCustomer = functions
             web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_ALCHEMY_POLYGON_MUMBAI_URL))
             ABI = ABI_UZSO_POLYGON_MUMBAI;
             proxy_address = process.env.UZSO_POLYGON_MUMBAI_PROXY_ADDRESS
+        }
+        else if (data.blockchainNetwork == 'aurora_testnet') {
+            web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_INFURA_AURORA_TESTNET_URL))
+            ABI = ABI_UZSO_AURORA_TESTNET;
+            proxy_address = process.env.UZSO_AURORA_TESTNET_PROXY_ADDRESS
         } else {
             return "ERROR";
         }
@@ -113,6 +119,10 @@ exports.burn = functions
             web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_ALCHEMY_POLYGON_MUMBAI_URL))
             ABI = ABI_UZSO_POLYGON_MUMBAI;
             proxy_address = process.env.UZSO_POLYGON_MUMBAI_PROXY_ADDRESS
+        } else if (data.blockchainNetwork == 'aurora_testnet') {
+            web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_INFURA_AURORA_TESTNET_URL))
+            ABI = ABI_UZSO_AURORA_TESTNET;
+            proxy_address = process.env.UZSO_AURORA_TESTNET_PROXY_ADDRESS
         } else {
             return "ERROR";
         }

@@ -9,6 +9,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:ozodwallet/Screens/HomeScreen/home_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/wallet_screen.dart';
 import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
+import 'package:ozodwallet/Services/encryption_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
@@ -115,6 +116,12 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> prepare() async {
+    // ENC CODE
+    // print("CODERGREGRE1");
+    // EncryptionService encryptionService = EncryptionService();
+    // print(encryptionService.enc(
+    //     "https://aurora-mainnet.infura.io/v3/60379ca758e74e8a88791b7b701c1c13"));
+
     AndroidOptions _getAndroidOptions() => const AndroidOptions(
           encryptedSharedPreferences: true,
         );
@@ -122,11 +129,11 @@ class _MainScreenState extends State<MainScreen> {
         .signInWithEmailAndPassword(
             email: "wallet.android@ozod.com", password: "Wallet0257500\$")
         .catchError((error, stackTrace) {
-          setState(() {
-            appIsActive = false;
-            loading = false;
-          });
-        });
+      setState(() {
+        appIsActive = false;
+        loading = false;
+      });
+    });
     firebaseVarsSubscription = await FirebaseFirestore.instance
         .collection('app_data')
         .doc('vars')

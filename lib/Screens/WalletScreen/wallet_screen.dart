@@ -275,9 +275,12 @@ class _WalletScreenState extends State<WalletScreen> {
 
     // get txs
     final response = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}//api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+        "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
     dynamic jsonBody = jsonDecode(response.body);
-    List valueTxs = jsonBody['result'];
+    List valueTxs = [];
+    if (jsonBody['result'] != null) {
+      valueTxs = jsonBody['result'];
+    }
 
     // Gas indicator
     estimateGasPrice = await web3client.getGasPrice();
@@ -2117,19 +2120,19 @@ class _WalletScreenState extends State<WalletScreen> {
                                             // if (!appData!.get(
                                             //         'AVAILABLE_ETHER_NETWORKS')[
                                             //     selectedNetworkId]['is_testnet'])
-                                              Text(
-                                                "Transaction cost ${(estimateGasPrice.getValueInUnit(EtherUnit.ether) * selectedNetworkVsUsd * estimateGasAmount.toDouble()).toStringAsFixed(6)}\$",
-                                                overflow: TextOverflow.ellipsis,
-                                                textAlign: TextAlign.start,
-                                                maxLines: 4,
-                                                style: GoogleFonts.montserrat(
-                                                  textStyle: const TextStyle(
-                                                    color: whiteColor,
-                                                    fontSize: 17,
-                                                    fontWeight: FontWeight.w700,
-                                                  ),
+                                            Text(
+                                              "Transaction cost ${(estimateGasPrice.getValueInUnit(EtherUnit.ether) * selectedNetworkVsUsd * estimateGasAmount.toDouble()).toStringAsFixed(6)}\$",
+                                              overflow: TextOverflow.ellipsis,
+                                              textAlign: TextAlign.start,
+                                              maxLines: 4,
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  color: whiteColor,
+                                                  fontSize: 17,
+                                                  fontWeight: FontWeight.w700,
                                                 ),
                                               ),
+                                            ),
                                             SizedBox(
                                               height: 20,
                                             ),
