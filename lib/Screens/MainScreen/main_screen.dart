@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io' as io;
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:ozodwallet/Screens/AiScreen/ai_screen.dart';
 import 'package:ozodwallet/Screens/HomeScreen/home_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/wallet_screen.dart';
 import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
@@ -36,7 +36,7 @@ class _MainScreenState extends State<MainScreen> {
   StreamSubscription? firebaseVarsSubscription;
   StreamSubscription? walletExistsSubscription;
   final PersistentTabController _controller =
-      PersistentTabController(initialIndex: 1);
+      PersistentTabController(initialIndex: 0);
 
   List<Widget> _buildScreens() {
     return [
@@ -118,6 +118,15 @@ class _MainScreenState extends State<MainScreen> {
     AndroidOptions _getAndroidOptions() => const AndroidOptions(
           encryptedSharedPreferences: true,
         );
+    await FirebaseAuth.instance
+        .signInWithEmailAndPassword(
+            email: "wallet.android@ozod.com", password: "Wallet0257500\$")
+        .catchError((error, stackTrace) {
+          setState(() {
+            appIsActive = false;
+            loading = false;
+          });
+        });
     firebaseVarsSubscription = await FirebaseFirestore.instance
         .collection('app_data')
         .doc('vars')

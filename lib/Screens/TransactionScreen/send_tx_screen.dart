@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:ozodwallet/Services/coingecko_api_service.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
@@ -25,6 +26,7 @@ class SendTxScreen extends StatefulWidget {
   String networkId;
   Web3Client web3client;
   List walletAssets;
+  bool isTestnet;
 
   SendTxScreen({
     Key? key,
@@ -33,6 +35,7 @@ class SendTxScreen extends StatefulWidget {
     required this.networkId,
     required this.web3client,
     required this.walletAssets,
+    required this.isTestnet,
   }) : super(key: key);
 
   @override
@@ -51,6 +54,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
     EtherUnit.gwei: 'GWEI',
   };
   EtherUnit selectedEtherUnit = EtherUnit.ether;
+  double selectedNetworkVsUsd = 0;
 
   String? receiverPublicAddress;
   String? amount;
@@ -63,7 +67,32 @@ class _SendTxScreenState extends State<SendTxScreen> {
   firestore.DocumentSnapshot? appData;
   TextEditingController textEditingController = TextEditingController();
 
+  Future<double> getSelectedNetworkVsUsd() async {
+    double result;
+    switch (widget.networkId) {
+      case 'goerli':
+        result = await CoingeckoApiService().getEthVsUsd();
+        break;
+      case 'mainnet':
+        result = await CoingeckoApiService().getEthVsUsd();
+        break;
+      case 'polygon':
+        result = await CoingeckoApiService().getMaticVsUsd();
+        break;
+      case 'polygon_mumbai':
+        result = await CoingeckoApiService().getMaticVsUsd();
+        break;
+      default:
+        result = await CoingeckoApiService().getEthVsUsd();
+    }
+    return result;
+  }
+
+
   Future<void> prepare() async {
+    // Get selected network vs usd
+    selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
+
     appData = await firestore.FirebaseFirestore.instance
         .collection('app_data')
         .doc('data')
@@ -1202,51 +1231,129 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                           const SizedBox(
                                                             height: 10,
                                                           ),
-                                                          Row(
-                                                            children: [
-                                                              Icon(
-                                                                CupertinoIcons
-                                                                    .exclamationmark_circle,
-                                                                color:
-                                                                    secondaryColor,
-                                                              ),
-                                                              SizedBox(
-                                                                width: 5,
-                                                              ),
-                                                              Expanded(
-                                                                child: Text(
-                                                                  "Estimate gas price might be significantly higher that the actual price",
-                                                                  overflow:
-                                                                      TextOverflow
-                                                                          .ellipsis,
-                                                                  maxLines: 5,
-                                                                  textAlign:
-                                                                      TextAlign
-                                                                          .start,
-                                                                  style: GoogleFonts
-                                                                      .montserrat(
-                                                                    textStyle:
-                                                                        const TextStyle(
-                                                                      overflow:
-                                                                          TextOverflow
-                                                                              .ellipsis,
-                                                                      color:
-                                                                          secondaryColor,
-                                                                      fontSize:
-                                                                          10,
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w300,
+                                                          // Row(
+                                                          //   children: [
+                                                          //     Icon(
+                                                          //       CupertinoIcons
+                                                          //           .exclamationmark_circle,
+                                                          //       color:
+                                                          //           secondaryColor,
+                                                          //     ),
+                                                          //     SizedBox(
+                                                          //       width: 5,
+                                                          //     ),
+                                                          //     Expanded(
+                                                          //       child: Text(
+                                                          //         "Estimate gas price might be significantly higher that the actual price",
+                                                          //         overflow:
+                                                          //             TextOverflow
+                                                          //                 .ellipsis,
+                                                          //         maxLines: 5,
+                                                          //         textAlign:
+                                                          //             TextAlign
+                                                          //                 .start,
+                                                          //         style: GoogleFonts
+                                                          //             .montserrat(
+                                                          //           textStyle:
+                                                          //               const TextStyle(
+                                                          //             overflow:
+                                                          //                 TextOverflow
+                                                          //                     .ellipsis,
+                                                          //             color:
+                                                          //                 secondaryColor,
+                                                          //             fontSize:
+                                                          //                 10,
+                                                          //             fontWeight:
+                                                          //                 FontWeight
+                                                          //                     .w300,
+                                                          //           ),
+                                                          //         ),
+                                                          //       ),
+                                                          //     ),
+                                                           
+                                                          //   ],
+                                                          // ),
+                                                          // const SizedBox(
+                                                          //   height: 10,
+                                                          // ),
+                                                          
+                                                          // Total gas
+                                                          if (widget.isTestnet)
+                                                            Divider(
+                                                              color:
+                                                                  secondaryColor,
+                                                            ),
+                                                          if (widget.isTestnet)
+                                                            Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .spaceBetween,
+                                                              children: [
+                                                                Container(
+                                                                  width:
+                                                                      size.width *
+                                                                          0.2,
+                                                                  child: Text(
+                                                                    "Transaction gas price",
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    maxLines: 3,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .start,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        fontSize:
+                                                                            15,
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                      ),
                                                                     ),
                                                                   ),
                                                                 ),
-                                                              ),
-                                                            ],
-                                                          ),
-                                                          const SizedBox(
-                                                            height: 10,
-                                                          ),
+                                                                SizedBox(
+                                                                  width: 5,
+                                                                ),
+                                                                Container(
+                                                                  width:
+                                                                      size.width *
+                                                                          0.2,
+                                                                  child: Text(
+                                                                    "${(etherGas.getValueInUnit(EtherUnit.ether) * selectedNetworkVsUsd * estimateGas.toDouble()).toStringAsFixed(6)}\$",
+                                                                    overflow:
+                                                                        TextOverflow
+                                                                            .ellipsis,
+                                                                    maxLines: 3,
+                                                                    textAlign:
+                                                                        TextAlign
+                                                                            .end,
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        overflow:
+                                                                            TextOverflow.ellipsis,
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        fontSize:
+                                                                            15,
+                                                                        fontWeight:
+                                                                            FontWeight.w600,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                              ],
+                                                            ),
 
+                                                          // Total
                                                           Divider(
                                                             color:
                                                                 secondaryColor,
@@ -1324,6 +1431,45 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                                 ),
                                                               ),
                                                             ],
+                                                          ),
+                                                          SizedBox(
+                                                            height: 20,
+                                                          ),
+                                                          Center(
+                                                            child: Row(
+                                                              mainAxisAlignment:
+                                                                  MainAxisAlignment
+                                                                      .center,
+                                                              children: [
+                                                                Text(
+                                                                  "Powered by   ",
+                                                                  overflow:
+                                                                      TextOverflow
+                                                                          .ellipsis,
+                                                                  textAlign:
+                                                                      TextAlign
+                                                                          .center,
+                                                                  maxLines: 4,
+                                                                  style: GoogleFonts
+                                                                      .montserrat(
+                                                                    textStyle:
+                                                                        const TextStyle(
+                                                                      color:
+                                                                          secondaryColor,
+                                                                      fontSize:
+                                                                          15,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w400,
+                                                                    ),
+                                                                  ),
+                                                                ),
+                                                                Image.asset(
+                                                                  "assets/images/coingecko.png",
+                                                                  scale: 70,
+                                                                )
+                                                              ],
+                                                            ),
                                                           ),
                                                         ],
                                                       ),
@@ -1527,7 +1673,11 @@ class _SendTxScreenState extends State<SendTxScreen> {
         if (txReceipt != null) {
           timer!.cancel();
           if (txReceipt.status!) {
-            showNotification('Success', 'Transaction made', greenColor,);
+            showNotification(
+              'Success',
+              'Transaction made',
+              greenColor,
+            );
           } else {
             showNotification('Not Verified',
                 'Transaction was not verified. Check later', Colors.orange);
