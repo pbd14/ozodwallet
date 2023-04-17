@@ -12,6 +12,7 @@ var web3 = new Web3(new Web3.providers.HttpProvider(process.env.WEB3_QUICKNODE_G
 var ABI = ABI_UZSO_GOERLI;
 var proxy_address = process.env.UZSO_GOERLI_PROXY_ADDRESS
 
+
 admin.initializeApp();
 
 
