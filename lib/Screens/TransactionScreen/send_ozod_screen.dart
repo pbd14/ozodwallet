@@ -108,7 +108,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
 
     // get balance
     final responseBalance = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[widget.networkId]['scan_url']}//api?module=account&action=tokenbalance&contractaddress=${selectedCoin['id']}&address=${walletData['address']}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[widget.networkId]['scan_url']}/api?module=account&action=tokenbalance&contractaddress=${selectedCoin['id']}&address=${walletData['address']}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
     dynamic jsonBodyBalance = jsonDecode(responseBalance.body);
     setState(() {
       loading = false;
