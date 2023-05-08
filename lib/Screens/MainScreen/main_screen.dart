@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -20,9 +21,11 @@ import 'package:flutter/material.dart';
 // ignore: must_be_immutable
 class MainScreen extends StatefulWidget {
   int tabNum;
+  PendingDynamicLinkData? linkData;
   MainScreen({
     Key? key,
     this.tabNum = 0,
+    this.linkData,
   }) : super(key: key);
 
   @override
@@ -125,15 +128,17 @@ class _MainScreenState extends State<MainScreen> {
     AndroidOptions _getAndroidOptions() => const AndroidOptions(
           encryptedSharedPreferences: true,
         );
-    await FirebaseAuth.instance
-        .signInWithEmailAndPassword(
-            email: "wallet.android@ozod.com", password: "Wallet0257500\$")
-        .catchError((error, stackTrace) {
-      setState(() {
-        appIsActive = false;
-        loading = false;
-      });
-    });
+
+    // TO DO
+    // await FirebaseAuth.instance
+    //     .signInWithEmailAndPassword(
+    //         email: "wallet.android@ozod.com", password: "Wallet0257500\$")
+    //     .catchError((error, stackTrace) {
+    //   setState(() {
+    //     appIsActive = false;
+    //     loading = false;
+    //   });
+    // });
     firebaseVarsSubscription = await FirebaseFirestore.instance
         .collection('app_data')
         .doc('vars')

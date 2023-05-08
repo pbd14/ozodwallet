@@ -1,6 +1,9 @@
+import 'package:glass/glass.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ozodwallet/Screens/OzodAuthScreen/email_login_screen.dart';
+import 'package:ozodwallet/Screens/OzodAuthScreen/email_signup_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
 import 'package:ozodwallet/Services/languages/languages.dart';
@@ -96,7 +99,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                     textStyle: const TextStyle(
                                       color: secondaryColor,
                                       fontSize: 65,
-                                      fontWeight: FontWeight.w900,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ),
@@ -135,7 +138,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                     textStyle: const TextStyle(
                                       color: secondaryColor,
                                       fontSize: 65,
-                                      fontWeight: FontWeight.w900,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ),
@@ -175,7 +178,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                     textStyle: const TextStyle(
                                       color: secondaryColor,
                                       fontSize: 65,
-                                      fontWeight: FontWeight.w900,
+                                      fontWeight: FontWeight.w700,
                                     ),
                                   ),
                                 ),
@@ -248,57 +251,230 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                             //   ),
                             // ),
                             // const SizedBox(height: 100),
+
+                            // Ozod Auth
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 20),
-                              child: RoundedButton(
-                                pw: 250,
-                                ph: 45,
-                                text: 'Create wallet',
-                                press: () {
-                                  setState(() {
-                                    loading = true;
-                                  });
-                                  Navigator.push(
-                                    context,
-                                    SlideRightRoute(
-                                      page: CreateWalletScreen(),
+                              margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                              width: size.width * 0.8,
+                              // height: 200,
+                              padding: const EdgeInsets.all(0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20.0),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color.fromARGB(255, 70, 213, 196),
+                                    Color.fromARGB(255, 25, 66, 100),
+                                  ],
+                                ),
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(15),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Image.asset(
+                                          'assets/icons/logoAuth300.png',
+                                          width: 40,
+                                          height: 40,
+                                          // scale: 10,
+                                        ),
+                                        Text(
+                                          'Ozod Auth',
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: whiteColor,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  );
-                                  setState(() {
-                                    loading = false;
-                                  });
-                                },
-                                color: secondaryColor,
-                                textColor: darkPrimaryColor,
+                                    SizedBox(
+                                      height: 30,
+                                    ),
+                                    Container(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 20),
+                                      child: RoundedButton(
+                                        pw: 250,
+                                        ph: 45,
+                                        text: 'Log In',
+                                        press: () {
+                                          setState(() {
+                                            loading = true;
+                                          });
+                                          Navigator.push(
+                                            context,
+                                            SlideRightRoute(
+                                              page: EmailLoginScreen(),
+                                            ),
+                                          );
+                                          setState(() {
+                                            loading = false;
+                                          });
+                                        },
+                                        color: ozodAuthColor1,
+                                        textColor: darkPrimaryColor,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                    Container(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 20),
+                                      child: RoundedButton(
+                                        pw: 250,
+                                        ph: 45,
+                                        text: 'Sign Up',
+                                        press: () {
+                                          setState(() {
+                                            loading = true;
+                                          });
+                                          Navigator.push(
+                                            context,
+                                            SlideRightRoute(
+                                              page: EmailSignUpScreen(),
+                                            ),
+                                          );
+                                          setState(() {
+                                            loading = false;
+                                          });
+                                        },
+                                        color: ozodAuthColor2,
+                                        textColor: whiteColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ).asGlass(
+                                blurX: 20,
+                                blurY: 20,
+                                clipBorderRadius: BorderRadius.circular(20.0),
+                                tintColor: darkDarkColor,
                               ),
                             ),
                             const SizedBox(
-                              height: 20,
+                              height: 50,
                             ),
+
+                            // Classic Wallet
                             Container(
-                              padding: EdgeInsets.symmetric(horizontal: 20),
-                              child: RoundedButton(
-                                pw: 250,
-                                ph: 45,
-                                text: 'Existing wallet',
-                                press: () {
-                                  setState(() {
-                                    loading = true;
-                                  });
-                                  Navigator.push(
-                                    context,
-                                    SlideRightRoute(
-                                      page: ImportWalletScreen(),
+                              margin: EdgeInsets.fromLTRB(10, 0, 10, 10),
+                              width: size.width * 0.8,
+                              // height: 200,
+                              padding: const EdgeInsets.all(0),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20.0),
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    darkPrimaryColor,
+                                    lightPrimaryColor,
+                                  ],
+                                ),
+                              ),
+                              child: Container(
+                                padding: const EdgeInsets.all(15),
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Image.asset(
+                                          'assets/icons/logo50.png',
+                                          width: 30,
+                                          height: 30,
+                                          // scale: 10,
+                                        ),
+                                        SizedBox(width: 5,),
+                                        Text(
+                                          'Classic Wallet',
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: secondaryColor,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  );
-                                  setState(() {
-                                    loading = false;
-                                  });
-                                },
-                                color: darkPrimaryColor,
-                                textColor: secondaryColor,
+                                    SizedBox(
+                                      height: 30,
+                                    ),
+                                    Container(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 20),
+                                      child: RoundedButton(
+                                        pw: 250,
+                                        ph: 45,
+                                        text: 'Create wallet',
+                                        press: () {
+                                          setState(() {
+                                            loading = true;
+                                          });
+                                          Navigator.push(
+                                            context,
+                                            SlideRightRoute(
+                                              page: CreateWalletScreen(),
+                                            ),
+                                          );
+                                          setState(() {
+                                            loading = false;
+                                          });
+                                        },
+                                        color: secondaryColor,
+                                        textColor: darkPrimaryColor,
+                                      ),
+                                    ),
+                                    const SizedBox(
+                                      height: 20,
+                                    ),
+                                    Container(
+                                      padding:
+                                          EdgeInsets.symmetric(horizontal: 20),
+                                      child: RoundedButton(
+                                        pw: 250,
+                                        ph: 45,
+                                        text: 'Existing wallet',
+                                        press: () {
+                                          setState(() {
+                                            loading = true;
+                                          });
+                                          Navigator.push(
+                                            context,
+                                            SlideRightRoute(
+                                              page: ImportWalletScreen(),
+                                            ),
+                                          );
+                                          setState(() {
+                                            loading = false;
+                                          });
+                                        },
+                                        color: darkPrimaryColor,
+                                        textColor: secondaryColor,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ).asGlass(
+                                blurX: 20,
+                                blurY: 20,
+                                clipBorderRadius: BorderRadius.circular(20.0),
+                                tintColor: darkDarkColor,
                               ),
                             ),
+                            const SizedBox(
+                              height: 50,
+                            ),
+
                             SizedBox(
                               height: 50,
                             ),
