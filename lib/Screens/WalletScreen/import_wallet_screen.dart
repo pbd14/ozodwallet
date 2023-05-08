@@ -61,7 +61,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
     return loading
         ? LoadingScreen()
         : Scaffold(
-          appBar: AppBar(
+            appBar: AppBar(
               elevation: 0,
               automaticallyImplyLeading: true,
               toolbarHeight: 30,
@@ -75,8 +75,8 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
               child: Center(
                 child: Container(
                   margin: const EdgeInsets.all(20),
-                  constraints: BoxConstraints(
-                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                  constraints:
+                      BoxConstraints(maxWidth: kIsWeb ? 600 : double.infinity),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -177,8 +177,8 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                 },
                                 decoration: InputDecoration(
                                   errorBorder: OutlineInputBorder(
-                                    borderSide:
-                                        BorderSide(color: Colors.red, width: 1.0),
+                                    borderSide: BorderSide(
+                                        color: Colors.red, width: 1.0),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
                                   focusedBorder: OutlineInputBorder(
@@ -218,8 +218,8 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                     ),
                                   ),
                                   child: TextFormField(
-                                    style:
-                                        const TextStyle(color: darkPrimaryColor),
+                                    style: const TextStyle(
+                                        color: darkPrimaryColor),
                                     validator: (val) {
                                       if (val!.isEmpty) {
                                         return 'Enter your seed phrase';
@@ -242,21 +242,24 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                       ),
                                       focusedBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                            color: darkPrimaryColor, width: 1.0),
+                                            color: darkPrimaryColor,
+                                            width: 1.0),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       enabledBorder: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                            color: darkPrimaryColor, width: 1.0),
+                                            color: darkPrimaryColor,
+                                            width: 1.0),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                       hintStyle: TextStyle(
-                                          color:
-                                              darkPrimaryColor.withOpacity(0.7)),
+                                          color: darkPrimaryColor
+                                              .withOpacity(0.7)),
                                       hintText: 'Seed phrase',
                                       border: OutlineInputBorder(
                                         borderSide: BorderSide(
-                                            color: darkPrimaryColor, width: 1.0),
+                                            color: darkPrimaryColor,
+                                            width: 1.0),
                                         borderRadius: BorderRadius.circular(20),
                                       ),
                                     ),
@@ -266,80 +269,80 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                         const SizedBox(
                           height: 40,
                         ),
-                        Text(
-                          "Password",
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 3,
-                          textAlign: TextAlign.start,
-                          style: GoogleFonts.montserrat(
-                            textStyle: const TextStyle(
-                              color: secondaryColor,
-                              fontSize: 35,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 10,
-                        ),
-                        Text(
-                          "Enter password for your wallet",
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1000,
-                          textAlign: TextAlign.start,
-                          style: GoogleFonts.montserrat(
-                            textStyle: const TextStyle(
-                              color: secondaryColor,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        TextFormField(
-                          style: const TextStyle(color: secondaryColor),
-                          validator: (val) {
-                            if (val!.isEmpty) {
-                              return 'Enter your password';
-                            } else {
-                              return null;
-                            }
-                          },
-                          keyboardType: TextInputType.visiblePassword,
-                          onChanged: (val) {
-                            setState(() {
-                              password = val;
-                            });
-                          },
-                          decoration: InputDecoration(
-                            errorBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Colors.red, width: 1.0),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            hintStyle: TextStyle(
-                                color: darkPrimaryColor.withOpacity(0.7)),
-                            hintText: 'Password',
-                            border: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
+                        // Text(
+                        //   "Password",
+                        //   overflow: TextOverflow.ellipsis,
+                        //   maxLines: 3,
+                        //   textAlign: TextAlign.start,
+                        //   style: GoogleFonts.montserrat(
+                        //     textStyle: const TextStyle(
+                        //       color: secondaryColor,
+                        //       fontSize: 35,
+                        //       fontWeight: FontWeight.w700,
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(
+                        //   height: 10,
+                        // ),
+                        // Text(
+                        //   "Enter password for your wallet",
+                        //   overflow: TextOverflow.ellipsis,
+                        //   maxLines: 1000,
+                        //   textAlign: TextAlign.start,
+                        //   style: GoogleFonts.montserrat(
+                        //     textStyle: const TextStyle(
+                        //       color: secondaryColor,
+                        //       fontSize: 20,
+                        //       fontWeight: FontWeight.w400,
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(
+                        //   height: 20,
+                        // ),
+                        // TextFormField(
+                        //   style: const TextStyle(color: secondaryColor),
+                        //   validator: (val) {
+                        //     if (val!.isEmpty) {
+                        //       return 'Enter your password';
+                        //     } else {
+                        //       return null;
+                        //     }
+                        //   },
+                        //   keyboardType: TextInputType.visiblePassword,
+                        //   onChanged: (val) {
+                        //     setState(() {
+                        //       password = val;
+                        //     });
+                        //   },
+                        //   decoration: InputDecoration(
+                        //     errorBorder: OutlineInputBorder(
+                        //       borderSide:
+                        //           BorderSide(color: Colors.red, width: 1.0),
+                        //       borderRadius: BorderRadius.circular(20),
+                        //     ),
+                        //     focusedBorder: OutlineInputBorder(
+                        //       borderSide:
+                        //           BorderSide(color: secondaryColor, width: 1.0),
+                        //       borderRadius: BorderRadius.circular(20),
+                        //     ),
+                        //     enabledBorder: OutlineInputBorder(
+                        //       borderSide:
+                        //           BorderSide(color: secondaryColor, width: 1.0),
+                        //       borderRadius: BorderRadius.circular(20),
+                        //     ),
+                        //     hintStyle: TextStyle(
+                        //         color: darkPrimaryColor.withOpacity(0.7)),
+                        //     hintText: 'Password',
+                        //     border: OutlineInputBorder(
+                        //       borderSide:
+                        //           BorderSide(color: secondaryColor, width: 1.0),
+                        //       borderRadius: BorderRadius.circular(20),
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 40),
                         Text(
                           "Wallet name",
                           overflow: TextOverflow.ellipsis,
@@ -423,9 +426,11 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                               setState(() {
                                 loading = true;
                               });
-                              if (_formKey.currentState!.validate() &&
-                                  password != null &&
-                                  password!.isNotEmpty) {
+                              // if (_formKey.currentState!.validate() &&
+                              //     password != null &&
+                              //     password!.isNotEmpty
+                              //     )
+                              if (_formKey.currentState!.validate()) {
                                 if (usingPrivateKey) {
                                   try {
                                     final walletPrivateKey = privateKey!;
@@ -461,7 +466,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                           lastWalletIndex,
                                           walletPrivateKey,
                                           publicKey.toString(),
-                                          password!,
+                                          password ?? "Password",
                                           name);
                                     }
                                     if (widget.isWelcomeScreen) {
@@ -470,6 +475,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
 
                                     Navigator.pop(context);
                                   } catch (e) {
+                                    print("ERROR: $e");
                                     setState(() {
                                       loading = false;
                                       error = 'Error. Try again later';
@@ -486,9 +492,9 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                           .getMasterKeyFromSeed(seed);
                                       final walletPrivateKey =
                                           HEX.encode(master.key);
-                                      final publicKey =
-                                          EthPrivateKey.fromHex(walletPrivateKey)
-                                              .address;
+                                      final publicKey = EthPrivateKey.fromHex(
+                                              walletPrivateKey)
+                                          .address;
 
                                       await FirebaseFirestore.instance
                                           .collection('wallets')
@@ -518,7 +524,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                             lastWalletIndex,
                                             walletPrivateKey,
                                             publicKey.toString(),
-                                            password!,
+                                            password ?? "Password",
                                             name);
                                       }
                                       if (widget.isWelcomeScreen) {
@@ -535,6 +541,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                           'Incorrect seed phrase', Colors.red);
                                     }
                                   } catch (e) {
+                                    print("ERROR1: $e");
                                     setState(() {
                                       loading = false;
                                       error = 'Error. Try again later';

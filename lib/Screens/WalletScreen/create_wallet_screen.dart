@@ -170,80 +170,80 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                           ),
                         ),
                         const SizedBox(height: 40),
-                        Text(
-                          "Your password",
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 3,
-                          textAlign: TextAlign.start,
-                          style: GoogleFonts.montserrat(
-                            textStyle: const TextStyle(
-                              color: secondaryColor,
-                              fontSize: 35,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        Text(
-                          "This is your password for wallet. Save this password in a safe physical place. DO NOT SHARE OR LOSE THIS PASSWORD. Ozod Wallet does not save this password, so if you lose this password you will your wallet.",
-                          overflow: TextOverflow.ellipsis,
-                          maxLines: 1000,
-                          textAlign: TextAlign.start,
-                          style: GoogleFonts.montserrat(
-                            textStyle: const TextStyle(
-                              color: secondaryColor,
-                              fontSize: 20,
-                              fontWeight: FontWeight.w400,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                        TextFormField(
-                          style: const TextStyle(color: secondaryColor),
-                          validator: (val) {
-                            if (val!.isEmpty) {
-                              return 'Enter your password';
-                            } else {
-                              return null;
-                            }
-                          },
-                          keyboardType: TextInputType.visiblePassword,
-                          onChanged: (val) {
-                            setState(() {
-                              password = val;
-                            });
-                          },
-                          decoration: InputDecoration(
-                            errorBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: Colors.red, width: 1.0),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            focusedBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                            hintStyle: TextStyle(
-                                color: darkPrimaryColor.withOpacity(0.7)),
-                            hintText: 'Password',
-                            border: OutlineInputBorder(
-                              borderSide:
-                                  BorderSide(color: secondaryColor, width: 1.0),
-                              borderRadius: BorderRadius.circular(20),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 40),
+                        // Text(
+                        //   "Your password",
+                        //   overflow: TextOverflow.ellipsis,
+                        //   maxLines: 3,
+                        //   textAlign: TextAlign.start,
+                        //   style: GoogleFonts.montserrat(
+                        //     textStyle: const TextStyle(
+                        //       color: secondaryColor,
+                        //       fontSize: 35,
+                        //       fontWeight: FontWeight.w700,
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(
+                        //   height: 20,
+                        // ),
+                        // Text(
+                        //   "This is your password for wallet. Save this password in a safe physical place. DO NOT SHARE OR LOSE THIS PASSWORD. Ozod Wallet does not save this password, so if you lose this password you will your wallet.",
+                        //   overflow: TextOverflow.ellipsis,
+                        //   maxLines: 1000,
+                        //   textAlign: TextAlign.start,
+                        //   style: GoogleFonts.montserrat(
+                        //     textStyle: const TextStyle(
+                        //       color: secondaryColor,
+                        //       fontSize: 20,
+                        //       fontWeight: FontWeight.w400,
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(
+                        //   height: 20,
+                        // ),
+                        // TextFormField(
+                        //   style: const TextStyle(color: secondaryColor),
+                        //   validator: (val) {
+                        //     if (val!.isEmpty) {
+                        //       return 'Enter your password';
+                        //     } else {
+                        //       return null;
+                        //     }
+                        //   },
+                        //   keyboardType: TextInputType.visiblePassword,
+                        //   onChanged: (val) {
+                        //     setState(() {
+                        //       password = val;
+                        //     });
+                        //   },
+                        //   decoration: InputDecoration(
+                        //     errorBorder: OutlineInputBorder(
+                        //       borderSide:
+                        //           BorderSide(color: Colors.red, width: 1.0),
+                        //       borderRadius: BorderRadius.circular(20),
+                        //     ),
+                        //     focusedBorder: OutlineInputBorder(
+                        //       borderSide:
+                        //           BorderSide(color: secondaryColor, width: 1.0),
+                        //       borderRadius: BorderRadius.circular(20),
+                        //     ),
+                        //     enabledBorder: OutlineInputBorder(
+                        //       borderSide:
+                        //           BorderSide(color: secondaryColor, width: 1.0),
+                        //       borderRadius: BorderRadius.circular(20),
+                        //     ),
+                        //     hintStyle: TextStyle(
+                        //         color: darkPrimaryColor.withOpacity(0.7)),
+                        //     hintText: 'Password',
+                        //     border: OutlineInputBorder(
+                        //       borderSide:
+                        //           BorderSide(color: secondaryColor, width: 1.0),
+                        //       borderRadius: BorderRadius.circular(20),
+                        //     ),
+                        //   ),
+                        // ),
+                        // const SizedBox(height: 40),
                         Text(
                           "Wallet name",
                           overflow: TextOverflow.ellipsis,
@@ -324,9 +324,11 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                             ph: 45,
                             text: 'DONE',
                             press: () {
-                              if (_formKey.currentState!.validate() &&
-                                  password != null &&
-                                  password!.isNotEmpty) {
+                              // if (_formKey.currentState!.validate() &&
+                              //     password != null &&
+                              //     password!.isNotEmpty) 
+                            if (_formKey.currentState!.validate()) 
+                                  {
                                 setState(() {
                                   loading = true;
                                 });
@@ -335,7 +337,7 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                                   SlideRightRoute(
                                     page: CheckSeedScreen(
                                       name: name,
-                                      password: password!,
+                                      password: password ?? "Password",
                                       mnemonicPhrase: mnemonicPhrase!,
                                       isWelcomeScreen: widget.isWelcomeScreen,
                                     ),

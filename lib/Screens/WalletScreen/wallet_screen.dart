@@ -193,137 +193,147 @@ class _WalletScreenState extends State<WalletScreen> {
   }
 
   Future<void> prepare() async {
-    wallets = await SafeStorageService().getAllWallets();
-    await getDataFromSP();
-    // get app data
-    appDataNodes = await FirebaseFirestore.instance
-        .collection('app_data')
-        .doc('nodes')
-        .get();
-    appDataApi = await FirebaseFirestore.instance
-        .collection('app_data')
-        .doc('api')
-        .get();
-    appData = await FirebaseFirestore.instance
-        .collection('app_data')
-        .doc('data')
-        .get();
+    try {
+      wallets = await SafeStorageService().getAllWallets();
+      await getDataFromSP();
+      // get app data
+      appDataNodes = await FirebaseFirestore.instance
+          .collection('app_data')
+          .doc('nodes')
+          .get();
+      appDataApi = await FirebaseFirestore.instance
+          .collection('app_data')
+          .doc('api')
+          .get();
+      appData = await FirebaseFirestore.instance
+          .collection('app_data')
+          .doc('data')
+          .get();
 
-    // Check network availability
-    if (appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId] == null) {
-      selectedNetworkId = "mainnet";
-      selectedNetworkName = "Ethereum Mainnet";
-    } else {
-      if (!appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]
-          ['active']) {
+      // Check network availability
+      if (appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId] == null) {
         selectedNetworkId = "mainnet";
         selectedNetworkName = "Ethereum Mainnet";
+      } else {
+        if (!appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]
+            ['active']) {
+          selectedNetworkId = "mainnet";
+          selectedNetworkName = "Ethereum Mainnet";
+        }
       }
-    }
 
-    // Get coin unit
-    cryptoUnits[EtherUnit.ether] =
-        appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['unit'];
+      // Get coin unit
+      cryptoUnits[EtherUnit.ether] =
+          appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['unit'];
 
-    // Web3 client
-    web3client = Web3Client(
-        EncryptionService().dec(appDataNodes!.get(appData!
-            .get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['node'])),
-        httpClient);
+      // Web3 client
+      web3client = Web3Client(
+          EncryptionService().dec(appDataNodes!.get(appData!
+              .get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['node'])),
+          httpClient);
 
-    // Wallet
-    Map walletData =
-        await SafeStorageService().getWalletData(selectedWalletIndex);
-    EtherAmount valueBalance =
-        await web3client.getBalance(walletData['address']);
+      // Wallet
+      Map walletData =
+          await SafeStorageService().getWalletData(selectedWalletIndex);
+      EtherAmount valueBalance =
+          await web3client.getBalance(walletData['address']);
 
-    walletFirebase = await FirebaseFirestore.instance
-        .collection('wallets')
-        .doc(walletData['address'].toString())
-        .get();
+      walletFirebase = await FirebaseFirestore.instance
+          .collection('wallets')
+          .doc(walletData['address'].toString())
+          .get();
 
-    // get assets
-    if (walletFirebase!.exists) {
-      for (Map asset in walletFirebase!.get('assets')) {
-        if (asset['network'] == selectedNetworkId) {
-          final response = await httpClient.get(Uri.parse(
-              "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${asset['address']}&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+      // get assets
+      if (walletFirebase!.exists) {
+        for (Map asset in walletFirebase!.get('assets')) {
+          if (asset['network'] == selectedNetworkId) {
+            final response = await httpClient.get(Uri.parse(
+                "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${asset['address']}&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
 
-          if (int.parse(jsonDecode(response.body)['status'].toString()) == 1) {
-            final contract = DeployedContract(
-                ContractAbi.fromJson(
-                    jsonDecode(response.body)['result'], "LoyaltyToken"),
-                EthereumAddress.fromHex(asset['address']));
-            final balance = await web3client.call(
-                contract: contract,
-                function: contract.function('balanceOf'),
-                params: [walletData['address']]);
-            selectedWalletAssets.add({
-              'symbol': asset['symbol'],
-              'balance': balance[0],
-              'address': asset['address'],
-              'decimals': asset['decimal'],
-              'contract': contract,
-              'asset': asset,
-            });
-            selectedWalletAssetsData[asset['address'].toLowerCase()] =
-                asset['symbol'];
+            if (int.parse(jsonDecode(response.body)['status'].toString()) ==
+                1) {
+              final contract = DeployedContract(
+                  ContractAbi.fromJson(
+                      jsonDecode(response.body)['result'], "LoyaltyToken"),
+                  EthereumAddress.fromHex(asset['address']));
+              final balance = await web3client.call(
+                  contract: contract,
+                  function: contract.function('balanceOf'),
+                  params: [walletData['address']]);
+              selectedWalletAssets.add({
+                'symbol': asset['symbol'],
+                'balance': balance[0],
+                'address': asset['address'],
+                'decimals': asset['decimal'],
+                'contract': contract,
+                'asset': asset,
+              });
+              selectedWalletAssetsData[asset['address'].toLowerCase()] =
+                  asset['symbol'];
+            }
           }
         }
       }
+
+      // get txs
+      final response = await httpClient.get(Uri.parse(
+          "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+      dynamic jsonBody = jsonDecode(response.body);
+      List valueTxs = [];
+      if (jsonBody['result'] != null) {
+        valueTxs = jsonBody['result'];
+      }
+
+      // Gas indicator
+      estimateGasPrice = await web3client.getGasPrice();
+      estimateGasAmount = await web3client.estimateGas(
+        sender: walletData['address'],
+      );
+
+      // Get selected network vs usd
+      selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
+
+      gasBalance = await web3client.getBalance(walletData['address']);
+
+      setState(() {
+        walletData['publicKey'] != null
+            ? publicKey = walletData['publicKey']
+            : publicKey = 'Error';
+        walletData['address'] != null
+            ? address = walletData['address'].toString()
+            : address = 'Error';
+        walletData['privateKey'] != null
+            ? privateKey = walletData['privateKey']
+            : privateKey = 'Error';
+        walletData['name'] != null
+            ? selectedWalletName = walletData['name']
+            : selectedWalletName = 'Error';
+        valueBalance != null
+            ? selectedWalletBalance = valueBalance
+            : selectedWalletBalance = EtherAmount.zero();
+        valueTxs != null
+            ? selectedWalletTxs = valueTxs.toList()
+            : selectedWalletTxs = [];
+        gasTxsLeft = (gasBalance!.getValueInUnit(EtherUnit.gwei) /
+                (estimateGasPrice.getValueInUnit(EtherUnit.gwei) *
+                    estimateGasAmount.toDouble()))
+            .toDouble();
+        // if (appData != null) {
+        //   selectedNetworkId = appData!.get('AVAILABLE_ETHER_NETWORKS')[0];
+        //   selectedNetworkName =
+        //       appData!.get('AVAILABLE_ETHER_NETWORKS')[0]['name'];
+        // }
+
+        loading = false;
+      });
+    } catch (e) {
+      showNotification('Error', 'Error. Try again later', Colors.red);
+      setState(
+        () {
+          loading = false;
+        },
+      );
     }
-
-    // get txs
-    final response = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
-    dynamic jsonBody = jsonDecode(response.body);
-    List valueTxs = [];
-    if (jsonBody['result'] != null) {
-      valueTxs = jsonBody['result'];
-    }
-
-    // Gas indicator
-    estimateGasPrice = await web3client.getGasPrice();
-    estimateGasAmount = await web3client.estimateGas(
-      sender: walletData['address'],
-    );
-
-    // Get selected network vs usd
-    selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
-
-    gasBalance = await web3client.getBalance(walletData['address']);
-
-    setState(() {
-      walletData['publicKey'] != null
-          ? publicKey = walletData['publicKey']
-          : publicKey = 'Error';
-      walletData['address'] != null
-          ? address = walletData['address'].toString()
-          : address = 'Error';
-      walletData['privateKey'] != null
-          ? privateKey = walletData['privateKey']
-          : privateKey = 'Error';
-      walletData['name'] != null
-          ? selectedWalletName = walletData['name']
-          : selectedWalletName = 'Error';
-      valueBalance != null
-          ? selectedWalletBalance = valueBalance
-          : selectedWalletBalance = EtherAmount.zero();
-      valueTxs != null
-          ? selectedWalletTxs = valueTxs.toList()
-          : selectedWalletTxs = [];
-      gasTxsLeft = (gasBalance!.getValueInUnit(EtherUnit.gwei) /
-              (estimateGasPrice.getValueInUnit(EtherUnit.gwei) *
-                  estimateGasAmount.toDouble()))
-          .toDouble();
-      // if (appData != null) {
-      //   selectedNetworkId = appData!.get('AVAILABLE_ETHER_NETWORKS')[0];
-      //   selectedNetworkName =
-      //       appData!.get('AVAILABLE_ETHER_NETWORKS')[0]['name'];
-      // }
-
-      loading = false;
-    });
   }
 
   @override

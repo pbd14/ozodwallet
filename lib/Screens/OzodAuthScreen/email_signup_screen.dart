@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:glass/glass.dart';
@@ -7,6 +8,7 @@ import 'package:ozodwallet/Models/PushNotificationMessage.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Services/auth/auth_service.dart';
 import 'package:ozodwallet/Services/languages/languages.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
@@ -67,12 +69,12 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
               elevation: 0,
               automaticallyImplyLeading: true,
               toolbarHeight: 30,
-              backgroundColor: ozodAuthColor2,
-              foregroundColor: ozodAuthColor1,
+              backgroundColor: ozodIdColor2,
+              foregroundColor: ozodIdColor1,
               centerTitle: true,
               actions: [],
             ),
-            backgroundColor: ozodAuthColor2,
+            backgroundColor: ozodIdColor2,
             body: SingleChildScrollView(
               child: Container(
                 margin: EdgeInsets.fromLTRB(20, 0, 20, 10),
@@ -104,7 +106,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                               // scale: 10,
                             ),
                             Text(
-                              'Ozod Auth',
+                              'Ozod ID',
                               style: GoogleFonts.montserrat(
                                 textStyle: const TextStyle(
                                   color: whiteColor,
@@ -126,8 +128,13 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                       height: 50,
                     ),
                     Image.asset(
-                      "assets/images/iso2.png",
+                      "assets/icons/logoAuth300.png",
                       width: size.width * 0.9,
+                    ).asGlass(
+                      blurX: 50,
+                      blurY: 50,
+                      tintColor: whiteColor,
+                      clipBorderRadius: BorderRadius.circular(20),
                     ),
                     SizedBox(
                       height: 20,
@@ -135,11 +142,11 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'What is Ozod Auth?',
+                        'What is Ozod ID?',
                         textAlign: TextAlign.start,
                         style: GoogleFonts.montserrat(
                           textStyle: const TextStyle(
-                            color: ozodAuthColor1,
+                            color: ozodIdColor1,
                             fontSize: 45,
                             fontWeight: FontWeight.w700,
                           ),
@@ -156,7 +163,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                         textAlign: TextAlign.start,
                         style: GoogleFonts.montserrat(
                           textStyle: const TextStyle(
-                            color: ozodAuthColor1,
+                            color: ozodIdColor1,
                             fontSize: 20,
                             fontWeight: FontWeight.w400,
                           ),
@@ -177,7 +184,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                           end: Alignment.bottomRight,
                           colors: [
                             Color.fromARGB(255, 70, 213, 196),
-                            ozodAuthColor1
+                            ozodIdColor1
                           ],
                         ),
                       ),
@@ -189,7 +196,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                             textAlign: TextAlign.start,
                             style: GoogleFonts.montserrat(
                               textStyle: const TextStyle(
-                                color: ozodAuthColor2,
+                                color: ozodIdColor2,
                                 fontSize: 25,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -203,7 +210,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                             textAlign: TextAlign.start,
                             style: GoogleFonts.montserrat(
                               textStyle: const TextStyle(
-                                color: ozodAuthColor2,
+                                color: ozodIdColor2,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w400,
                               ),
@@ -226,7 +233,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                           end: Alignment.bottomRight,
                           colors: [
                             Color.fromARGB(255, 70, 213, 196),
-                            ozodAuthColor1
+                            ozodIdColor1
                           ],
                         ),
                       ),
@@ -238,7 +245,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                             textAlign: TextAlign.start,
                             style: GoogleFonts.montserrat(
                               textStyle: const TextStyle(
-                                color: ozodAuthColor2,
+                                color: ozodIdColor2,
                                 fontSize: 25,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -248,11 +255,11 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                             height: 10,
                           ),
                           Text(
-                            'With Ozod Auth, you do not need to manage your keys. All private keys will be managed by us. And if you forget your private key or lose access to your wallet, we will help you to regain it',
+                            'With Ozod ID, you do not need to manage your keys. All private keys will be managed by us. And if you forget your private key or lose access to your wallet, we will help you to regain it',
                             textAlign: TextAlign.start,
                             style: GoogleFonts.montserrat(
                               textStyle: const TextStyle(
-                                color: ozodAuthColor2,
+                                color: ozodIdColor2,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w400,
                               ),
@@ -275,7 +282,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                           end: Alignment.bottomRight,
                           colors: [
                             Color.fromARGB(255, 70, 213, 196),
-                            ozodAuthColor1
+                            ozodIdColor1
                           ],
                         ),
                       ),
@@ -287,7 +294,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                             textAlign: TextAlign.start,
                             style: GoogleFonts.montserrat(
                               textStyle: const TextStyle(
-                                color: ozodAuthColor2,
+                                color: ozodIdColor2,
                                 fontSize: 25,
                                 fontWeight: FontWeight.w700,
                               ),
@@ -301,7 +308,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                             textAlign: TextAlign.start,
                             style: GoogleFonts.montserrat(
                               textStyle: const TextStyle(
-                                color: ozodAuthColor2,
+                                color: ozodIdColor2,
                                 fontSize: 15,
                                 fontWeight: FontWeight.w400,
                               ),
@@ -317,7 +324,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                       "Email Sign Up",
                       style: GoogleFonts.montserrat(
                         textStyle: const TextStyle(
-                          color: ozodAuthColor1,
+                          color: ozodIdColor1,
                           fontSize: 35,
                           fontWeight: FontWeight.w700,
                         ),
@@ -350,20 +357,20 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 hintStyle: TextStyle(
-                                    color: ozodAuthColor1.withOpacity(0.7)),
+                                    color: ozodIdColor1.withOpacity(0.7)),
                                 hintText: 'Email',
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
@@ -391,20 +398,20 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 hintStyle: TextStyle(
-                                    color: ozodAuthColor1.withOpacity(0.7)),
+                                    color: ozodIdColor1.withOpacity(0.7)),
                                 hintText: 'Password',
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
@@ -432,20 +439,20 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 hintStyle: TextStyle(
-                                    color: ozodAuthColor1.withOpacity(0.7)),
+                                    color: ozodIdColor1.withOpacity(0.7)),
                                 hintText: 'Confirm password',
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
@@ -466,17 +473,21 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                     if (res == 'Success') {
                                       await FirebaseAuth.instance.currentUser!
                                           .sendEmailVerification();
+                                      await FirebaseFirestore.instance
+                                          .collection('ozod_id_accounts')
+                                          .doc(FirebaseAuth
+                                              .instance.currentUser!.uid)
+                                          .set({
+                                        'id': FirebaseAuth
+                                            .instance.currentUser!.uid,
+                                        'email': FirebaseAuth
+                                            .instance.currentUser!.email
+                                      });
+                                      showNotification(
+                                          'Success',
+                                          'Account has been created',
+                                          greenColor);
 
-                                      PushNotificationMessage notification =
-                                          PushNotificationMessage(
-                                        title: 'Success',
-                                        body: 'Account has been created',
-                                      );
-                                      showSimpleNotification(
-                                        Text(notification.body),
-                                        position: NotificationPosition.top,
-                                        background: darkColor,
-                                      );
                                       showDialog(
                                           barrierDismissible: false,
                                           context: context,
@@ -485,8 +496,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                               builder: (context,
                                                   StateSetter setState) {
                                                 return AlertDialog(
-                                                  backgroundColor:
-                                                      ozodAuthColor1,
+                                                  backgroundColor: ozodIdColor1,
                                                   shape: RoundedRectangleBorder(
                                                     borderRadius:
                                                         BorderRadius.circular(
@@ -495,7 +505,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                                   title: const Text(
                                                     'Account created',
                                                     style: TextStyle(
-                                                        color: ozodAuthColor2),
+                                                        color: ozodIdColor2),
                                                   ),
                                                   content:
                                                       SingleChildScrollView(
@@ -511,7 +521,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                                               textStyle:
                                                                   const TextStyle(
                                                                 color:
-                                                                    ozodAuthColor2,
+                                                                    ozodIdColor2,
                                                                 fontSize: 15,
                                                                 fontWeight:
                                                                     FontWeight
@@ -528,8 +538,10 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                                               ph: 45,
                                                               text: 'CONTINUE',
                                                               press: () {
-                                                                Navigator.pop(context);
-                                                                Navigator.pop(context);
+                                                                Navigator.pop(
+                                                                    context);
+                                                                Navigator.pop(
+                                                                    context);
                                                                 Navigator.push(
                                                                   context,
                                                                   SlideRightRoute(
@@ -539,9 +551,9 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                                                 );
                                                               },
                                                               color:
-                                                                  ozodAuthColor2,
+                                                                  ozodIdColor2,
                                                               textColor:
-                                                                  ozodAuthColor1,
+                                                                  ozodIdColor1,
                                                             ),
                                                           ),
                                                         ],
@@ -570,8 +582,8 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                   }
                                 }
                               },
-                              color: ozodAuthColor1,
-                              textColor: ozodAuthColor2,
+                              color: ozodIdColor1,
+                              textColor: ozodIdColor2,
                             ),
                             const SizedBox(
                               height: 20,

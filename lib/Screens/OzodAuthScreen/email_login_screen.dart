@@ -62,12 +62,12 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
               elevation: 0,
               automaticallyImplyLeading: true,
               toolbarHeight: 30,
-              backgroundColor: ozodAuthColor2,
-              foregroundColor: ozodAuthColor1,
+              backgroundColor: ozodIdColor2,
+              foregroundColor: ozodIdColor1,
               centerTitle: true,
               actions: [],
             ),
-            backgroundColor: ozodAuthColor2,
+            backgroundColor: ozodIdColor2,
             body: SingleChildScrollView(
               child: Container(
                 margin: EdgeInsets.fromLTRB(20, 0, 20, 10),
@@ -99,7 +99,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                               // scale: 10,
                             ),
                             Text(
-                              'Ozod Auth',
+                              'Ozod ID',
                               style: GoogleFonts.montserrat(
                                 textStyle: const TextStyle(
                                   color: whiteColor,
@@ -124,7 +124,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                       "Email Login",
                       style: GoogleFonts.montserrat(
                         textStyle: const TextStyle(
-                          color: ozodAuthColor1,
+                          color: ozodIdColor1,
                           fontSize: 35,
                           fontWeight: FontWeight.w700,
                         ),
@@ -157,21 +157,21 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 hintStyle: TextStyle(
-                                  color: ozodAuthColor1.withOpacity(0.7),
+                                  color: ozodIdColor1.withOpacity(0.7),
                                 ),
                                 hintText: 'Email',
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
@@ -199,20 +199,20 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                                 hintStyle: TextStyle(
-                                    color: ozodAuthColor1.withOpacity(0.7)),
+                                    color: ozodIdColor1.withOpacity(0.7)),
                                 hintText: 'Password',
                                 border: OutlineInputBorder(
                                   borderSide: BorderSide(
-                                      color: ozodAuthColor1, width: 1.0),
+                                      color: ozodIdColor1, width: 1.0),
                                   borderRadius: BorderRadius.circular(20),
                                 ),
                               ),
@@ -238,7 +238,7 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                     setState(() {
                                       loading = false;
                                       Navigator.of(context).pop();
-                                      Navigator.of(context).pop();
+                                      // Navigator.of(context).pop();
                                     });
                                   } else {
                                     setState(() {
@@ -248,8 +248,8 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                   }
                                 }
                               },
-                              color: ozodAuthColor1,
-                              textColor: ozodAuthColor2,
+                              color: ozodIdColor1,
+                              textColor: ozodIdColor2,
                             ),
                             const SizedBox(
                               height: 20,

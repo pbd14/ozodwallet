@@ -19,8 +19,8 @@ const lightDarkColor = Color.fromRGBO(105, 105, 105, 1.0);
 const darkDarkColor = Color.fromRGBO(13, 13, 13, 1.0);
 const greenColor = Color.fromARGB(255, 0, 171, 126);
 
-const ozodAuthColor1 = Color.fromARGB(255, 26, 221, 208);
-const ozodAuthColor2 = Color.fromARGB(255, 19, 39, 80);
+const ozodIdColor1 = Color.fromARGB(255, 26, 221, 208);
+const ozodIdColor2 = Color.fromARGB(255, 19, 39, 80);
 
 const Map<String, String> invoiceStatuses = {
   '0': 'Unpaid',
