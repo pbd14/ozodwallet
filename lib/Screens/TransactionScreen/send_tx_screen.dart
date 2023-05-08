@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Services/coingecko_api_service.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
@@ -22,7 +23,7 @@ import 'package:web3dart/web3dart.dart';
 // ignore: must_be_immutable
 class SendTxScreen extends StatefulWidget {
   String error;
-  String walletIndex;
+  Web3Wallet wallet;
   String networkId;
   Web3Client web3client;
   List walletAssets;
@@ -31,7 +32,7 @@ class SendTxScreen extends StatefulWidget {
   SendTxScreen({
     Key? key,
     this.error = 'Something Went Wrong',
-    required this.walletIndex,
+    required this.wallet,
     required this.networkId,
     required this.web3client,
     required this.walletAssets,
@@ -58,7 +59,6 @@ class _SendTxScreenState extends State<SendTxScreen> {
 
   String? receiverPublicAddress;
   String? amount;
-  Map walletData = {};
   Map selectedAsset = {'symbol': 'ETH'};
   List walletAssets = [];
   EtherAmount? balance;
@@ -114,10 +114,9 @@ class _SendTxScreenState extends State<SendTxScreen> {
 
     walletFirebase = await firestore.FirebaseFirestore.instance
         .collection('wallets')
-        .doc(walletData['address'].toString())
+        .doc(widget.wallet.valueAddress.toString())
         .get();
-    walletData = await SafeStorageService().getWalletData(widget.walletIndex);
-    balance = await widget.web3client.getBalance(walletData['address']);
+    balance = await widget.web3client.getBalance(widget.wallet.valueAddress);
     setState(() {
       loading = false;
     });
@@ -207,14 +206,14 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                 children: [
                                   Jazzicon.getIconWidget(
                                       Jazzicon.getJazziconData(160,
-                                          address: walletData['publicKey']),
+                                          address: widget.wallet.publicKey),
                                       size: 25),
                                   SizedBox(
                                     width: 10,
                                   ),
                                   Expanded(
                                     child: Text(
-                                      walletData['name'],
+                                      widget.wallet.name,
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 3,
                                       textAlign: TextAlign.start,
@@ -864,7 +863,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                     await widget.web3client.getGasPrice();
                                 BigInt estimateGas =
                                     await widget.web3client.estimateGas(
-                                  sender: walletData['address'],
+                                  sender: widget.wallet.valueAddress,
                                 );
                                 BigInt total = selectedAsset['symbol'] == 'ETH'
                                     ? BigInt.from((etherGas.getValueInUnit(
@@ -1499,8 +1498,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                               await widget
                                                                   .web3client
                                                                   .sendTransaction(
-                                                            walletData[
-                                                                'credentials'],
+                                                            widget.wallet.credentials,
                                                             Transaction(
                                                               to: EthereumAddress
                                                                   .fromHex(
@@ -1568,8 +1566,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                               await widget
                                                                   .web3client
                                                                   .sendTransaction(
-                                                            walletData[
-                                                                'credentials'],
+                                                            widget.wallet.credentials,
                                                             transaction,
                                                             chainId:
                                                                 chainId.toInt(),

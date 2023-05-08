@@ -11,6 +11,7 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/BuyOzodScreen/buy_ozod_octo_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/BuyOzodScreen/buy_ozod_payme_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
@@ -264,10 +265,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     },
   };
 
-  String publicKey = 'Loading';
-  String privateKey = 'Loading';
+  Web3Wallet wallet = Web3Wallet(privateKey: "Loading", publicKey: "Loading", name: "Loading", localIndex: "1");
   String selectedWalletIndex = "1";
-  String selectedWalletName = "Wallet1";
   String importingAssetContractAddress = "";
   String importingAssetContractSymbol = "";
   String selectedNetworkId = "goerli";
@@ -307,13 +306,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         loading = true;
       });
     }
+    wallet = Web3Wallet(privateKey: "Loading", publicKey: "Loading", name: "Loading", localIndex: "1");
     loadingString = null;
     showSeed = false;
-    publicKey = 'Loading';
-    privateKey = 'Loading';
     importingAssetContractAddress = "";
     importingAssetContractSymbol = "";
-    selectedWalletName = "Wallet1";
     selectedWalletBalance = EtherAmount.zero();
     selectedWalletTxs = [];
     selectedWalletAssets = [];
@@ -445,8 +442,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           httpClient);
 
       // Wallet
-      Map walletData =
-          await SafeStorageService().getWalletData(selectedWalletIndex);
+      wallet=
+          await SafeStorageService().getWallet(selectedWalletIndex);
 
       if (jsonDecode(uzsoFirebase!.get('contract_abi')) != null) {
         uzsoContract = DeployedContract(
@@ -458,19 +455,19 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
       // get balance
       final responseBalance = await httpClient.get(Uri.parse(
-          "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=tokenbalance&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+          "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=tokenbalance&contractaddress=${uzsoFirebase!.id}&address=${wallet.publicKey}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
       dynamic jsonBodyBalance = jsonDecode(responseBalance.body);
       EtherAmount valueBalance = EtherAmount.fromUnitAndValue(
           EtherUnit.wei, jsonBodyBalance['result']);
 
       walletFirebase = await firestore.FirebaseFirestore.instance
           .collection('wallets')
-          .doc(walletData['address'].toString())
+          .doc(wallet.valueAddress.toString())
           .get();
 
       // get txs
       final response = await httpClient.get(Uri.parse(
-          "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=tokentx&contractaddress=${uzsoFirebase!.id}&address=${walletData['address']}&page=1&offset=10&startblock=0&endblock=99999999&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+          "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=tokentx&contractaddress=${uzsoFirebase!.id}&address=${wallet.publicKey}&page=1&offset=10&startblock=0&endblock=99999999&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
       dynamic jsonBody = jsonDecode(response.body);
       List valueTxs = jsonBody['result'];
 
@@ -482,24 +479,15 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       // Get gas indicator data
       estimateGasPrice = await web3client!.getGasPrice();
       estimateGasAmount = await web3client!.estimateGas(
-        sender: walletData['address'],
+        sender: wallet.valueAddress,
       );
 
       // Get selected network vs usd
       selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
 
-      gasBalance = await web3client!.getBalance(walletData['address']);
+      gasBalance = await web3client!.getBalance(wallet.valueAddress);
 
       setState(() {
-        walletData['publicKey'] != null
-            ? publicKey = walletData['publicKey']
-            : publicKey = 'Error';
-        walletData['privateKey'] != null
-            ? privateKey = walletData['privateKey']
-            : privateKey = 'Error';
-        walletData['name'] != null
-            ? selectedWalletName = walletData['name']
-            : selectedWalletName = 'Error';
         valueBalance != null
             ? selectedWalletBalance = valueBalance
             : selectedWalletBalance = EtherAmount.zero();
@@ -620,14 +608,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                 children: [
                                   Jazzicon.getIconWidget(
                                       Jazzicon.getJazziconData(160,
-                                          address: publicKey),
+                                          address: wallet.publicKey),
                                       size: 20),
                                   SizedBox(
                                     width: 10,
                                   ),
                                   Expanded(
                                     child: Text(
-                                      selectedWalletName,
+                                      wallet.name,
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 3,
                                       textAlign: TextAlign.start,
@@ -819,7 +807,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                         ),
                                                       ),
                                                       child: Text(
-                                                        privateKey,
+                                                        wallet.privateKey,
                                                         maxLines: 1000,
                                                         overflow: TextOverflow
                                                             .ellipsis,
@@ -876,7 +864,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                             padding: EdgeInsets.zero,
                                             onPressed: () async {
                                               await Clipboard.setData(
-                                                ClipboardData(text: privateKey),
+                                                ClipboardData(text: wallet.privateKey),
                                               );
                                               showNotification(
                                                   'Copied',
@@ -954,7 +942,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                         child: Column(
                                           children: [
                                             TextFormField(
-                                              initialValue: selectedWalletName,
+                                              initialValue: wallet.name,
                                               style: const TextStyle(
                                                   color: secondaryColor),
                                               validator: (val) {
@@ -1577,7 +1565,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                             .getJazziconData(
                                                                 160,
                                                                 address:
-                                                                    publicKey),
+                                                                    wallet.publicKey),
                                                         size: 20),
                                                     SizedBox(
                                                       width: 5,
@@ -1621,7 +1609,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                           hint: Container(
                                                             width: 130,
                                                             child: Text(
-                                                              selectedWalletName,
+                                                              wallet.name,
                                                               overflow:
                                                                   TextOverflow
                                                                       .ellipsis,
@@ -1728,7 +1716,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                   children: [
                                                     Expanded(
                                                       child: Text(
-                                                        publicKey,
+                                                        wallet.publicKey,
                                                         maxLines: 2,
                                                         overflow: TextOverflow
                                                             .ellipsis,
@@ -1756,7 +1744,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                           await Clipboard.setData(
                                                               ClipboardData(
                                                                   text:
-                                                                      publicKey));
+                                                                      wallet.publicKey));
                                                           showNotification(
                                                               'Copied',
                                                               'Public key copied',
@@ -1909,7 +1897,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                     Jazzicon.getJazziconData(
                                                                         160,
                                                                         address:
-                                                                            publicKey),
+                                                                            wallet.publicKey),
                                                                     size: 20),
                                                                 SizedBox(
                                                                   width: 5,
@@ -1955,7 +1943,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                             130,
                                                                         child:
                                                                             Text(
-                                                                          selectedWalletName,
+                                                                          wallet.name,
                                                                           overflow:
                                                                               TextOverflow.ellipsis,
                                                                           textAlign:
@@ -2047,7 +2035,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                               children: [
                                                                 Expanded(
                                                                   child: Text(
-                                                                    publicKey,
+                                                                    wallet.publicKey,
                                                                     maxLines: 2,
                                                                     overflow:
                                                                         TextOverflow
@@ -2080,7 +2068,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                         () async {
                                                                       await Clipboard.setData(
                                                                           ClipboardData(
-                                                                              text: publicKey));
+                                                                              text: wallet.publicKey));
                                                                       showNotification(
                                                                           'Copied',
                                                                           'Public key copied',
@@ -2226,7 +2214,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                                     if (invoice.get('status') != '10') {
                                                                                       EtherAmount etherGas = await web3client!.getGasPrice();
                                                                                       BigInt estimateGas = await web3client!.estimateGas(
-                                                                                        sender: EthereumAddress.fromHex(publicKey),
+                                                                                        sender: EthereumAddress.fromHex(wallet.publicKey),
                                                                                         // to: EthereumAddress.fromHex(invoice.get('to')),
                                                                                       );
                                                                                       // Confirmation
@@ -2268,13 +2256,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                                                                 Row(
                                                                                                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                                                                                   children: [
-                                                                                                                    Jazzicon.getIconWidget(Jazzicon.getJazziconData(160, address: publicKey), size: 25),
+                                                                                                                    Jazzicon.getIconWidget(Jazzicon.getJazziconData(160, address: wallet.publicKey), size: 25),
                                                                                                                     SizedBox(
                                                                                                                       width: 10,
                                                                                                                     ),
                                                                                                                     Expanded(
                                                                                                                       child: Text(
-                                                                                                                        selectedWalletName,
+                                                                                                                        wallet.name,
                                                                                                                         overflow: TextOverflow.ellipsis,
                                                                                                                         maxLines: 3,
                                                                                                                         textAlign: TextAlign.start,
@@ -2668,7 +2656,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                                                               Navigator.of(context).pop(true);
                                                                                                               await firestore.FirebaseFirestore.instance.collection('invoices').doc(invoice.id).update({
                                                                                                                 'status': '1',
-                                                                                                                'from': publicKey,
+                                                                                                                'from': wallet.publicKey,
                                                                                                               });
                                                                                                               BigInt chainId = await web3client!.getChainId();
                                                                                                               firestore.DocumentSnapshot invoiceCoin = await firestore.FirebaseFirestore.instance.collection('stablecoins').doc(invoice.get('coinId')).get();
@@ -2690,7 +2678,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                                                               bool txSuccess = true;
                                                                                                               String transactionResult = await web3client!
                                                                                                                   .sendTransaction(
-                                                                                                                EthPrivateKey.fromHex(privateKey),
+                                                                                                                EthPrivateKey.fromHex(wallet.privateKey),
                                                                                                                 transaction,
                                                                                                                 chainId: chainId.toInt(),
                                                                                                               )
@@ -2827,8 +2815,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                     SlideRightRoute(
                                                       page: SendOzodScreen(
                                                         web3client: web3client!,
-                                                        walletIndex:
-                                                            selectedWalletIndex,
+                                                        wallet: wallet,
                                                         networkId:
                                                             selectedNetworkId,
                                                         coin: {
@@ -2885,7 +2872,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 fillColor: secondaryColor,
                                                 shape: CircleBorder(),
                                                 onPressed: () {
-                                                  if (publicKey != 'Loading')
+                                                  if (wallet.publicKey != 'Loading')
                                                     showDialog(
                                                         barrierDismissible:
                                                             false,
@@ -2949,7 +2936,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                           child:
                                                                               QrImage(
                                                                             data:
-                                                                                EthereumAddress.fromHex(publicKey).addressBytes.toString(),
+                                                                                EthereumAddress.fromHex(wallet.publicKey).addressBytes.toString(),
                                                                             foregroundColor:
                                                                                 secondaryColor,
                                                                           ),
@@ -2964,7 +2951,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                           children: [
                                                                             Expanded(
                                                                               child: Text(
-                                                                                publicKey,
+                                                                                wallet.publicKey,
                                                                                 overflow: TextOverflow.ellipsis,
                                                                                 maxLines: 10,
                                                                                 textAlign: TextAlign.start,
@@ -2982,7 +2969,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                               child: IconButton(
                                                                                 padding: EdgeInsets.zero,
                                                                                 onPressed: () async {
-                                                                                  await Clipboard.setData(ClipboardData(text: publicKey));
+                                                                                  await Clipboard.setData(ClipboardData(text: wallet.publicKey));
                                                                                   showNotification('Copied', 'Public key copied', greenColor);
                                                                                 },
                                                                                 icon: Icon(
@@ -3119,7 +3106,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                                     context,
                                                                                     SlideRightRoute(
                                                                                       page: BuyOzodPaymeScreen(
-                                                                                        walletIndex: selectedWalletIndex,
+                                                                                        wallet: wallet,
                                                                                         web3client: web3client!,
                                                                                       ),
                                                                                     ),
@@ -3157,7 +3144,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                                     context,
                                                                                     SlideRightRoute(
                                                                                       page: BuyOzodOctoScreen(
-                                                                                        walletIndex: selectedWalletIndex,
+                                                                                        wallet: wallet,
                                                                                         web3client: web3client!,
                                                                                         selectedNetworkId: selectedNetworkId,
                                                                                         contract: uzsoContract!,
@@ -3745,7 +3732,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                                   child: CupertinoButton(
                                                                                     onPressed: () async {
                                                                                       await Clipboard.setData(
-                                                                                        ClipboardData(text: privateKey),
+                                                                                        ClipboardData(text: tx['hash']),
                                                                                       );
                                                                                       showNotification('Copied', 'Copied', greenColor);
                                                                                     },
@@ -3802,7 +3789,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                                   child: CupertinoButton(
                                                                                     onPressed: () async {
                                                                                       await Clipboard.setData(
-                                                                                        ClipboardData(text: privateKey),
+                                                                                        ClipboardData(text: tx['from']),
                                                                                       );
                                                                                       showNotification('Copied', 'Copied', greenColor);
                                                                                     },
@@ -3859,7 +3846,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                                   child: CupertinoButton(
                                                                                     onPressed: () async {
                                                                                       await Clipboard.setData(
-                                                                                        ClipboardData(text: privateKey),
+                                                                                        ClipboardData(text: tx['to']),
                                                                                       );
                                                                                       showNotification('Copied', 'Copied', greenColor);
                                                                                     },
@@ -4119,7 +4106,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                       .center,
                                                               children: [
                                                                 tx['from'] ==
-                                                                        publicKey
+                                                                        wallet.publicKey
                                                                     ? Icon(
                                                                         CupertinoIcons
                                                                             .arrow_up_circle_fill,
@@ -4169,7 +4156,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                       .start,
                                                               children: [
                                                                 tx['from'] ==
-                                                                        publicKey
+                                                                        wallet.publicKey
                                                                     ? Text(
                                                                         "Sent",
                                                                         overflow:
@@ -4209,7 +4196,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                         ),
                                                                       ),
                                                                 tx['from'] ==
-                                                                            publicKey &&
+                                                                            wallet.publicKey &&
                                                                         !selectedWalletAssetsData
                                                                             .keys
                                                                             .contains(tx['to'])
@@ -4384,7 +4371,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                 .doc(invoice.id)
                 .update({
               'status': '10',
-              'from': publicKey,
+              'from': wallet.publicKey,
               'txReceipt': txReceipt.contractAddress,
             });
             showNotification('Success', 'Transaction made', Colors.green);

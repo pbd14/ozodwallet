@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:http/http.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
@@ -16,12 +17,12 @@ import 'package:webview_flutter/webview_flutter.dart';
 // ignore: must_be_immutable
 class BuyOzodPaymeScreen extends StatefulWidget {
   String error;
-  String walletIndex;
+  Web3Wallet wallet;
   Web3Client web3client;
   BuyOzodPaymeScreen({
     Key? key,
     this.error = 'Something Went Wrong',
-    required this.walletIndex,
+    required this.wallet,
     required this.web3client,
   }) : super(key: key);
 
@@ -48,14 +49,12 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
   String? cardMonth = "";
   String? cardYear = "";
 
-  Map walletData = {};
   EtherAmount? balance;
 
   DocumentSnapshot? appDataPaymentOptions;
 
   Future<void> prepare() async {
-    walletData = await SafeStorageService().getWalletData(widget.walletIndex);
-    balance = await widget.web3client.getBalance(walletData['address']);
+    balance = await widget.web3client.getBalance(widget.wallet.valueAddress);
 
     appDataPaymentOptions = await FirebaseFirestore.instance
         .collection("app_data")
@@ -144,14 +143,14 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                             children: [
                               Jazzicon.getIconWidget(
                                   Jazzicon.getJazziconData(160,
-                                      address: walletData['publicKey']),
+                                      address: widget.wallet.publicKey),
                                   size: 25),
                               SizedBox(
                                 width: 10,
                               ),
                               Expanded(
                                 child: Text(
-                                  walletData['name'],
+                                  widget.wallet.name,
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 3,
                                   textAlign: TextAlign.start,

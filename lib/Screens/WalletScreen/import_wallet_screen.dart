@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hex/hex.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
@@ -463,11 +464,11 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
 
                                     if (lastWalletIndex != null) {
                                       await SafeStorageService().addNewWallet(
-                                          lastWalletIndex,
-                                          walletPrivateKey,
-                                          publicKey.toString(),
-                                          password ?? "Password",
-                                          name);
+                                          Web3Wallet(
+                                              privateKey: walletPrivateKey,
+                                              publicKey: publicKey.toString(),
+                                              name: name,
+                                              localIndex: lastWalletIndex));
                                     }
                                     if (widget.isWelcomeScreen) {
                                       Navigator.pop(context);
@@ -521,11 +522,12 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
 
                                       if (lastWalletIndex != null) {
                                         await SafeStorageService().addNewWallet(
-                                            lastWalletIndex,
-                                            walletPrivateKey,
-                                            publicKey.toString(),
-                                            password ?? "Password",
-                                            name);
+                                          Web3Wallet(
+                                              privateKey: walletPrivateKey,
+                                              publicKey: publicKey.toString(),
+                                              name: name,
+                                              localIndex: lastWalletIndex),
+                                        );
                                       }
                                       if (widget.isWelcomeScreen) {
                                         Navigator.pop(context);

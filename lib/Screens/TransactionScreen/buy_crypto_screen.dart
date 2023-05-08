@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Services/exchanges/mercury_api_service.dart';
 import 'package:ozodwallet/Services/exchanges/simpleswap_api_service.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
@@ -72,7 +73,11 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
 
   Map selectedCoin = {};
   Map selectedExchange = {};
-  Map walletData = {};
+  Web3Wallet wallet = Web3Wallet(
+      privateKey: "Loading",
+      publicKey: "Loading",
+      name: "Loading",
+      localIndex: "1");
   EtherAmount? balance;
   DocumentSnapshot? appData;
   DocumentSnapshot? appDataExchanges;
@@ -123,8 +128,8 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
         .collection('app_data')
         .doc('exchanges')
         .get();
-    walletData = await SafeStorageService().getWalletData(widget.walletIndex);
-    balance = await widget.web3client.getBalance(walletData['address']);
+    wallet = await SafeStorageService().getWallet(widget.walletIndex);
+    balance = await widget.web3client.getBalance(wallet.valueAddress);
     coins = json.decode(appData!.get('ETHER_TOP20_COINS_JSON'));
     selectedCoin = coins[0];
     getPossibleExchanges();
@@ -150,7 +155,7 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
       size = Size(600, size.height);
     }
     return loading
-        ?  LoadingScreen()
+        ? LoadingScreen()
         : Scaffold(
             appBar: AppBar(
               elevation: 0,
@@ -166,8 +171,8 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
               child: Center(
                 child: Container(
                   margin: const EdgeInsets.all(20),
-                  constraints: BoxConstraints(
-                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                  constraints:
+                      BoxConstraints(maxWidth: kIsWeb ? 600 : double.infinity),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -210,14 +215,14 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                             children: [
                               Jazzicon.getIconWidget(
                                   Jazzicon.getJazziconData(160,
-                                      address: walletData['publicKey']),
+                                      address: wallet.publicKey),
                                   size: 25),
                               SizedBox(
                                 width: 10,
                               ),
                               Expanded(
                                 child: Text(
-                                  walletData['name'],
+                                  wallet.name,
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 3,
                                   textAlign: TextAlign.start,
@@ -263,21 +268,21 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(40.0),
-                                borderSide:
-                                    BorderSide(color: secondaryColor, width: 1.0),
+                                borderSide: BorderSide(
+                                    color: secondaryColor, width: 1.0),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(40.0),
-                                borderSide:
-                                    BorderSide(color: secondaryColor, width: 1.0),
+                                borderSide: BorderSide(
+                                    color: secondaryColor, width: 1.0),
                               ),
                               hintStyle: TextStyle(
                                   color: darkPrimaryColor.withOpacity(0.7)),
                               hintText: 'Coin',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(40.0),
-                                borderSide:
-                                    BorderSide(color: secondaryColor, width: 1.0),
+                                borderSide: BorderSide(
+                                    color: secondaryColor, width: 1.0),
                               ),
                             ),
                             menuMaxHeight: 200,
@@ -492,21 +497,21 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                               ),
                               focusedBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(40.0),
-                                borderSide:
-                                    BorderSide(color: secondaryColor, width: 1.0),
+                                borderSide: BorderSide(
+                                    color: secondaryColor, width: 1.0),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(40.0),
-                                borderSide:
-                                    BorderSide(color: secondaryColor, width: 1.0),
+                                borderSide: BorderSide(
+                                    color: secondaryColor, width: 1.0),
                               ),
                               hintStyle: TextStyle(
                                   color: darkPrimaryColor.withOpacity(0.7)),
                               hintText: 'Exchange',
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(40.0),
-                                borderSide:
-                                    BorderSide(color: secondaryColor, width: 1.0),
+                                borderSide: BorderSide(
+                                    color: secondaryColor, width: 1.0),
                               ),
                             ),
                             menuMaxHeight: 200,
@@ -541,7 +546,8 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                         ? selectedExchange['name']
                                                 .substring(0, 1)
                                                 .toUpperCase() +
-                                            selectedExchange['name'].substring(1)
+                                            selectedExchange['name']
+                                                .substring(1)
                                         : 'N/A',
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.start,
@@ -619,7 +625,7 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                   children: [
                                     Expanded(
                                       child: Text(
-                                        walletData['publicKey'],
+                                        wallet.publicKey,
                                         overflow: TextOverflow.ellipsis,
                                         maxLines: 10,
                                         textAlign: TextAlign.start,
@@ -638,9 +644,10 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                         padding: EdgeInsets.zero,
                                         onPressed: () async {
                                           await Clipboard.setData(ClipboardData(
-                                              text: walletData['publicKey']));
-                                          
-                                          showNotification('Copied','Public key copied',greenColor);  
+                                              text: wallet.publicKey));
+
+                                          showNotification('Copied',
+                                              'Public key copied', greenColor);
                                         },
                                         icon: Icon(
                                           CupertinoIcons.doc,
@@ -667,8 +674,8 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                     ],
                                   ),
                                 ),
-                                child:
-                                    WebViewWidget(controller: webViewController),
+                                child: WebViewWidget(
+                                    controller: webViewController),
                               )
                             : Container(),
                         SizedBox(height: showWeb ? 50 : 0),
@@ -703,9 +710,11 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
                                                 (NavigationRequest request) {
                                               if (request.url.startsWith(
                                                   'https://www.youtube.com/')) {
-                                                return NavigationDecision.prevent;
+                                                return NavigationDecision
+                                                    .prevent;
                                               }
-                                              return NavigationDecision.navigate;
+                                              return NavigationDecision
+                                                  .navigate;
                                             },
                                           ),
                                         )

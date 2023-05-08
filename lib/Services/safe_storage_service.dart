@@ -1,5 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:web3dart/web3dart.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 
 class SafeStorageService {
   final storage = FlutterSecureStorage(
@@ -7,21 +7,17 @@ class SafeStorageService {
     encryptedSharedPreferences: true,
   ));
 
-  Future<Map> getWalletData(String walletIndex) async {
+  Future<Web3Wallet> getWallet(String walletIndex) async {
     String? publicKey = await storage.read(key: 'publicKey${walletIndex}');
     String? privateKey = await storage.read(key: 'privateKey${walletIndex}');
     String? name = await storage.read(key: 'Wallet${walletIndex}');
-    EthereumAddress valueAddress = EthPrivateKey.fromHex(privateKey!).address;
-    Credentials credentials = EthPrivateKey.fromHex(privateKey);
 
-    return {
-      'privateKey': privateKey,
-      'publicKey': publicKey,
-      'name': name,
-      'address': valueAddress,
-      'walletIndex': walletIndex,
-      'credentials': credentials,
-    };
+    return Web3Wallet(
+      privateKey: privateKey ?? "Error",
+      publicKey: publicKey ?? "Error",
+      name: name ?? "Error",
+      localIndex: walletIndex,
+    );
   }
 
   Future<List> getAllWallets() async {
@@ -35,14 +31,17 @@ class SafeStorageService {
     return wallets;
   }
 
-  Future<void> addNewWallet(String walletIndex, String privateKey,
-      String publicKey, String password, String name) async {
-    await storage.write(key: "privateKey${walletIndex}", value: privateKey);
-    await storage.write(key: "publicKey${walletIndex}", value: publicKey);
-    await storage.write(key: "password${walletIndex}", value: password);
-    await storage.write(key: "Wallet${walletIndex}", value: name);
+  Future<void> addNewWallet(Web3Wallet wallet) async {
     await storage.write(
-        key: "lastWalletIndex", value: (int.parse(walletIndex) + 1).toString());
+        key: "privateKey${wallet.localIndex}", value: wallet.privateKey);
+    await storage.write(
+        key: "publicKey${wallet.localIndex}", value: wallet.publicKey);
+    await storage.write(
+        key: "password${wallet.localIndex}", value: wallet.password);
+    await storage.write(key: "Wallet${wallet.localIndex}", value: wallet.name);
+    await storage.write(
+        key: "lastWalletIndex",
+        value: (int.parse(wallet.localIndex) + 1).toString());
     await storage.write(key: "walletExists", value: 'true');
   }
 

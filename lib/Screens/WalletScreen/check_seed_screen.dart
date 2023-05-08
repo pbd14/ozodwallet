@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hex/hex.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
@@ -63,7 +64,7 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
       size = Size(600, size.height);
     }
     return loading
-        ?  LoadingScreen()
+        ? LoadingScreen()
         : Scaffold(
             appBar: AppBar(
               elevation: 0,
@@ -79,8 +80,8 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
               child: Center(
                 child: Container(
                   margin: const EdgeInsets.all(20),
-                  constraints: BoxConstraints(
-                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                  constraints:
+                      BoxConstraints(maxWidth: kIsWeb ? 600 : double.infinity),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -240,11 +241,12 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
 
                                       if (lastWalletIndex != null) {
                                         await SafeStorageService().addNewWallet(
-                                            lastWalletIndex,
-                                            privateKey,
-                                            publicKey.toString(),
-                                            widget.password,
-                                            widget.name);
+                                          Web3Wallet(
+                                              privateKey: privateKey,
+                                              publicKey: publicKey.toString(),
+                                              name: widget.name,
+                                              localIndex: lastWalletIndex),
+                                        );
 
                                         // ignore: unused_local_variable
                                         Wallet wallet = Wallet.createNew(

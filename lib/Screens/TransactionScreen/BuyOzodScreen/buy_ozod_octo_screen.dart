@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:http/http.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
 import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
@@ -19,14 +20,14 @@ import 'package:webview_flutter/webview_flutter.dart';
 // ignore: must_be_immutable
 class BuyOzodOctoScreen extends StatefulWidget {
   String error;
-  String walletIndex;
+  Web3Wallet wallet;
   String selectedNetworkId;
   DeployedContract contract;
   web3.Web3Client web3client;
   BuyOzodOctoScreen({
     Key? key,
     this.error = 'Something Went Wrong',
-    required this.walletIndex,
+    required this.wallet,
     required this.web3client,
     required this.contract,
     required this.selectedNetworkId,
@@ -59,7 +60,6 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
   String? email = "";
   String? octoPaymentId;
 
-  Map walletData = {};
   web3.EtherAmount? balance;
 
   DocumentSnapshot? appDataPaymentOptions;
@@ -68,8 +68,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
   int paymentId = DateTime.now().millisecondsSinceEpoch;
 
   Future<void> prepare() async {
-    walletData = await SafeStorageService().getWalletData(widget.walletIndex);
-    balance = await widget.web3client.getBalance(walletData['address']);
+    balance = await widget.web3client.getBalance(widget.wallet.valueAddress);
 
     appDataPaymentOptions = await FirebaseFirestore.instance
         .collection("app_data")
@@ -171,14 +170,14 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                 children: [
                                   Jazzicon.getIconWidget(
                                       Jazzicon.getJazziconData(160,
-                                          address: walletData['publicKey']),
+                                          address: widget.wallet.publicKey),
                                       size: 25),
                                   SizedBox(
                                     width: 10,
                                   ),
                                   Expanded(
                                     child: Text(
-                                      walletData['name'],
+                                      widget.wallet.name,
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 3,
                                       textAlign: TextAlign.start,
@@ -887,8 +886,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                             .doc(paymentId.toString())
                                             .set({
                                           "id": paymentId,
-                                          "walletPublicKey":
-                                              walletData['publicKey'],
+                                          "walletPublicKey": widget.wallet.publicKey,
                                           "status_code": paymentStatusCode,
                                           "amount": amount,
                                           "product": "UZSO",
@@ -907,7 +905,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                               .instance
                                               .httpsCallable('mintToCustomer')
                                               .call({
-                                            'to': walletData['address']
+                                            'to': widget.wallet.valueAddress
                                                 .toString(),
                                             'amount': (BigInt.from(amount) *
                                                     BigInt.from(pow(10, 18)))
@@ -1054,7 +1052,7 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
         "test": true,
         "init_time": DateTime.now().toString(),
         "user_data": {
-          "user_id": walletData["publicKey"],
+          "user_id": widget.wallet.publicKey,
           "phone": "",
           "email": email,
         },

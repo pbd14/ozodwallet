@@ -11,10 +11,10 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Services/coingecko_api_service.dart';
 import 'package:ozodwallet/Services/encryption_service.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
-import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/constants.dart';
@@ -23,7 +23,7 @@ import 'package:web3dart/web3dart.dart';
 // ignore: must_be_immutable
 class SendOzodScreen extends StatefulWidget {
   String error;
-  String walletIndex;
+  Web3Wallet wallet;
   String networkId;
   Web3Client web3client;
   Map coin;
@@ -32,7 +32,7 @@ class SendOzodScreen extends StatefulWidget {
   SendOzodScreen({
     Key? key,
     this.error = 'Something Went Wrong',
-    required this.walletIndex,
+    required this.wallet,
     required this.networkId,
     required this.web3client,
     required this.coin,
@@ -53,7 +53,6 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
 
   String? receiverPublicAddress;
   String? amount;
-  Map walletData = {};
   Map selectedCoin = {'symbol': 'UZSO'};
   EtherAmount? balance;
   Client httpClient = Client();
@@ -90,9 +89,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
 
     walletFirebase = await firestore.FirebaseFirestore.instance
         .collection('wallets')
-        .doc(walletData['address'].toString())
+        .doc(widget.wallet.valueAddress.toString())
         .get();
-    walletData = await SafeStorageService().getWalletData(widget.walletIndex);
     selectedCoin = widget.coin;
 
     // get app data
@@ -104,11 +102,10 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
         .collection('app_data')
         .doc('api')
         .get();
-    walletData = await SafeStorageService().getWalletData(widget.walletIndex);
 
     // get balance
     final responseBalance = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[widget.networkId]['scan_url']}/api?module=account&action=tokenbalance&contractaddress=${selectedCoin['id']}&address=${walletData['address']}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[widget.networkId]['scan_url']}/api?module=account&action=tokenbalance&contractaddress=${selectedCoin['id']}&address=${widget.wallet.publicKey}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
     dynamic jsonBodyBalance = jsonDecode(responseBalance.body);
     setState(() {
       loading = false;
@@ -205,14 +202,14 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                 children: [
                                   Jazzicon.getIconWidget(
                                       Jazzicon.getJazziconData(160,
-                                          address: walletData['publicKey']),
+                                          address: widget.wallet.publicKey),
                                       size: 25),
                                   SizedBox(
                                     width: 10,
                                   ),
                                   Expanded(
                                     child: Text(
-                                      walletData['name'],
+                                      widget.wallet.name,
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 3,
                                       textAlign: TextAlign.start,
@@ -633,7 +630,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                     await widget.web3client.getGasPrice();
                                 BigInt estimateGas =
                                     await widget.web3client.estimateGas(
-                                  sender: walletData['address'],
+                                  sender: widget.wallet.valueAddress,
                                 );
                                 setState(() {
                                   loading = false;
@@ -1213,8 +1210,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                             await widget
                                                                 .web3client
                                                                 .sendTransaction(
-                                                          walletData[
-                                                              'credentials'],
+                                                          widget.wallet.credentials,
                                                           transaction,
                                                           chainId:
                                                               chainId.toInt(),

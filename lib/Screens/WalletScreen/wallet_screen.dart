@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_tx_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
@@ -52,11 +53,8 @@ class _WalletScreenState extends State<WalletScreen> {
   String editedName = "Wallet1";
   final _formKey = GlobalKey<FormState>();
 
-  String publicKey = 'Loading';
-  String address = 'Loading';
-  String privateKey = 'Loading';
+  Web3Wallet wallet = Web3Wallet(privateKey: "Loading", publicKey: "Loading", name: "Loading", localIndex: "1");
   String selectedWalletIndex = "1";
-  String selectedWalletName = "Wallet1";
   String importingAssetContractAddress = "";
   String importingAssetContractSymbol = "";
   String selectedNetworkId = "mainnet";
@@ -92,11 +90,9 @@ class _WalletScreenState extends State<WalletScreen> {
     setState(() {
       loading = true;
     });
-    publicKey = 'Loading';
-    privateKey = 'Loading';
+    wallet = Web3Wallet(privateKey: "Loading", publicKey: "Loading", name: "Loading", localIndex: "1");
     importingAssetContractAddress = "";
     importingAssetContractSymbol = "";
-    selectedWalletName = "Wallet1";
     selectedWalletBalance = EtherAmount.zero();
     selectedWalletTxs = [];
     selectedWalletAssets = [];
@@ -233,14 +229,14 @@ class _WalletScreenState extends State<WalletScreen> {
           httpClient);
 
       // Wallet
-      Map walletData =
-          await SafeStorageService().getWalletData(selectedWalletIndex);
+      wallet =
+          await SafeStorageService().getWallet(selectedWalletIndex);
       EtherAmount valueBalance =
-          await web3client.getBalance(walletData['address']);
+          await web3client.getBalance(wallet.valueAddress);
 
       walletFirebase = await FirebaseFirestore.instance
           .collection('wallets')
-          .doc(walletData['address'].toString())
+          .doc(wallet.valueAddress.toString())
           .get();
 
       // get assets
@@ -259,7 +255,7 @@ class _WalletScreenState extends State<WalletScreen> {
               final balance = await web3client.call(
                   contract: contract,
                   function: contract.function('balanceOf'),
-                  params: [walletData['address']]);
+                  params: [wallet.valueAddress]);
               selectedWalletAssets.add({
                 'symbol': asset['symbol'],
                 'balance': balance[0],
@@ -277,7 +273,7 @@ class _WalletScreenState extends State<WalletScreen> {
 
       // get txs
       final response = await httpClient.get(Uri.parse(
-          "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=txlist&address=${walletData['address']}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+          "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=txlist&address=${wallet.publicKey}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
       dynamic jsonBody = jsonDecode(response.body);
       List valueTxs = [];
       if (jsonBody['result'] != null) {
@@ -287,27 +283,15 @@ class _WalletScreenState extends State<WalletScreen> {
       // Gas indicator
       estimateGasPrice = await web3client.getGasPrice();
       estimateGasAmount = await web3client.estimateGas(
-        sender: walletData['address'],
+        sender: wallet.valueAddress,
       );
 
       // Get selected network vs usd
       selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
 
-      gasBalance = await web3client.getBalance(walletData['address']);
+      gasBalance = await web3client.getBalance(wallet.valueAddress);
 
       setState(() {
-        walletData['publicKey'] != null
-            ? publicKey = walletData['publicKey']
-            : publicKey = 'Error';
-        walletData['address'] != null
-            ? address = walletData['address'].toString()
-            : address = 'Error';
-        walletData['privateKey'] != null
-            ? privateKey = walletData['privateKey']
-            : privateKey = 'Error';
-        walletData['name'] != null
-            ? selectedWalletName = walletData['name']
-            : selectedWalletName = 'Error';
         valueBalance != null
             ? selectedWalletBalance = valueBalance
             : selectedWalletBalance = EtherAmount.zero();
@@ -430,14 +414,14 @@ class _WalletScreenState extends State<WalletScreen> {
                                 children: [
                                   Jazzicon.getIconWidget(
                                       Jazzicon.getJazziconData(160,
-                                          address: publicKey),
+                                          address: wallet.publicKey),
                                       size: 20),
                                   SizedBox(
                                     width: 10,
                                   ),
                                   Expanded(
                                     child: Text(
-                                      selectedWalletName,
+                                      wallet.name,
                                       overflow: TextOverflow.ellipsis,
                                       maxLines: 3,
                                       textAlign: TextAlign.start,
@@ -629,7 +613,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                         ),
                                                       ),
                                                       child: Text(
-                                                        privateKey,
+                                                        wallet.privateKey,
                                                         maxLines: 1000,
                                                         overflow: TextOverflow
                                                             .ellipsis,
@@ -686,7 +670,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                             padding: EdgeInsets.zero,
                                             onPressed: () async {
                                               await Clipboard.setData(
-                                                ClipboardData(text: privateKey),
+                                                ClipboardData(text: wallet.privateKey),
                                               );
                                               showNotification(
                                                   'Copied',
@@ -764,7 +748,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                         child: Column(
                                           children: [
                                             TextFormField(
-                                              initialValue: selectedWalletName,
+                                              initialValue: wallet.name,
                                               style: const TextStyle(
                                                   color: secondaryColor),
                                               validator: (val) {
@@ -1313,7 +1297,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                         children: [
                                           Jazzicon.getIconWidget(
                                               Jazzicon.getJazziconData(160,
-                                                  address: publicKey),
+                                                  address: wallet.publicKey),
                                               size: 20),
                                           SizedBox(
                                             width: 5,
@@ -1344,7 +1328,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 hint: Container(
                                                   width: 200,
                                                   child: Text(
-                                                    selectedWalletName,
+                                                    wallet.name,
                                                     overflow:
                                                         TextOverflow.ellipsis,
                                                     textAlign: TextAlign.start,
@@ -1527,7 +1511,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                         children: [
                                           Expanded(
                                             child: Text(
-                                              publicKey,
+                                              wallet.publicKey,
                                               maxLines: 2,
                                               overflow: TextOverflow.ellipsis,
                                               textAlign: TextAlign.start,
@@ -1547,7 +1531,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                               onPressed: () async {
                                                 await Clipboard.setData(
                                                     ClipboardData(
-                                                        text: publicKey));
+                                                        text: wallet.publicKey));
 
                                                 showNotification(
                                                     'Copied',
@@ -1606,8 +1590,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 SlideRightRoute(
                                                   page: SendTxScreen(
                                                     web3client: web3client,
-                                                    walletIndex:
-                                                        selectedWalletIndex,
+                                                    wallet:
+                                                        wallet,
                                                     networkId:
                                                         selectedNetworkId,
                                                     walletAssets:
@@ -1708,7 +1692,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     child:
                                                                         QrImage(
                                                                       data: EthereumAddress.fromHex(
-                                                                              publicKey)
+                                                                              wallet.publicKey)
                                                                           .addressBytes
                                                                           .toString(),
                                                                       foregroundColor:
@@ -1726,7 +1710,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                       Expanded(
                                                                         child:
                                                                             Text(
-                                                                          publicKey,
+                                                                          wallet.publicKey,
                                                                           overflow:
                                                                               TextOverflow.ellipsis,
                                                                           maxLines:
@@ -1753,7 +1737,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                               EdgeInsets.zero,
                                                                           onPressed:
                                                                               () async {
-                                                                            await Clipboard.setData(ClipboardData(text: publicKey));
+                                                                            await Clipboard.setData(ClipboardData(text: wallet.publicKey));
                                                                             showNotification(
                                                                                 'Copied',
                                                                                 'Public key copied',
@@ -2371,7 +2355,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     .collection(
                                                                         'wallets')
                                                                     .doc(
-                                                                        address)
+                                                                        wallet.publicKey)
                                                                     .update({
                                                                   'assets':
                                                                       FieldValue
@@ -2635,7 +2619,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                           await FirebaseFirestore
                                                                               .instance
                                                                               .collection('wallets')
-                                                                              .doc(publicKey.toString())
+                                                                              .doc(wallet.publicKey)
                                                                               .update({
                                                                             'assets':
                                                                                 FieldValue.arrayUnion([
@@ -2920,7 +2904,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                               child: CupertinoButton(
                                                                                 onPressed: () async {
                                                                                   await Clipboard.setData(
-                                                                                    ClipboardData(text: privateKey),
+                                                                                    ClipboardData(text: tx['hash']),
                                                                                   );
                                                                                   showNotification('Copied', 'Copied', greenColor);
                                                                                 },
@@ -2977,7 +2961,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                               child: CupertinoButton(
                                                                                 onPressed: () async {
                                                                                   await Clipboard.setData(
-                                                                                    ClipboardData(text: privateKey),
+                                                                                    ClipboardData(text: tx['from']),
                                                                                   );
                                                                                   showNotification('Copied', 'Copied', greenColor);
                                                                                 },
@@ -3034,7 +3018,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                               child: CupertinoButton(
                                                                                 onPressed: () async {
                                                                                   await Clipboard.setData(
-                                                                                    ClipboardData(text: privateKey),
+                                                                                    ClipboardData(text: tx['to']),
                                                                                   );
                                                                                   showNotification('Copied', 'Copied', greenColor);
                                                                                 },
@@ -3292,7 +3276,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                   .center,
                                                           children: [
                                                             tx['from'] ==
-                                                                    publicKey
+                                                                    wallet.publicKey
                                                                 ? Icon(
                                                                     CupertinoIcons
                                                                         .arrow_up_circle_fill,
@@ -3340,7 +3324,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                   .start,
                                                           children: [
                                                             tx['from'] ==
-                                                                    publicKey
+                                                                    wallet.publicKey
                                                                 ? Text(
                                                                     "Sent",
                                                                     overflow:
@@ -3384,7 +3368,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     ),
                                                                   ),
                                                             tx['from'] ==
-                                                                        publicKey &&
+                                                                        wallet.publicKey &&
                                                                     !selectedWalletAssetsData
                                                                         .keys
                                                                         .contains(
