@@ -497,19 +497,7 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                         final publicKey =
                                             EthPrivateKey.fromHex(privateKey)
                                                 .address;
-                                        AndroidOptions _getAndroidOptions() =>
-                                            const AndroidOptions(
-                                              encryptedSharedPreferences: true,
-                                            );
-                                        IOSOptions _getIOSOptions() =>
-                                            const IOSOptions(
-                                                accessibility:
-                                                    KeychainAccessibility
-                                                        .passcode);
-                                        final storage = FlutterSecureStorage(
-                                            aOptions: _getAndroidOptions(),
-                                            iOptions: _getIOSOptions());
-                                        String lastWalletIndex = await storage
+                                        String lastWalletIndex = await SafeStorageService().storage
                                                 .read(key: "lastWalletIndex") ??
                                             "1";
                                         Web3Wallet web3wallet = Web3Wallet(

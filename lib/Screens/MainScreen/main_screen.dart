@@ -11,6 +11,8 @@ import 'package:ozodwallet/Screens/HomeScreen/home_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/wallet_screen.dart';
 import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
 import 'package:ozodwallet/Services/encryption_service.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
+import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
@@ -119,57 +121,52 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   Future<void> prepare() async {
-    // ENC CODE
-    // print("CODERGREGRE1");
-    // EncryptionService encryptionService = EncryptionService();
-    // print(encryptionService.enc(
-    //     "https://aurora-mainnet.infura.io/v3/60379ca758e74e8a88791b7b701c1c13"));
+    try {
+      // ENC CODE
+      // print("CODERGREGRE1");
+      // EncryptionService encryptionService = EncryptionService();
+      // print(encryptionService.enc(
+      //     "https://aurora-mainnet.infura.io/v3/60379ca758e74e8a88791b7b701c1c13"));
 
-    // TO DO
-    // await FirebaseAuth.instance
-    //     .signInWithEmailAndPassword(
-    //         email: "wallet.android@ozod.com", password: "Wallet0257500\$")
-    //     .catchError((error, stackTrace) {
-    //   setState(() {
-    //     appIsActive = false;
-    //     loading = false;
-    //   });
-    // });
-    firebaseVarsSubscription = await FirebaseFirestore.instance
-        .collection('app_data')
-        .doc('vars')
-        .snapshots()
-        .listen((vars) {
-      if (mounted) {
-        setState(() {
+      // TO DO
+      // await FirebaseAuth.instance
+      //     .signInWithEmailAndPassword(
+      //         email: "wallet.android@ozod.com", password: "Wallet0257500\$")
+      //     .catchError((error, stackTrace) {
+      //   setState(() {
+      //     appIsActive = false;
+      //     loading = false;
+      //   });
+      // });
+      firebaseVarsSubscription = await FirebaseFirestore.instance
+          .collection('app_data')
+          .doc('vars')
+          .snapshots()
+          .listen((vars) {
+        if (mounted) {
+          setState(() {
+            appIsActive = vars.get('ozod_wallet_app_active');
+          });
+        } else {
           appIsActive = vars.get('ozod_wallet_app_active');
-        });
-      } else {
-        appIsActive = vars.get('ozod_wallet_app_active');
-      }
-    });
-
-    AndroidOptions _getAndroidOptions() => const AndroidOptions(
-          encryptedSharedPreferences: true,
-        );
-    IOSOptions _getIOSOptions() =>
-        const IOSOptions(accessibility: KeychainAccessibility.passcode);
-
-    final storage = FlutterSecureStorage(
-        aOptions: _getAndroidOptions(), iOptions: _getIOSOptions());
-
-    String? value = await storage.read(key: 'walletExists');
-    if (value != 'true') {
-      Navigator.push(
-        context,
-        SlideRightRoute(
-          page: WelcomeScreen(
-            mainScreenRefreshFunction: _refresh,
+        }
+      });
+      String? value =
+          await SafeStorageService().storage.read(key: 'walletExists');
+      if (value != 'true') {
+        Navigator.push(
+          context,
+          SlideRightRoute(
+            page: WelcomeScreen(
+              mainScreenRefreshFunction: _refresh,
+            ),
           ),
-        ),
-      );
-    } else {
-      walletExists = true;
+        );
+      } else {
+        walletExists = true;
+      }
+    } catch (e) {
+      showNotification('Error', 'Error. Try again later', Colors.red);
     }
     setState(() {
       loading = false;

@@ -261,25 +261,15 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                                   .collection('wallets')
                                                   .doc(publicKey)
                                                   .get();
-                                          AndroidOptions _getAndroidOptions() =>
-                                              const AndroidOptions(
-                                                encryptedSharedPreferences:
-                                                    true,
-                                              );
-                                          IOSOptions _getIOSOptions() =>
-                                              const IOSOptions(
-                                                  accessibility:
-                                                      KeychainAccessibility
-                                                          .passcode);
-                                          final storage = FlutterSecureStorage(
-                                              aOptions: _getAndroidOptions(),
-                                              iOptions: _getIOSOptions());
                                           List localWallets =
                                               await SafeStorageService()
                                                   .getAllWalletsPublicKeys();
                                           String lastWalletIndex =
-                                              await storage.read(
-                                                      key: "lastWalletIndex") ??
+                                              await SafeStorageService()
+                                                      .storage
+                                                      .read(
+                                                          key:
+                                                              "lastWalletIndex") ??
                                                   "1";
 
                                           if (!localWallets
@@ -303,7 +293,6 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                           widget.mainScreenRefreshFunction!();
                                         }
                                       }
-                                    
                                     } catch (e) {
                                       print("ERROR: " + e.toString());
                                       showNotification(

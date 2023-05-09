@@ -3,9 +3,11 @@ import 'package:ozodwallet/Models/Web3Wallet.dart';
 
 class SafeStorageService {
   final storage = FlutterSecureStorage(
-      aOptions: const AndroidOptions(
-    encryptedSharedPreferences: true,
-  ));
+    aOptions: const AndroidOptions(
+      encryptedSharedPreferences: true,
+    ),
+    iOptions: const IOSOptions(accessibility: KeychainAccessibility.passcode),
+  );
 
   Future<Web3Wallet> getWallet(String walletIndex) async {
     String? publicKey = await storage.read(key: 'publicKey${walletIndex}');

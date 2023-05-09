@@ -59,7 +59,12 @@ class _WalletScreenState extends State<WalletScreen> {
   String editedName = "Wallet1";
   final _formKey = GlobalKey<FormState>();
 
-  Web3Wallet wallet = Web3Wallet(privateKey: "Loading", publicKey: "Loading", name: "Loading", localIndex: "1");
+  // Wallet
+  Web3Wallet wallet = Web3Wallet(
+      privateKey: "Loading",
+      publicKey: "Loading",
+      name: "Loading",
+      localIndex: "1");
   String selectedWalletIndex = "1";
   String importingAssetContractAddress = "";
   String importingAssetContractSymbol = "";
@@ -67,6 +72,7 @@ class _WalletScreenState extends State<WalletScreen> {
   String selectedNetworkName = "Ethereum Mainnet";
   double selectedNetworkVsUsd = 0;
 
+  // Blockchain data
   EtherAmount selectedWalletBalance = EtherAmount.zero();
   List selectedWalletTxs = [];
   List selectedWalletAssets = [];
@@ -78,21 +84,22 @@ class _WalletScreenState extends State<WalletScreen> {
     EtherUnit.gwei: 'GWEI',
   };
   EtherUnit selectedEtherUnit = EtherUnit.ether;
-  DocumentSnapshot? walletFirebase;
-  DocumentSnapshot? appDataNodes;
-  DocumentSnapshot? appDataApi;
-  DocumentSnapshot? appData;
   EtherAmount estimateGasPrice = EtherAmount.zero();
   BigInt estimateGasAmount = BigInt.from(1);
   EtherAmount? gasBalance;
   double gasTxsLeft = 0;
+
+  // Firebase Firestore
+  DocumentSnapshot? walletFirebase;
+  DocumentSnapshot? appDataNodes;
+  DocumentSnapshot? appDataApi;
+  DocumentSnapshot? appData;
 
   List pendingTxs = [];
 
   // Ozod ID
   User? ozodIdUser;
   StreamSubscription<User?>? authStream;
-
 
   Client httpClient = Client();
   late Web3Client web3client;
@@ -101,7 +108,11 @@ class _WalletScreenState extends State<WalletScreen> {
     setState(() {
       loading = true;
     });
-    wallet = Web3Wallet(privateKey: "Loading", publicKey: "Loading", name: "Loading", localIndex: "1");
+    wallet = Web3Wallet(
+        privateKey: "Loading",
+        publicKey: "Loading",
+        name: "Loading",
+        localIndex: "1");
     importingAssetContractAddress = "";
     importingAssetContractSymbol = "";
     selectedWalletBalance = EtherAmount.zero();
@@ -119,6 +130,106 @@ class _WalletScreenState extends State<WalletScreen> {
     Completer<void> completer = Completer<void>();
     completer.complete();
     return completer.future;
+  }
+
+  Future<void> manageFirebaseFirestore() async {
+    appDataNodes = await FirebaseFirestore.instance
+        .collection('app_data')
+        .doc('nodes')
+        .get();
+    appDataApi = await FirebaseFirestore.instance
+        .collection('app_data')
+        .doc('api')
+        .get();
+    appData = await FirebaseFirestore.instance
+        .collection('app_data')
+        .doc('data')
+        .get();
+    walletFirebase = await FirebaseFirestore.instance
+        .collection('wallets')
+        .doc(wallet.valueAddress.toString())
+        .get();
+  }
+
+  Future<Map> manageBlockchainNetworkData() async {
+    // Check network availability
+    if (appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId] == null) {
+      selectedNetworkId = "mainnet";
+      selectedNetworkName = "Ethereum Mainnet";
+    } else {
+      if (!appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]
+          ['active']) {
+        selectedNetworkId = "mainnet";
+        selectedNetworkName = "Ethereum Mainnet";
+      }
+    }
+
+    // Get coin unit
+    cryptoUnits[EtherUnit.ether] =
+        appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['unit'];
+
+    // Web3 client
+    web3client = Web3Client(
+        EncryptionService().dec(appDataNodes!.get(appData!
+            .get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['node'])),
+        httpClient);
+
+    EtherAmount valueBalance = await web3client.getBalance(wallet.valueAddress);
+
+    // get assets
+    if (walletFirebase!.exists) {
+      for (Map asset in walletFirebase!.get('assets')) {
+        if (asset['network'] == selectedNetworkId) {
+          final response = await httpClient.get(Uri.parse(
+              "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${asset['address']}&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+
+          if (int.parse(jsonDecode(response.body)['status'].toString()) == 1) {
+            final contract = DeployedContract(
+                ContractAbi.fromJson(
+                    jsonDecode(response.body)['result'], "LoyaltyToken"),
+                EthereumAddress.fromHex(asset['address']));
+            final balance = await web3client.call(
+                contract: contract,
+                function: contract.function('balanceOf'),
+                params: [wallet.valueAddress]);
+            selectedWalletAssets.add({
+              'symbol': asset['symbol'],
+              'balance': balance[0],
+              'address': asset['address'],
+              'decimals': asset['decimal'],
+              'contract': contract,
+              'asset': asset,
+            });
+            selectedWalletAssetsData[asset['address'].toLowerCase()] =
+                asset['symbol'];
+          }
+        }
+      }
+    }
+
+    // get txs
+    final response = await httpClient.get(Uri.parse(
+        "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=txlist&address=${wallet.publicKey}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+    dynamic jsonBody = jsonDecode(response.body);
+    List valueTxs = [];
+    if (jsonBody['result'] != null) {
+      valueTxs = jsonBody['result'];
+    }
+
+    // Gas indicator
+    estimateGasPrice = await web3client.getGasPrice();
+    estimateGasAmount = await web3client.estimateGas(
+      sender: wallet.valueAddress,
+    );
+
+    // Get selected network vs usd
+    selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
+    gasBalance = await web3client.getBalance(wallet.valueAddress);
+
+    return {
+      'valueBalance': valueBalance,
+      'valueTxs': valueTxs,
+    };
   }
 
   Future<void> getDataFromSP() async {
@@ -201,133 +312,35 @@ class _WalletScreenState extends State<WalletScreen> {
 
   Future<void> prepare() async {
     try {
-      wallets = await SafeStorageService().getAllWallets();
-      await getDataFromSP();
-      // get app data
-      appDataNodes = await FirebaseFirestore.instance
-          .collection('app_data')
-          .doc('nodes')
-          .get();
-      appDataApi = await FirebaseFirestore.instance
-          .collection('app_data')
-          .doc('api')
-          .get();
-      appData = await FirebaseFirestore.instance
-          .collection('app_data')
-          .doc('data')
-          .get();
-
-      // Check network availability
-      if (appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId] == null) {
-        selectedNetworkId = "mainnet";
-        selectedNetworkName = "Ethereum Mainnet";
-      } else {
-        if (!appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]
-            ['active']) {
-          selectedNetworkId = "mainnet";
-          selectedNetworkName = "Ethereum Mainnet";
-        }
-      }
-
-      // Get coin unit
-      cryptoUnits[EtherUnit.ether] =
-          appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['unit'];
-
-      // Web3 client
-      web3client = Web3Client(
-          EncryptionService().dec(appDataNodes!.get(appData!
-              .get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['node'])),
-          httpClient);
+      // Firebase app data
+      await manageFirebaseFirestore();
 
       // Wallet
-      wallet =
-          await SafeStorageService().getWallet(selectedWalletIndex);
-      EtherAmount valueBalance =
-          await web3client.getBalance(wallet.valueAddress);
+      wallets = await SafeStorageService().getAllWallets();
+      wallet = await SafeStorageService().getWallet(selectedWalletIndex);
+      await getDataFromSP();
 
-      walletFirebase = await FirebaseFirestore.instance
-          .collection('wallets')
-          .doc(wallet.valueAddress.toString())
-          .get();
-
-      // get assets
-      if (walletFirebase!.exists) {
-        for (Map asset in walletFirebase!.get('assets')) {
-          if (asset['network'] == selectedNetworkId) {
-            final response = await httpClient.get(Uri.parse(
-                "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=contract&action=getabi&address=${asset['address']}&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
-
-            if (int.parse(jsonDecode(response.body)['status'].toString()) ==
-                1) {
-              final contract = DeployedContract(
-                  ContractAbi.fromJson(
-                      jsonDecode(response.body)['result'], "LoyaltyToken"),
-                  EthereumAddress.fromHex(asset['address']));
-              final balance = await web3client.call(
-                  contract: contract,
-                  function: contract.function('balanceOf'),
-                  params: [wallet.valueAddress]);
-              selectedWalletAssets.add({
-                'symbol': asset['symbol'],
-                'balance': balance[0],
-                'address': asset['address'],
-                'decimals': asset['decimal'],
-                'contract': contract,
-                'asset': asset,
-              });
-              selectedWalletAssetsData[asset['address'].toLowerCase()] =
-                  asset['symbol'];
-            }
-          }
-        }
-      }
-
-      // get txs
-      final response = await httpClient.get(Uri.parse(
-          "${appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=txlist&address=${wallet.publicKey}&startblock=0&endblock=99999999&page=1&offset=5&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_ETHER_NETWORKS')[selectedNetworkId]['scan_api']))}"));
-      dynamic jsonBody = jsonDecode(response.body);
-      List valueTxs = [];
-      if (jsonBody['result'] != null) {
-        valueTxs = jsonBody['result'];
-      }
-
-      // Gas indicator
-      estimateGasPrice = await web3client.getGasPrice();
-      estimateGasAmount = await web3client.estimateGas(
-        sender: wallet.valueAddress,
-      );
-
-      // Get selected network vs usd
-      selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
-
-      gasBalance = await web3client.getBalance(wallet.valueAddress);
+      // Blockchain Data
+      Map blockchainData = await manageBlockchainNetworkData();
 
       setState(() {
-        valueBalance != null
-            ? selectedWalletBalance = valueBalance
+        blockchainData['valueBalance'] != null
+            ? selectedWalletBalance = blockchainData['valueBalance']
             : selectedWalletBalance = EtherAmount.zero();
-        valueTxs != null
-            ? selectedWalletTxs = valueTxs.toList()
+        blockchainData['valueTxs'] != null
+            ? selectedWalletTxs = blockchainData['valueTxs'].toList()
             : selectedWalletTxs = [];
         gasTxsLeft = (gasBalance!.getValueInUnit(EtherUnit.gwei) /
                 (estimateGasPrice.getValueInUnit(EtherUnit.gwei) *
                     estimateGasAmount.toDouble()))
             .toDouble();
-        // if (appData != null) {
-        //   selectedNetworkId = appData!.get('AVAILABLE_ETHER_NETWORKS')[0];
-        //   selectedNetworkName =
-        //       appData!.get('AVAILABLE_ETHER_NETWORKS')[0]['name'];
-        // }
-
         loading = false;
       });
     } catch (e) {
       showNotification('Error', 'Error. Try again later', Colors.red);
-      setState(
-        () {
-          loading = false;
-        },
-      );
+      setState(() {
+        loading = false;
+      });
     }
   }
 
@@ -694,7 +707,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                             padding: EdgeInsets.zero,
                                             onPressed: () async {
                                               await Clipboard.setData(
-                                                ClipboardData(text: wallet.privateKey),
+                                                ClipboardData(
+                                                    text: wallet.privateKey),
                                               );
                                               showNotification(
                                                   'Copied',
@@ -1193,7 +1207,6 @@ class _WalletScreenState extends State<WalletScreen> {
                                                           );
                                                         },
                                                       );
-                                                    
                                                     },
                                                     color: Colors.red,
                                                     textColor: whiteColor,
@@ -1242,7 +1255,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                       setState(() {
                                                         loading = true;
                                                       });
-                                                      Navigator.of(context).pop(true);
+                                                      Navigator.of(context)
+                                                          .pop(true);
                                                       Navigator.push(
                                                         context,
                                                         SlideRightRoute(
@@ -1272,7 +1286,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                       setState(() {
                                                         loading = true;
                                                       });
-                                                      Navigator.of(context).pop(true);
+                                                      Navigator.of(context)
+                                                          .pop(true);
                                                       Navigator.push(
                                                         context,
                                                         SlideRightRoute(
@@ -1313,7 +1328,6 @@ class _WalletScreenState extends State<WalletScreen> {
                       Navigator.pop(context);
                     },
                   ),
-                  
                   ListTile(
                     leading: Icon(
                       CupertinoIcons.trash,
@@ -1485,9 +1499,9 @@ class _WalletScreenState extends State<WalletScreen> {
                                                     await sharedPreferences!
                                                         .clear();
                                                     AuthService()
-                                                                .signOut(
-                                                                    context);
-                                                    widget.mainScreenRefreshFunction();
+                                                        .signOut(context);
+                                                    widget
+                                                        .mainScreenRefreshFunction();
                                                   }
                                                 },
                                                 color: Colors.red,
@@ -1996,7 +2010,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                               onPressed: () async {
                                                 await Clipboard.setData(
                                                     ClipboardData(
-                                                        text: wallet.publicKey));
+                                                        text:
+                                                            wallet.publicKey));
 
                                                 showNotification(
                                                     'Copied',
@@ -2055,8 +2070,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 SlideRightRoute(
                                                   page: SendTxScreen(
                                                     web3client: web3client,
-                                                    wallet:
-                                                        wallet,
+                                                    wallet: wallet,
                                                     networkId:
                                                         selectedNetworkId,
                                                     walletAssets:
@@ -2175,7 +2189,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                       Expanded(
                                                                         child:
                                                                             Text(
-                                                                          wallet.publicKey,
+                                                                          wallet
+                                                                              .publicKey,
                                                                           overflow:
                                                                               TextOverflow.ellipsis,
                                                                           maxLines:
@@ -2819,8 +2834,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     .instance
                                                                     .collection(
                                                                         'wallets')
-                                                                    .doc(
-                                                                        wallet.publicKey)
+                                                                    .doc(wallet
+                                                                        .publicKey)
                                                                     .update({
                                                                   'assets':
                                                                       FieldValue
@@ -3741,7 +3756,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                   .center,
                                                           children: [
                                                             tx['from'] ==
-                                                                    wallet.publicKey
+                                                                    wallet
+                                                                        .publicKey
                                                                 ? Icon(
                                                                     CupertinoIcons
                                                                         .arrow_up_circle_fill,
@@ -3789,7 +3805,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                   .start,
                                                           children: [
                                                             tx['from'] ==
-                                                                    wallet.publicKey
+                                                                    wallet
+                                                                        .publicKey
                                                                 ? Text(
                                                                     "Sent",
                                                                     overflow:
@@ -3833,7 +3850,8 @@ class _WalletScreenState extends State<WalletScreen> {
                                                                     ),
                                                                   ),
                                                             tx['from'] ==
-                                                                        wallet.publicKey &&
+                                                                        wallet
+                                                                            .publicKey &&
                                                                     !selectedWalletAssetsData
                                                                         .keys
                                                                         .contains(

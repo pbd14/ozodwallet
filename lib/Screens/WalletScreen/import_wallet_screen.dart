@@ -464,20 +464,8 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                         'assets': [],
                                       });
                                     }
-
-                                    AndroidOptions _getAndroidOptions() =>
-                                        const AndroidOptions(
-                                          encryptedSharedPreferences: true,
-                                        );
-                                    IOSOptions
-                                        _getIOSOptions() => const IOSOptions(
-                                            accessibility:
-                                                KeychainAccessibility.passcode);
-                                    final storage = FlutterSecureStorage(
-                                        aOptions: _getAndroidOptions(),
-                                        iOptions: _getIOSOptions());
                                     String? lastWalletIndex;
-                                    lastWalletIndex = await storage.read(
+                                    lastWalletIndex = await SafeStorageService().storage.read(
                                             key: "lastWalletIndex") ??
                                         "1";
                                     await SafeStorageService().addNewWallet(
@@ -521,21 +509,9 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                         'assets': [],
                                       });
 
-                                      AndroidOptions _getAndroidOptions() =>
-                                          const AndroidOptions(
-                                            encryptedSharedPreferences: true,
-                                          );
-                                      IOSOptions _getIOSOptions() =>
-                                          const IOSOptions(
-                                              accessibility:
-                                                  KeychainAccessibility
-                                                      .passcode);
-                                      final storage = FlutterSecureStorage(
-                                          aOptions: _getAndroidOptions(),
-                                          iOptions: _getIOSOptions());
                                       String? lastWalletIndex;
                                       if (!widget.isWelcomeScreen) {
-                                        lastWalletIndex = await storage.read(
+                                        lastWalletIndex = await SafeStorageService().storage.read(
                                             key: "lastWalletIndex");
                                       } else {
                                         lastWalletIndex = "1";

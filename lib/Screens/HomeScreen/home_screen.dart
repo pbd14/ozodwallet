@@ -62,11 +62,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   // Tutorial
   late TutorialCoachMark tutorialCoachMark;
-
   GlobalKey keyButton1 = GlobalKey();
   GlobalKey keyButton2 = GlobalKey();
   GlobalKey keyButton3 = GlobalKey();
-
   void createTutorial() {
     tutorialCoachMark = TutorialCoachMark(
       targets: _createTargets(),
@@ -250,6 +248,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     tutorialCoachMark.show(context: context);
   }
 
+  // Local data
+
   SharedPreferences? sharedPreferences;
   Map<String, Map> cardsData = {
     'goerli': {
@@ -294,6 +294,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   String editedName = "Wallet1";
   final _formKey = GlobalKey<FormState>();
 
+  // Blockchain data
   EtherAmount selectedWalletBalance = EtherAmount.zero();
   EtherUnit selectedEtherUnit = EtherUnit.ether;
   DeployedContract? uzsoContract;
@@ -306,6 +307,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   EtherAmount? gasBalance;
   double gasTxsLeft = 0;
 
+  // Firebase Firestore
   firestore.DocumentSnapshot? walletFirebase;
   firestore.DocumentSnapshot? appDataNodes;
   firestore.DocumentSnapshot? appDataApi;
@@ -403,6 +405,48 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return result;
   }
 
+  Future<void> manageTutorial() async {
+    sharedPreference = await SharedPreferences.getInstance();
+    bool? isTutorial = await sharedPreference!.getBool("isHomeTutorial");
+    if (isTutorial == null) {
+      createTutorial();
+      Future.delayed(Duration(seconds: 7), showTutorial);
+    } else if (!isTutorial) {
+      createTutorial();
+      Future.delayed(Duration(seconds: 7), showTutorial);
+    }
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  Future<void> manageFirebaseFirestore() async {
+    appDataNodes = await firestore.FirebaseFirestore.instance
+        .collection('app_data')
+        .doc('nodes')
+        .get();
+    appDataApi = await firestore.FirebaseFirestore.instance
+        .collection('app_data')
+        .doc('api')
+        .get();
+    appData = await firestore.FirebaseFirestore.instance
+        .collection('app_data')
+        .doc('data')
+        .get();
+    appStablecoins = await firestore.FirebaseFirestore.instance
+        .collection('stablecoins')
+        .doc('all_stablecoins')
+        .get();
+    // Get stablecoin data
+    uzsoFirebase = await firestore.FirebaseFirestore.instance
+        .collection('stablecoins')
+        .doc(appStablecoins![
+            appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['coin']])
+        .get();
+    walletFirebase = await firestore.FirebaseFirestore.instance
+        .collection('wallets')
+        .doc(wallet.valueAddress.toString())
+        .get();
+  }
+
   Future<void> manageOzodId() async {
     if (ozodIdUser != null) {
       ozodIdFirestoreUser = await firestore.FirebaseFirestore.instance
@@ -413,136 +457,103 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     }
   }
 
+  Future<Map> manageBlockchainNetworkData() async {
+    // Check network availability
+    if (appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId] == null) {
+      selectedNetworkId = "goerli";
+      selectedNetworkName = "Goerli Testnet";
+    } else {
+      if (!appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]
+          ['active']) {
+        selectedNetworkId = "goerli";
+        selectedNetworkName = "Goerli Testnet";
+      }
+    }
+
+    web3client = Web3Client(
+        EncryptionService().dec(appDataNodes!.get(appData!
+            .get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['node'])),
+        httpClient);
+
+    if (jsonDecode(uzsoFirebase!.get('contract_abi')) != null) {
+      uzsoContract = DeployedContract(
+          ContractAbi.fromJson(
+              jsonEncode(jsonDecode(uzsoFirebase!.get('contract_abi'))),
+              "UZSOImplementation"),
+          EthereumAddress.fromHex(uzsoFirebase!.id));
+    }
+
+    // get balance
+    final responseBalance = await httpClient.get(Uri.parse(
+        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=tokenbalance&contractaddress=${uzsoFirebase!.id}&address=${wallet.publicKey}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+    dynamic jsonBodyBalance = jsonDecode(responseBalance.body);
+    EtherAmount valueBalance =
+        EtherAmount.fromUnitAndValue(EtherUnit.wei, jsonBodyBalance['result']);
+
+    // get txs
+    final response = await httpClient.get(Uri.parse(
+        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=tokentx&contractaddress=${uzsoFirebase!.id}&address=${wallet.publicKey}&page=1&offset=10&startblock=0&endblock=99999999&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
+    dynamic jsonBody = jsonDecode(response.body);
+    List valueTxs = jsonBody['result'];
+
+    // remove duplicates
+    final jsonList = valueTxs.map((item) => jsonEncode(item)).toList();
+    final uniqueJsonList = jsonList.toSet().toList();
+    valueTxs = uniqueJsonList.map((item) => jsonDecode(item)).toList();
+
+    // Get gas indicator data
+    estimateGasPrice = await web3client!.getGasPrice();
+    estimateGasAmount = await web3client!.estimateGas(
+      sender: wallet.valueAddress,
+    );
+
+    // Get selected network vs usd
+    selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
+    gasBalance = await web3client!.getBalance(wallet.valueAddress);
+
+    return {
+      'valueBalance': valueBalance,
+      'valueTxs': valueTxs,
+    };
+  }
+
   Future<void> prepare() async {
     try {
-      sharedPreference = await SharedPreferences.getInstance();
       // Tutorial
-      bool? isTutorial = await sharedPreference!.getBool("isHomeTutorial");
-      if (isTutorial == null) {
-        createTutorial();
-        Future.delayed(Duration(seconds: 7), showTutorial);
-      } else if (!isTutorial) {
-        createTutorial();
-        Future.delayed(Duration(seconds: 7), showTutorial);
-      }
-      WidgetsBinding.instance.addObserver(this);
+      await manageTutorial();
 
       // Wallets
       wallets = await SafeStorageService().getAllWallets();
+      wallet = await SafeStorageService().getWallet(selectedWalletIndex);
       await getDataFromSP();
 
       // Firebase app data
-      appDataNodes = await firestore.FirebaseFirestore.instance
-          .collection('app_data')
-          .doc('nodes')
-          .get();
-      appDataApi = await firestore.FirebaseFirestore.instance
-          .collection('app_data')
-          .doc('api')
-          .get();
-      appData = await firestore.FirebaseFirestore.instance
-          .collection('app_data')
-          .doc('data')
-          .get();
+      await manageFirebaseFirestore();
 
       // Ozod ID
       await manageOzodId();
 
-      // Check network availability
-      if (appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId] == null) {
-        selectedNetworkId = "goerli";
-        selectedNetworkName = "Goerli Testnet";
-      } else {
-        if (!appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]
-            ['active']) {
-          selectedNetworkId = "goerli";
-          selectedNetworkName = "Goerli Testnet";
-        }
-      }
-
-      appStablecoins = await firestore.FirebaseFirestore.instance
-          .collection('stablecoins')
-          .doc('all_stablecoins')
-          .get();
-
-      // Get stablecoin data
-      uzsoFirebase = await firestore.FirebaseFirestore.instance
-          .collection('stablecoins')
-          .doc(appStablecoins![appData!
-              .get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['coin']])
-          .get();
-
-      web3client = Web3Client(
-          EncryptionService().dec(appDataNodes!.get(appData!
-              .get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['node'])),
-          httpClient);
-
-      // Wallet
-      wallet = await SafeStorageService().getWallet(selectedWalletIndex);
-
-      if (jsonDecode(uzsoFirebase!.get('contract_abi')) != null) {
-        uzsoContract = DeployedContract(
-            ContractAbi.fromJson(
-                jsonEncode(jsonDecode(uzsoFirebase!.get('contract_abi'))),
-                "UZSOImplementation"),
-            EthereumAddress.fromHex(uzsoFirebase!.id));
-      }
-
-      // get balance
-      final responseBalance = await httpClient.get(Uri.parse(
-          "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=tokenbalance&contractaddress=${uzsoFirebase!.id}&address=${wallet.publicKey}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
-      dynamic jsonBodyBalance = jsonDecode(responseBalance.body);
-      EtherAmount valueBalance = EtherAmount.fromUnitAndValue(
-          EtherUnit.wei, jsonBodyBalance['result']);
-
-      walletFirebase = await firestore.FirebaseFirestore.instance
-          .collection('wallets')
-          .doc(wallet.valueAddress.toString())
-          .get();
-
-      // get txs
-      final response = await httpClient.get(Uri.parse(
-          "${appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_url']}/api?module=account&action=tokentx&contractaddress=${uzsoFirebase!.id}&address=${wallet.publicKey}&page=1&offset=10&startblock=0&endblock=99999999&sort=desc&apikey=${EncryptionService().dec(appDataApi!.get(appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId]['scan_api']))}"));
-      dynamic jsonBody = jsonDecode(response.body);
-      List valueTxs = jsonBody['result'];
-
-      // remove duplicates
-      final jsonList = valueTxs.map((item) => jsonEncode(item)).toList();
-      final uniqueJsonList = jsonList.toSet().toList();
-      valueTxs = uniqueJsonList.map((item) => jsonDecode(item)).toList();
-
-      // Get gas indicator data
-      estimateGasPrice = await web3client!.getGasPrice();
-      estimateGasAmount = await web3client!.estimateGas(
-        sender: wallet.valueAddress,
-      );
-
-      // Get selected network vs usd
-      selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
-
-      gasBalance = await web3client!.getBalance(wallet.valueAddress);
+      // Blockchain data
+      Map blockchainData = await manageBlockchainNetworkData();
 
       setState(() {
-        valueBalance != null
-            ? selectedWalletBalance = valueBalance
+        blockchainData['valueBalance'] != null
+            ? selectedWalletBalance = blockchainData['valueBalance']
             : selectedWalletBalance = EtherAmount.zero();
-        valueTxs != null
-            ? selectedWalletTxs = valueTxs.toSet().toList()
+        blockchainData['valueTxs'] != null
+            ? selectedWalletTxs = blockchainData['valueTxs'].toSet().toList()
             : selectedWalletTxs = [];
         gasTxsLeft = (gasBalance!.getValueInUnit(EtherUnit.gwei) /
                 (estimateGasPrice.getValueInUnit(EtherUnit.gwei) *
                     estimateGasAmount.toDouble()))
             .toDouble();
-
         loading = false;
       });
     } catch (e) {
       showNotification('Error', 'Error. Try again later', Colors.red);
-      setState(
-        () {
-          loading = false;
-        },
-      );
+      setState(() {
+        loading = false;
+      });
     }
   }
 
@@ -2017,8 +2028,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
                                     // Ozod ID
                                     Container(
-                                      margin:
-                                          EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                      margin: EdgeInsets.fromLTRB(0, 0, 0, 10),
                                       width: size.width * 0.8,
                                       // height: 200,
                                       decoration: BoxDecoration(
@@ -2046,7 +2056,9 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                     mainAxisAlignment:
                                                         MainAxisAlignment
                                                             .spaceBetween,
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       Row(
                                                         children: [
