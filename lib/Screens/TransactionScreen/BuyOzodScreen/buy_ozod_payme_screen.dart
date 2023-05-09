@@ -7,7 +7,6 @@ import 'package:jazzicon/jazzicon.dart';
 import 'package:http/http.dart';
 import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
-import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/constants.dart';

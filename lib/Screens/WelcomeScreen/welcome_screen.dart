@@ -61,7 +61,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-    double realWidth = size.width;
+    // double realWidth = size.width;
     if (kIsWeb && size.width >= 600) {
       size = Size(600, size.height);
     }

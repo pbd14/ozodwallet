@@ -4,7 +4,6 @@ import 'package:bip39/bip39.dart';
 import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hex/hex.dart';
 import 'package:ozodwallet/Models/Web3Wallet.dart';
@@ -225,43 +224,41 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                                           EthPrivateKey.fromHex(privateKey)
                                               .address;
                                       String? lastWalletIndex;
-                                        lastWalletIndex = await SafeStorageService().storage.read(
-                                            key: "lastWalletIndex") ?? "1";
+                                      lastWalletIndex =
+                                          await SafeStorageService()
+                                                  .storage
+                                                  .read(
+                                                      key: "lastWalletIndex") ??
+                                              "1";
 
-                                      if (lastWalletIndex != null) {
-                                        await SafeStorageService().addNewWallet(
-                                          Web3Wallet(
-                                              privateKey: privateKey,
-                                              publicKey: publicKey.toString(),
-                                              name: widget.name,
-                                              localIndex: lastWalletIndex),
-                                        );
+                                      await SafeStorageService().addNewWallet(
+                                        Web3Wallet(
+                                            privateKey: privateKey,
+                                            publicKey: publicKey.toString(),
+                                            name: widget.name,
+                                            localIndex: lastWalletIndex),
+                                      );
 
-                                        // ignore: unused_local_variable
-                                        Wallet wallet = Wallet.createNew(
-                                            EthPrivateKey.fromHex(privateKey),
-                                            widget.password,
-                                            Random());
+                                      // ignore: unused_local_variable
+                                      Wallet wallet = Wallet.createNew(
+                                          EthPrivateKey.fromHex(privateKey),
+                                          widget.password,
+                                          Random());
 
-                                        await FirebaseFirestore.instance
-                                            .collection('wallets')
-                                            .doc(publicKey.toString())
-                                            .set({
-                                          'loyalty_programs': [],
-                                          'publicKey': publicKey.toString(),
-                                          'assets': [],
-                                        });
-                                        if (widget.isWelcomeScreen) {
-                                          Navigator.pop(context);
-                                        }
-
+                                      await FirebaseFirestore.instance
+                                          .collection('wallets')
+                                          .doc(publicKey.toString())
+                                          .set({
+                                        'loyalty_programs': [],
+                                        'publicKey': publicKey.toString(),
+                                        'assets': [],
+                                      });
+                                      if (widget.isWelcomeScreen) {
                                         Navigator.pop(context);
-                                        Navigator.pop(context);
-                                      } else {
-                                        setState(() {
-                                          loading = false;
-                                        });
                                       }
+
+                                      Navigator.pop(context);
+                                      Navigator.pop(context);
                                     } catch (e) {
                                       setState(() {
                                         loading = false;

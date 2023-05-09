@@ -14,7 +14,6 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Services/coingecko_api_service.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
-import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/constants.dart';
@@ -114,7 +113,7 @@ class _SendTxScreenState extends State<SendTxScreen> {
 
       walletFirebase = await firestore.FirebaseFirestore.instance
           .collection('wallets')
-          .doc(widget.wallet.valueAddress.toString())
+          .doc(widget.wallet.publicKey)
           .get();
       balance = await widget.web3client.getBalance(widget.wallet.valueAddress);
       setState(() {

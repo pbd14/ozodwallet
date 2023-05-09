@@ -1,12 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_dynamic_links/firebase_dynamic_links.dart';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
-import 'package:ozodwallet/Screens/MainScreen/main_screen.dart';
-import 'package:ozodwallet/Screens/WelcomeScreen/welcome_screen.dart';
 import 'package:ozodwallet/Services/auth/push_notification_service.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
 import 'package:ozodwallet/Widgets/sww_screen.dart';
@@ -110,7 +106,7 @@ class AuthService {
 
   signUpWithEmail(email, password) async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance
+      await FirebaseAuth.instance
           .createUserWithEmailAndPassword(email: email, password: password);
       return 'Success';
     } on FirebaseAuthException catch (e) {
@@ -126,7 +122,7 @@ class AuthService {
 
   signInWithEmail(email, password) async {
     try {
-      UserCredential userCredential = await FirebaseAuth.instance
+      await FirebaseAuth.instance
           .signInWithEmailAndPassword(email: email, password: password);
       return 'Success';
     } on FirebaseAuthException catch (e) {

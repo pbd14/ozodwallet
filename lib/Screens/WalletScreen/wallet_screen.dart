@@ -5,7 +5,6 @@ import 'package:blur/blur.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
-import 'package:glass/glass.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -147,7 +146,7 @@ class _WalletScreenState extends State<WalletScreen> {
         .get();
     walletFirebase = await FirebaseFirestore.instance
         .collection('wallets')
-        .doc(wallet.valueAddress.toString())
+        .doc(wallet.publicKey)
         .get();
   }
 
@@ -337,6 +336,7 @@ class _WalletScreenState extends State<WalletScreen> {
         loading = false;
       });
     } catch (e) {
+      print("ERROR: " + e.toString());
       showNotification('Error', 'Error. Try again later', Colors.red);
       setState(() {
         loading = false;
@@ -846,7 +846,6 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 press: () async {
                                                   if (_formKey.currentState!
                                                           .validate() &&
-                                                      editedName != null &&
                                                       editedName.isNotEmpty) {
                                                     Navigator.of(context)
                                                         .pop(true);
@@ -1486,7 +1485,6 @@ class _WalletScreenState extends State<WalletScreen> {
                                                 press: () async {
                                                   if (_formKey.currentState!
                                                           .validate() &&
-                                                      editedName != null &&
                                                       editedName.isNotEmpty) {
                                                     Navigator.of(context)
                                                         .pop(true);
@@ -2522,7 +2520,7 @@ class _WalletScreenState extends State<WalletScreen> {
                                               height: 20,
                                             ),
                                             Text(
-                                              "Balance: ${gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2)} GWEI",
+                                              "Balance: ${gasBalance!= null ? gasBalance!.getValueInUnit(EtherUnit.gwei).toStringAsFixed(2) : "0"} GWEI",
                                               overflow: TextOverflow.ellipsis,
                                               textAlign: TextAlign.start,
                                               maxLines: 4,

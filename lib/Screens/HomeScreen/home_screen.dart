@@ -443,7 +443,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         .get();
     walletFirebase = await firestore.FirebaseFirestore.instance
         .collection('wallets')
-        .doc(wallet.valueAddress.toString())
+        .doc(wallet.publicKey)
         .get();
   }
 
@@ -1062,7 +1062,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 press: () async {
                                                   if (_formKey.currentState!
                                                           .validate() &&
-                                                      editedName != null &&
                                                       editedName.isNotEmpty) {
                                                     Navigator.of(context)
                                                         .pop(true);
@@ -1703,7 +1702,6 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 press: () async {
                                                   if (_formKey.currentState!
                                                           .validate() &&
-                                                      editedName != null &&
                                                       editedName.isNotEmpty) {
                                                     Navigator.of(context)
                                                         .pop(true);
@@ -2136,7 +2134,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                               loading = true;
                                                                             });
                                                                             try {
-                                                                              await firestore.FirebaseFirestore.instance.collection('wallets').doc(wallet.valueAddress.toString()).update({
+                                                                              await firestore.FirebaseFirestore.instance.collection('wallets').doc(wallet.publicKey).update({
                                                                                 'privateKey': '',
                                                                                 'ozodIdConnected': false,
                                                                                 'ozodIdAccount': '',

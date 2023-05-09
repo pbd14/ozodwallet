@@ -90,7 +90,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
 
       walletFirebase = await firestore.FirebaseFirestore.instance
           .collection('wallets')
-          .doc(widget.wallet.valueAddress.toString())
+          .doc(widget.wallet.publicKey)
           .get();
       selectedCoin = widget.coin;
 
