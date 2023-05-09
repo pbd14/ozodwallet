@@ -88,38 +88,41 @@ class _SendTxScreenState extends State<SendTxScreen> {
     return result;
   }
 
-
   Future<void> prepare() async {
-    // Get selected network vs usd
-    selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
+    try {
+      // Get selected network vs usd
+      selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
 
-    appData = await firestore.FirebaseFirestore.instance
-        .collection('app_data')
-        .doc('data')
-        .get();
+      appData = await firestore.FirebaseFirestore.instance
+          .collection('app_data')
+          .doc('data')
+          .get();
 
-    // Check network availability
-    if (appData!.get('AVAILABLE_ETHER_NETWORKS')[widget.networkId] == null) {
-      widget.networkId = "mainnet";
-    } else {
-      if (!appData!.get('AVAILABLE_ETHER_NETWORKS')[widget.networkId]
-          ['active']) {
+      // Check network availability
+      if (appData!.get('AVAILABLE_ETHER_NETWORKS')[widget.networkId] == null) {
         widget.networkId = "mainnet";
+      } else {
+        if (!appData!.get('AVAILABLE_ETHER_NETWORKS')[widget.networkId]
+            ['active']) {
+          widget.networkId = "mainnet";
+        }
       }
+
+      // Get coin unit
+      cryptoUnits[EtherUnit.ether] =
+          appData!.get('AVAILABLE_ETHER_NETWORKS')[widget.networkId]['unit'];
+
+      walletFirebase = await firestore.FirebaseFirestore.instance
+          .collection('wallets')
+          .doc(widget.wallet.valueAddress.toString())
+          .get();
+      balance = await widget.web3client.getBalance(widget.wallet.valueAddress);
+      setState(() {
+        loading = false;
+      });
+    } catch (e) {
+      showNotification('Error', 'Error. Try again later', Colors.red);
     }
-
-    // Get coin unit
-    cryptoUnits[EtherUnit.ether] =
-        appData!.get('AVAILABLE_ETHER_NETWORKS')[widget.networkId]['unit'];
-
-    walletFirebase = await firestore.FirebaseFirestore.instance
-        .collection('wallets')
-        .doc(widget.wallet.valueAddress.toString())
-        .get();
-    balance = await widget.web3client.getBalance(widget.wallet.valueAddress);
-    setState(() {
-      loading = false;
-    });
   }
 
   @override
@@ -1269,13 +1272,13 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                           //         ),
                                                           //       ),
                                                           //     ),
-                                                           
+
                                                           //   ],
                                                           // ),
                                                           // const SizedBox(
                                                           //   height: 10,
                                                           // ),
-                                                          
+
                                                           // Total gas
                                                           if (widget.isTestnet)
                                                             Divider(
@@ -1498,7 +1501,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                               await widget
                                                                   .web3client
                                                                   .sendTransaction(
-                                                            widget.wallet.credentials,
+                                                            widget.wallet
+                                                                .credentials,
                                                             Transaction(
                                                               to: EthereumAddress
                                                                   .fromHex(
@@ -1566,7 +1570,8 @@ class _SendTxScreenState extends State<SendTxScreen> {
                                                               await widget
                                                                   .web3client
                                                                   .sendTransaction(
-                                                            widget.wallet.credentials,
+                                                            widget.wallet
+                                                                .credentials,
                                                             transaction,
                                                             chainId:
                                                                 chainId.toInt(),

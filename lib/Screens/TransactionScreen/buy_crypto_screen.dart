@@ -119,26 +119,31 @@ class _BuyCryptoScreenState extends State<BuyCryptoScreen> {
   }
 
   Future<void> prepare() async {
-    // get app data
-    appData = await FirebaseFirestore.instance
-        .collection('app_data')
-        .doc('data')
-        .get();
-    appDataExchanges = await FirebaseFirestore.instance
-        .collection('app_data')
-        .doc('exchanges')
-        .get();
-    wallet = await SafeStorageService().getWallet(widget.walletIndex);
-    balance = await widget.web3client.getBalance(wallet.valueAddress);
-    coins = json.decode(appData!.get('ETHER_TOP20_COINS_JSON'));
-    selectedCoin = coins[0];
-    getPossibleExchanges();
-    if (mounted) {
-      setState(() {
+    try {
+      // get app data
+      appData = await FirebaseFirestore.instance
+          .collection('app_data')
+          .doc('data')
+          .get();
+      appDataExchanges = await FirebaseFirestore.instance
+          .collection('app_data')
+          .doc('exchanges')
+          .get();
+      wallet = await SafeStorageService().getWallet(widget.walletIndex);
+      balance = await widget.web3client.getBalance(wallet.valueAddress);
+      coins = json.decode(appData!.get('ETHER_TOP20_COINS_JSON'));
+      selectedCoin = coins[0];
+      getPossibleExchanges();
+
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      } else {
         loading = false;
-      });
-    } else {
-      loading = false;
+      }
+    } catch (e) {
+      showNotification('Error', 'Error. Try again later', Colors.red);
     }
   }
 

@@ -68,29 +68,33 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
   int paymentId = DateTime.now().millisecondsSinceEpoch;
 
   Future<void> prepare() async {
-    balance = await widget.web3client.getBalance(widget.wallet.valueAddress);
+    try {
+      balance = await widget.web3client.getBalance(widget.wallet.valueAddress);
 
-    appDataPaymentOptions = await FirebaseFirestore.instance
-        .collection("app_data")
-        .doc("payment_options")
-        .get();
+      appDataPaymentOptions = await FirebaseFirestore.instance
+          .collection("app_data")
+          .doc("payment_options")
+          .get();
 
-    appData = await FirebaseFirestore.instance
-        .collection('app_data')
-        .doc('data')
-        .get();
+      appData = await FirebaseFirestore.instance
+          .collection('app_data')
+          .doc('data')
+          .get();
 
-    appDataApi = await FirebaseFirestore.instance
-        .collection('app_data')
-        .doc('api')
-        .get();
+      appDataApi = await FirebaseFirestore.instance
+          .collection('app_data')
+          .doc('api')
+          .get();
 
-    if (mounted) {
-      setState(() {
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      } else {
         loading = false;
-      });
-    } else {
-      loading = false;
+      }
+    } catch (e) {
+      showNotification('Error', 'Error. Try again later', Colors.red);
     }
   }
 
@@ -886,7 +890,8 @@ class _BuyOzodOctoScreenState extends State<BuyOzodOctoScreen> {
                                             .doc(paymentId.toString())
                                             .set({
                                           "id": paymentId,
-                                          "walletPublicKey": widget.wallet.publicKey,
+                                          "walletPublicKey":
+                                              widget.wallet.publicKey,
                                           "status_code": paymentStatusCode,
                                           "amount": amount,
                                           "product": "UZSO",

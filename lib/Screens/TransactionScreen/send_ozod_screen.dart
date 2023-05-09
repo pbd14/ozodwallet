@@ -84,38 +84,42 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
   }
 
   Future<void> prepare() async {
-    // Get selected network vs usd
-    selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
+    try {
+      // Get selected network vs usd
+      selectedNetworkVsUsd = await getSelectedNetworkVsUsd();
 
-    walletFirebase = await firestore.FirebaseFirestore.instance
-        .collection('wallets')
-        .doc(widget.wallet.valueAddress.toString())
-        .get();
-    selectedCoin = widget.coin;
+      walletFirebase = await firestore.FirebaseFirestore.instance
+          .collection('wallets')
+          .doc(widget.wallet.valueAddress.toString())
+          .get();
+      selectedCoin = widget.coin;
 
-    // get app data
-    appData = await firestore.FirebaseFirestore.instance
-        .collection('app_data')
-        .doc('data')
-        .get();
-    appDataApi = await firestore.FirebaseFirestore.instance
-        .collection('app_data')
-        .doc('api')
-        .get();
+      // get app data
+      appData = await firestore.FirebaseFirestore.instance
+          .collection('app_data')
+          .doc('data')
+          .get();
+      appDataApi = await firestore.FirebaseFirestore.instance
+          .collection('app_data')
+          .doc('api')
+          .get();
 
-    // get balance
-    final responseBalance = await httpClient.get(Uri.parse(
-        "${appData!.get('AVAILABLE_OZOD_NETWORKS')[widget.networkId]['scan_url']}/api?module=account&action=tokenbalance&contractaddress=${selectedCoin['id']}&address=${widget.wallet.publicKey}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
-    dynamic jsonBodyBalance = jsonDecode(responseBalance.body);
-    setState(() {
-      loading = false;
-    });
-    balance =
-        EtherAmount.fromUnitAndValue(EtherUnit.wei, jsonBodyBalance['result']);
+      // get balance
+      final responseBalance = await httpClient.get(Uri.parse(
+          "${appData!.get('AVAILABLE_OZOD_NETWORKS')[widget.networkId]['scan_url']}/api?module=account&action=tokenbalance&contractaddress=${selectedCoin['id']}&address=${widget.wallet.publicKey}&tag=latest&apikey=${EncryptionService().dec(appDataApi!.get('ETHERSCAN_API'))}"));
+      dynamic jsonBodyBalance = jsonDecode(responseBalance.body);
+      setState(() {
+        loading = false;
+      });
+      balance = EtherAmount.fromUnitAndValue(
+          EtherUnit.wei, jsonBodyBalance['result']);
 
-    setState(() {
-      loading = false;
-    });
+      setState(() {
+        loading = false;
+      });
+    } catch (e) {
+      showNotification('Error', 'Error. Try again later', Colors.red);
+    }
   }
 
   @override
@@ -960,7 +964,7 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                           //         ),
                                                           //       ),
                                                           //     ),
-                                                            
+
                                                           //   ],
                                                           // ),
                                                           // const SizedBox(
@@ -1156,7 +1160,6 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                               ],
                                                             ),
                                                           ),
-                                                        
                                                         ],
                                                       ),
                                                     ),
@@ -1210,7 +1213,8 @@ class _SendOzodScreenState extends State<SendOzodScreen> {
                                                             await widget
                                                                 .web3client
                                                                 .sendTransaction(
-                                                          widget.wallet.credentials,
+                                                          widget.wallet
+                                                              .credentials,
                                                           transaction,
                                                           chainId:
                                                               chainId.toInt(),

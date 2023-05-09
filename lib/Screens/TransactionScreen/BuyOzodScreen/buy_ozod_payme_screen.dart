@@ -54,19 +54,23 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
   DocumentSnapshot? appDataPaymentOptions;
 
   Future<void> prepare() async {
-    balance = await widget.web3client.getBalance(widget.wallet.valueAddress);
+    try {
+      balance = await widget.web3client.getBalance(widget.wallet.valueAddress);
 
-    appDataPaymentOptions = await FirebaseFirestore.instance
-        .collection("app_data")
-        .doc("payment_options")
-        .get();
+      appDataPaymentOptions = await FirebaseFirestore.instance
+          .collection("app_data")
+          .doc("payment_options")
+          .get();
 
-    if (mounted) {
-      setState(() {
+      if (mounted) {
+        setState(() {
+          loading = false;
+        });
+      } else {
         loading = false;
-      });
-    } else {
-      loading = false;
+      }
+    } catch (e) {
+      showNotification('Error', 'Error. Try again later', Colors.red);
     }
   }
 
@@ -83,7 +87,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
       size = Size(600, size.height);
     }
     return loading
-        ?  LoadingScreen()
+        ? LoadingScreen()
         : Scaffold(
             appBar: AppBar(
               elevation: 0,
@@ -99,8 +103,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
               child: Center(
                 child: Container(
                   margin: const EdgeInsets.all(20),
-                  constraints: BoxConstraints(
-                                  maxWidth: kIsWeb ? 600 : double.infinity),
+                  constraints:
+                      BoxConstraints(maxWidth: kIsWeb ? 600 : double.infinity),
                   child: Form(
                     key: _formKey,
                     child: Column(
@@ -189,7 +193,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                         // Amount
                         Container(
                           decoration: BoxDecoration(
-                            border: Border.all(color: secondaryColor, width: 1.0),
+                            border:
+                                Border.all(color: secondaryColor, width: 1.0),
                             borderRadius: BorderRadius.circular(20),
                           ),
                           padding: EdgeInsets.all(10),
@@ -363,7 +368,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                   },
                                   decoration: InputDecoration(
                                     labelText: "Card Number",
-                                    labelStyle: TextStyle(color: secondaryColor),
+                                    labelStyle:
+                                        TextStyle(color: secondaryColor),
                                     errorBorder: const OutlineInputBorder(
                                       borderSide: BorderSide(
                                           color: Colors.red, width: 1.0),
@@ -421,12 +427,14 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                             borderSide: BorderSide(
                                                 color: Colors.red, width: 1.0),
                                           ),
-                                          focusedBorder: const OutlineInputBorder(
+                                          focusedBorder:
+                                              const OutlineInputBorder(
                                             borderSide: BorderSide(
                                                 color: secondaryColor,
                                                 width: 1.0),
                                           ),
-                                          enabledBorder: const OutlineInputBorder(
+                                          enabledBorder:
+                                              const OutlineInputBorder(
                                             borderSide: BorderSide(
                                                 color: secondaryColor,
                                                 width: 1.0),
@@ -491,12 +499,14 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                             borderSide: BorderSide(
                                                 color: Colors.red, width: 1.0),
                                           ),
-                                          focusedBorder: const OutlineInputBorder(
+                                          focusedBorder:
+                                              const OutlineInputBorder(
                                             borderSide: BorderSide(
                                                 color: secondaryColor,
                                                 width: 1.0),
                                           ),
-                                          enabledBorder: const OutlineInputBorder(
+                                          enabledBorder:
+                                              const OutlineInputBorder(
                                             borderSide: BorderSide(
                                                 color: secondaryColor,
                                                 width: 1.0),
@@ -574,8 +584,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                       shape:
                                                           RoundedRectangleBorder(
                                                         borderRadius:
-                                                            BorderRadius.circular(
-                                                                20.0),
+                                                            BorderRadius
+                                                                .circular(20.0),
                                                       ),
                                                       title: const Text(
                                                         'Enter code',
@@ -587,7 +597,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                           SingleChildScrollView(
                                                         child: Container(
                                                           margin:
-                                                              EdgeInsets.all(10),
+                                                              EdgeInsets.all(
+                                                                  10),
                                                           child: Column(
                                                             children: [
                                                               Text(
@@ -605,7 +616,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                       const TextStyle(
                                                                     color:
                                                                         secondaryColor,
-                                                                    fontSize: 20,
+                                                                    fontSize:
+                                                                        20,
                                                                     fontWeight:
                                                                         FontWeight
                                                                             .w400,
@@ -621,7 +633,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                 style: const TextStyle(
                                                                     color:
                                                                         secondaryColor),
-                                                                validator: (val) {
+                                                                validator:
+                                                                    (val) {
                                                                   if (val!
                                                                       .isEmpty) {
                                                                     return 'Enter code';
@@ -632,7 +645,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                 keyboardType:
                                                                     TextInputType
                                                                         .number,
-                                                                onChanged: (val) {
+                                                                onChanged:
+                                                                    (val) {
                                                                   setState(() {
                                                                     verifCode =
                                                                         val;
@@ -656,21 +670,19 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                   ),
                                                                   focusedBorder:
                                                                       const OutlineInputBorder(
-                                                                    borderSide:
-                                                                        BorderSide(
-                                                                            color:
-                                                                                secondaryColor,
-                                                                            width:
-                                                                                1.0),
+                                                                    borderSide: BorderSide(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        width:
+                                                                            1.0),
                                                                   ),
                                                                   enabledBorder:
                                                                       const OutlineInputBorder(
-                                                                    borderSide:
-                                                                        BorderSide(
-                                                                            color:
-                                                                                secondaryColor,
-                                                                            width:
-                                                                                1.0),
+                                                                    borderSide: BorderSide(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        width:
+                                                                            1.0),
                                                                   ),
                                                                   hintStyle: TextStyle(
                                                                       color: secondaryColor
@@ -680,12 +692,11 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                       'Code',
                                                                   border:
                                                                       const OutlineInputBorder(
-                                                                    borderSide:
-                                                                        BorderSide(
-                                                                            color:
-                                                                                secondaryColor,
-                                                                            width:
-                                                                                1.0),
+                                                                    borderSide: BorderSide(
+                                                                        color:
+                                                                            secondaryColor,
+                                                                        width:
+                                                                            1.0),
                                                                   ),
                                                                 ),
                                                               ),
@@ -699,7 +710,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                             setState(() {
                                                               loading = true;
                                                             });
-                                                            Navigator.of(context)
+                                                            Navigator.of(
+                                                                    context)
                                                                 .pop(false);
                                                             if (verifCode
                                                                 .isEmpty) {
@@ -732,7 +744,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                     notificaitonColor,
                                                                     paymentMade);
                                                               } else {
-                                                                String receiptId =
+                                                                String
+                                                                    receiptId =
                                                                     await receiptsCreate(
                                                                         cardToken);
                                                                 if (receiptId
@@ -742,7 +755,8 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                   notificationBody =
                                                                       "Payment Failed";
                                                                   notificaitonColor =
-                                                                      Colors.red;
+                                                                      Colors
+                                                                          .red;
                                                                   endPayment(
                                                                       notificationTitle,
                                                                       notificationBody,
@@ -798,8 +812,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
                                                                         notificationBody =
                                                                             "Payment Failed";
                                                                         notificaitonColor =
-                                                                            Colors
-                                                                                .red;
+                                                                            Colors.red;
                                                                         endPayment(
                                                                             notificationTitle,
                                                                             notificationBody,
@@ -882,7 +895,6 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
       result = "";
     }
 
-
     return result;
   }
 
@@ -912,7 +924,6 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
     } catch (e) {
       result = {};
     }
-
 
     return result;
   }
@@ -1045,8 +1056,7 @@ class _BuyOzodPaymeScreenState extends State<BuyOzodPaymeScreen> {
 
   void endPayment(String notificationTitle, String notificationBody,
       Color notificaitonColor, bool paymentMade) {
-    
-     showNotification(notificationTitle,notificationBody,notificaitonColor);
+    showNotification(notificationTitle, notificationBody, notificaitonColor);
     if (paymentMade) {
       Navigator.pop(context);
     }
