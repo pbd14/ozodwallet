@@ -1,8 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
+import 'package:blur/blur.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:glass/glass.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -10,10 +13,13 @@ import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:ozodwallet/Models/Web3Wallet.dart';
+import 'package:ozodwallet/Screens/OzodAuthScreen/email_login_screen.dart';
+import 'package:ozodwallet/Screens/OzodAuthScreen/email_signup_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_tx_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
+import 'package:ozodwallet/Services/auth/auth_service.dart';
 import 'package:ozodwallet/Services/coingecko_api_service.dart';
 import 'package:ozodwallet/Services/encryption_service.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
@@ -31,11 +37,11 @@ import 'package:ozodwallet/Widgets/expansion_tile.dart' as custom;
 // ignore: must_be_immutable
 class WalletScreen extends StatefulWidget {
   String error;
-  Function refreshFunction;
+  Function mainScreenRefreshFunction;
   WalletScreen({
     Key? key,
     this.error = 'Something Went Wrong',
-    required this.refreshFunction,
+    required this.mainScreenRefreshFunction,
   }) : super(key: key);
 
   @override
@@ -82,6 +88,11 @@ class _WalletScreenState extends State<WalletScreen> {
   double gasTxsLeft = 0;
 
   List pendingTxs = [];
+
+  // Ozod ID
+  User? ozodIdUser;
+  StreamSubscription<User?>? authStream;
+
 
   Client httpClient = Client();
   late Web3Client web3client;
@@ -322,12 +333,25 @@ class _WalletScreenState extends State<WalletScreen> {
 
   @override
   void initState() {
+    // Ozod ID Auth state listener
+    authStream = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (mounted) {
+        setState(() {
+          ozodIdUser = user;
+        });
+      } else {
+        ozodIdUser = user;
+      }
+    });
     prepare();
     super.initState();
   }
 
   @override
   void dispose() {
+    if (authStream != null) {
+      authStream!.cancel();
+    }
     super.dispose();
   }
 
@@ -853,6 +877,444 @@ class _WalletScreenState extends State<WalletScreen> {
                     },
                   ),
                   ListTile(
+                    tileColor: ozodIdColor2,
+                    leading: Image.asset(
+                      'assets/icons/logoAuth300.png',
+                      width: 30,
+                      height: 30,
+                      // scale: 10,
+                    ).frosted(
+                      frostColor: ozodIdColor1,
+                      blur: 10,
+                      borderRadius: BorderRadius.circular(5),
+                      padding: EdgeInsets.all(0),
+                    ),
+                    title: Text(
+                      "Ozod ID",
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                      maxLines: 2,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: whiteColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      showDialog(
+                          barrierDismissible: true,
+                          context: context,
+                          builder: (BuildContext context) {
+                            return StatefulBuilder(
+                              builder: (context, StateSetter setState) {
+                                return AlertDialog(
+                                  backgroundColor: ozodIdColor2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                  // title: const Text(
+                                  //   'Delete all data',
+                                  //   style: TextStyle(color: secondaryColor),
+                                  // ),
+                                  content: SingleChildScrollView(
+                                    child: Center(
+                                      child: ozodIdUser != null
+                                          ? Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Image.asset(
+                                                      'assets/icons/logoAuth300.png',
+                                                      width: 30,
+                                                      height: 30,
+                                                      // scale: 10,
+                                                    ).frosted(
+                                                      frostColor: ozodIdColor1,
+                                                      blur: 10,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                      padding:
+                                                          EdgeInsets.all(0),
+                                                    ),
+                                                    SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    Text(
+                                                      'Ozod ID',
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          color: whiteColor,
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(
+                                                  height: 20,
+                                                ),
+                                                Center(
+                                                  child: Container(
+                                                    padding: EdgeInsets.all(10),
+                                                    decoration: BoxDecoration(
+                                                      border: Border.all(
+                                                          color: ozodIdColor1,
+                                                          width: 1.0),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                    ),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        SizedBox(
+                                                          height: 20,
+                                                        ),
+                                                        Text(
+                                                          "ID: ${ozodIdUser!.uid}",
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          textAlign:
+                                                              TextAlign.start,
+                                                          maxLines: 4,
+                                                          style: GoogleFonts
+                                                              .montserrat(
+                                                            textStyle:
+                                                                const TextStyle(
+                                                              color:
+                                                                  ozodIdColor1,
+                                                              fontSize: 15,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          height: 10,
+                                                        ),
+                                                        Divider(
+                                                          color: ozodIdColor1,
+                                                        ),
+                                                        Text(
+                                                          "Session: ${ozodIdUser!.email}",
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          textAlign:
+                                                              TextAlign.start,
+                                                          maxLines: 4,
+                                                          style: GoogleFonts
+                                                              .montserrat(
+                                                            textStyle:
+                                                                const TextStyle(
+                                                              color:
+                                                                  ozodIdColor1,
+                                                              fontSize: 15,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Text(
+                                                          "Email Verified: ${ozodIdUser!.emailVerified ? 'Yes' : 'No'}",
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          textAlign:
+                                                              TextAlign.start,
+                                                          maxLines: 4,
+                                                          style: GoogleFonts
+                                                              .montserrat(
+                                                            textStyle:
+                                                                const TextStyle(
+                                                              color:
+                                                                  ozodIdColor1,
+                                                              fontSize: 15,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          height: 20,
+                                                        ),
+                                                        !ozodIdUser!
+                                                                .emailVerified
+                                                            ? Center(
+                                                                child:
+                                                                    RoundedButton(
+                                                                  pw: 200,
+                                                                  ph: 40,
+                                                                  text:
+                                                                      'Resend verification',
+                                                                  press:
+                                                                      () async {
+                                                                    bool
+                                                                        isError =
+                                                                        false;
+                                                                    FirebaseAuth
+                                                                        .instance
+                                                                        .currentUser!
+                                                                        .sendEmailVerification()
+                                                                        .catchError(
+                                                                            (error) {
+                                                                      isError =
+                                                                          true;
+                                                                      showNotification(
+                                                                          'Failed',
+                                                                          'Failed to send email',
+                                                                          Colors
+                                                                              .red);
+                                                                    }).whenComplete(
+                                                                            () {
+                                                                      if (!isError) {
+                                                                        showNotification(
+                                                                            'Success',
+                                                                            'Email sent',
+                                                                            greenColor);
+                                                                      }
+                                                                    });
+                                                                  },
+                                                                  color:
+                                                                      ozodIdColor1,
+                                                                  textColor:
+                                                                      ozodIdColor2,
+                                                                ),
+                                                              )
+                                                            : Container(),
+                                                        SizedBox(
+                                                          height: !ozodIdUser!
+                                                                  .emailVerified
+                                                              ? 20
+                                                              : 0,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 20),
+                                                  child: RoundedButton(
+                                                    pw: 250,
+                                                    ph: 45,
+                                                    text: 'Sign Out',
+                                                    press: () {
+                                                      showDialog(
+                                                        barrierDismissible:
+                                                            false,
+                                                        context: context,
+                                                        builder: (BuildContext
+                                                            context) {
+                                                          return AlertDialog(
+                                                            backgroundColor:
+                                                                ozodIdColor2,
+                                                            shape:
+                                                                RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          20.0),
+                                                            ),
+                                                            // title: Text(
+                                                            //     Languages.of(context).profileScreenSignOut),
+                                                            // content: Text(
+                                                            //     Languages.of(context)!.profileScreenWantToLeave),
+                                                            title: const Text(
+                                                              'Sign Out?',
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      ozodIdColor1),
+                                                            ),
+                                                            content: const Text(
+                                                              'Sure?',
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      ozodIdColor1),
+                                                            ),
+                                                            actions: <Widget>[
+                                                              TextButton(
+                                                                onPressed: () {
+                                                                  // prefs.setBool('local_auth', false);
+                                                                  // prefs.setString('local_password', '');
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop(
+                                                                          true);
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop(
+                                                                          true);
+                                                                  AuthService()
+                                                                      .signOut(
+                                                                          context);
+                                                                },
+                                                                child:
+                                                                    const Text(
+                                                                  'Yes',
+                                                                  style: TextStyle(
+                                                                      color:
+                                                                          ozodIdColor1),
+                                                                ),
+                                                              ),
+                                                              TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop(
+                                                                            false),
+                                                                child:
+                                                                    const Text(
+                                                                  'No',
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .red),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          );
+                                                        },
+                                                      );
+                                                    
+                                                    },
+                                                    color: Colors.red,
+                                                    textColor: whiteColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          : Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Image.asset(
+                                                      'assets/icons/logoAuth300.png',
+                                                      width: 40,
+                                                      height: 40,
+                                                      // scale: 10,
+                                                    ),
+                                                    Text(
+                                                      'Ozod ID',
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          color: whiteColor,
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(
+                                                  height: 30,
+                                                ),
+                                                Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 20),
+                                                  child: RoundedButton(
+                                                    pw: 250,
+                                                    ph: 45,
+                                                    text: 'Log In',
+                                                    press: () {
+                                                      setState(() {
+                                                        loading = true;
+                                                      });
+                                                      Navigator.of(context).pop(true);
+                                                      Navigator.push(
+                                                        context,
+                                                        SlideRightRoute(
+                                                          page:
+                                                              EmailLoginScreen(),
+                                                        ),
+                                                      );
+                                                      setState(() {
+                                                        loading = false;
+                                                      });
+                                                    },
+                                                    color: ozodIdColor1,
+                                                    textColor: darkPrimaryColor,
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 20),
+                                                  child: RoundedButton(
+                                                    pw: 250,
+                                                    ph: 45,
+                                                    text: 'Sign Up',
+                                                    press: () {
+                                                      setState(() {
+                                                        loading = true;
+                                                      });
+                                                      Navigator.of(context).pop(true);
+                                                      Navigator.push(
+                                                        context,
+                                                        SlideRightRoute(
+                                                          page:
+                                                              EmailSignUpScreen(),
+                                                        ),
+                                                      );
+                                                      setState(() {
+                                                        loading = false;
+                                                      });
+                                                    },
+                                                    color: ozodIdColor2,
+                                                    textColor: whiteColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                    ),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text(
+                                        'Cancel',
+                                        style: TextStyle(color: ozodIdColor1),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          });
+
+                      // Update the state of the app
+                      // ...
+                      // Then close the drawer
+                      Navigator.pop(context);
+                    },
+                  ),
+                  
+                  ListTile(
                     leading: Icon(
                       CupertinoIcons.trash,
                       color: Colors.red,
@@ -1022,7 +1484,10 @@ class _WalletScreenState extends State<WalletScreen> {
                                                         .deleteAllData();
                                                     await sharedPreferences!
                                                         .clear();
-                                                    widget.refreshFunction();
+                                                    AuthService()
+                                                                .signOut(
+                                                                    context);
+                                                    widget.mainScreenRefreshFunction();
                                                   }
                                                 },
                                                 color: Colors.red,

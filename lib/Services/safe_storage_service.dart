@@ -22,11 +22,21 @@ class SafeStorageService {
 
   Future<List> getAllWallets() async {
     List wallets = [];
-    String? lastWalletIndex = await storage.read(key: 'lastWalletIndex');
-    for (int i = 1; i <= int.parse(lastWalletIndex!) - 1; i++) {
+    String lastWalletIndex = await storage.read(key: 'lastWalletIndex') ?? "1";
+    for (int i = 1; i <= int.parse(lastWalletIndex) - 1; i++) {
       String? valuePublicKey = await storage.read(key: 'publicKey${i}');
       String? valueName = await storage.read(key: 'Wallet${i}');
       wallets.add({i: valueName, 'publicKey': valuePublicKey});
+    }
+    return wallets;
+  }
+
+  Future<List> getAllWalletsPublicKeys() async {
+    List wallets = [];
+    String lastWalletIndex = await storage.read(key: 'lastWalletIndex') ?? "1";
+    for (int i = 1; i <= int.parse(lastWalletIndex) - 1; i++) {
+      String? valuePublicKey = await storage.read(key: 'publicKey${i}');
+      wallets.add(valuePublicKey);
     }
     return wallets;
   }

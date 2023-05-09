@@ -45,10 +45,10 @@ class _MainScreenState extends State<MainScreen> {
   List<Widget> _buildScreens() {
     return [
       HomeScreen(
-        refreshFunction: _refresh,
+        mainScreenRefreshFunction: _refresh,
       ),
       WalletScreen(
-        refreshFunction: _refresh,
+        mainScreenRefreshFunction: _refresh,
       ),
       // LoyaltyScreen(),
       // WalletScreen(),
@@ -125,10 +125,6 @@ class _MainScreenState extends State<MainScreen> {
     // print(encryptionService.enc(
     //     "https://aurora-mainnet.infura.io/v3/60379ca758e74e8a88791b7b701c1c13"));
 
-    AndroidOptions _getAndroidOptions() => const AndroidOptions(
-          encryptedSharedPreferences: true,
-        );
-
     // TO DO
     // await FirebaseAuth.instance
     //     .signInWithEmailAndPassword(
@@ -153,14 +149,23 @@ class _MainScreenState extends State<MainScreen> {
       }
     });
 
-    final storage = FlutterSecureStorage(aOptions: _getAndroidOptions());
+    AndroidOptions _getAndroidOptions() => const AndroidOptions(
+          encryptedSharedPreferences: true,
+        );
+    IOSOptions _getIOSOptions() =>
+        const IOSOptions(accessibility: KeychainAccessibility.passcode);
+
+    final storage = FlutterSecureStorage(
+        aOptions: _getAndroidOptions(), iOptions: _getIOSOptions());
 
     String? value = await storage.read(key: 'walletExists');
     if (value != 'true') {
       Navigator.push(
         context,
         SlideRightRoute(
-          page: WelcomeScreen(),
+          page: WelcomeScreen(
+            mainScreenRefreshFunction: _refresh,
+          ),
         ),
       );
     } else {

@@ -228,16 +228,12 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                                           const AndroidOptions(
                                             encryptedSharedPreferences: true,
                                           );
-
+                                      IOSOptions _getIOSOptions() => const IOSOptions(accessibility: KeychainAccessibility.passcode);
                                       final storage = FlutterSecureStorage(
-                                          aOptions: _getAndroidOptions());
+                                          aOptions: _getAndroidOptions(), iOptions: _getIOSOptions());
                                       String? lastWalletIndex;
-                                      if (!widget.isWelcomeScreen) {
                                         lastWalletIndex = await storage.read(
-                                            key: "lastWalletIndex");
-                                      } else {
-                                        lastWalletIndex = "1";
-                                      }
+                                            key: "lastWalletIndex") ?? "1";
 
                                       if (lastWalletIndex != null) {
                                         await SafeStorageService().addNewWallet(
@@ -259,7 +255,7 @@ class _CheckSeedScreenState extends State<CheckSeedScreen> {
                                             .doc(publicKey.toString())
                                             .set({
                                           'loyalty_programs': [],
-                                          'public_key': publicKey.toString(),
+                                          'publicKey': publicKey.toString(),
                                           'assets': [],
                                         });
                                         if (widget.isWelcomeScreen) {

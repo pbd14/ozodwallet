@@ -65,7 +65,8 @@ dependencies:
   mobile_scanner: ^2.1.0
   flutter_native_splash: ^2.2.19
   glass: ^1.0.1+1
-  
+  blur: ^3.1.0
+
   # Firebase
   firebase_core: ^2.1.1
   firebase_core_web: ^2.1.1

@@ -1,13 +1,26 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:bip39/bip39.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ed25519_hd_key/ed25519_hd_key.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:glass/glass.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hex/hex.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Screens/WalletScreen/check_seed_screen.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
+import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
 import 'package:ozodwallet/constants.dart';
+import 'package:web3dart/web3dart.dart';
 
 // ignore: must_be_immutable
 class CreateWalletScreen extends StatefulWidget {
@@ -32,6 +45,10 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
   bool showSeed = false;
   final _formKey = GlobalKey<FormState>();
 
+  // Ozod ID
+  User? ozodIdUser;
+  StreamSubscription<User?>? authStream;
+
   void prepare() {
     setState(() {
       mnemonicPhrase = generateMnemonic();
@@ -42,8 +59,26 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
 
   @override
   void initState() {
+    // Ozod ID Auth state listener
+    authStream = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (mounted) {
+        setState(() {
+          ozodIdUser = user;
+        });
+      } else {
+        ozodIdUser = user;
+      }
+    });
     prepare();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    if (authStream != null) {
+      authStream!.cancel();
+    }
+    super.dispose();
   }
 
   @override
@@ -78,7 +113,197 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(
-                          height: size.height * 0.1,
+                          height: 30,
+                        ),
+
+                        // Ozod ID
+                        ozodIdUser != null
+                            ? Center(
+                                child: Container(
+                                  width: size.width * 0.8,
+                                  // height: 200,
+                                  padding: const EdgeInsets.all(0),
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                    gradient: LinearGradient(
+                                      begin: Alignment.topLeft,
+                                      end: Alignment.bottomRight,
+                                      colors: [
+                                        Color.fromARGB(255, 70, 213, 196),
+                                        Color.fromARGB(255, 19, 51, 77),
+                                      ],
+                                    ),
+                                  ),
+                                  child: Container(
+                                    padding: const EdgeInsets.all(15),
+                                    child: Column(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            Image.asset(
+                                              'assets/icons/logoAuth300.png',
+                                              width: 40,
+                                              height: 40,
+                                              // scale: 10,
+                                            ),
+                                            Text(
+                                              'Ozod ID',
+                                              style: GoogleFonts.montserrat(
+                                                textStyle: const TextStyle(
+                                                  color: whiteColor,
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        Text(
+                                          "Create easily with Ozod ID. Just one click",
+                                          overflow: TextOverflow.ellipsis,
+                                          textAlign: TextAlign.start,
+                                          maxLines: 10,
+                                          style: GoogleFonts.montserrat(
+                                            textStyle: const TextStyle(
+                                              color: whiteColor,
+                                              fontSize: 15,
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(
+                                          height: 10,
+                                        ),
+                                        Container(
+                                          padding: EdgeInsets.symmetric(
+                                              horizontal: 20),
+                                          child: RoundedButton(
+                                            pw: 150,
+                                            ph: 35,
+                                            text: 'CREATE',
+                                            press: () async {
+                                              setState(() {
+                                                loading = true;
+                                              });
+                                              try {
+                                                // Create Web3 Wallet
+                                                String mnemonicPhrase =
+                                                    generateMnemonic();
+                                                Uint8List seed = mnemonicToSeed(
+                                                    mnemonicPhrase);
+                                                final master =
+                                                    await ED25519_HD_KEY
+                                                        .getMasterKeyFromSeed(
+                                                            seed);
+                                                final privateKey =
+                                                    HEX.encode(master.key);
+                                                final publicKey =
+                                                    EthPrivateKey.fromHex(
+                                                            privateKey)
+                                                        .address;
+                                                AndroidOptions
+                                                    _getAndroidOptions() =>
+                                                        const AndroidOptions(
+                                                          encryptedSharedPreferences:
+                                                              true,
+                                                        );
+                                                IOSOptions _getIOSOptions() =>
+                                                    const IOSOptions(
+                                                        accessibility:
+                                                            KeychainAccessibility
+                                                                .passcode);
+                                                final storage =
+                                                    FlutterSecureStorage(
+                                                        aOptions:
+                                                            _getAndroidOptions(),
+                                                        iOptions:
+                                                            _getIOSOptions());
+                                                String lastWalletIndex =
+                                                    await storage.read(
+                                                            key:
+                                                                "lastWalletIndex") ??
+                                                        "1";
+                                                Web3Wallet web3wallet =
+                                                    Web3Wallet(
+                                                        privateKey: privateKey,
+                                                        publicKey: publicKey
+                                                            .toString(),
+                                                        name: "Wallet Name",
+                                                        localIndex:
+                                                            lastWalletIndex);
+                                                await SafeStorageService()
+                                                    .addNewWallet(web3wallet);
+                                                // ignore: unused_local_variable
+                                                Wallet wallet =
+                                                    Wallet.createNew(
+                                                        EthPrivateKey.fromHex(
+                                                            privateKey),
+                                                        "Password",
+                                                        Random());
+                                                await FirebaseFirestore.instance
+                                                    .collection('wallets')
+                                                    .doc(publicKey.toString())
+                                                    .set({
+                                                  'loyalty_programs': [],
+                                                  'publicKey':
+                                                      publicKey.toString(),
+                                                  'assets': [],
+                                                  'privateKey': web3wallet
+                                                      .encPrivateKey(web3wallet
+                                                          .privateKey),
+                                                  'ozodIdConnected': true,
+                                                  'ozodIdAccount': FirebaseAuth
+                                                      .instance
+                                                      .currentUser!
+                                                      .uid,
+                                                });
+
+                                                await FirebaseFirestore.instance
+                                                    .collection(
+                                                        'ozod_id_accounts')
+                                                    .doc(FirebaseAuth.instance
+                                                        .currentUser!.uid)
+                                                    .update({
+                                                  'wallets':
+                                                      FieldValue.arrayUnion([
+                                                    web3wallet.publicKey
+                                                  ]),
+                                                });
+                                                showNotification(
+                                                    'Success',
+                                                    'Wallet has been created',
+                                                    greenColor);
+                                              } catch (e) {
+                                                showNotification(
+                                                    'Failed',
+                                                    'Try again later',
+                                                    greenColor);
+                                              }
+                                              Navigator.pop(context);
+                                              setState(() {
+                                                loading = false;
+                                              });
+                                            },
+                                            color: ozodIdColor2,
+                                            textColor: whiteColor,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ).asGlass(
+                                    blurX: 20,
+                                    blurY: 20,
+                                    clipBorderRadius:
+                                        BorderRadius.circular(20.0),
+                                    tintColor: darkDarkColor,
+                                  ),
+                                ),
+                              )
+                            : Container(),
+                        SizedBox(
+                          height: ozodIdUser != null ? 50 : 0,
                         ),
                         Text(
                           "Your seed phrase",
@@ -326,9 +551,8 @@ class _CreateWalletScreenState extends State<CreateWalletScreen> {
                             press: () {
                               // if (_formKey.currentState!.validate() &&
                               //     password != null &&
-                              //     password!.isNotEmpty) 
-                            if (_formKey.currentState!.validate()) 
-                                  {
+                              //     password!.isNotEmpty)
+                              if (_formKey.currentState!.validate()) {
                                 setState(() {
                                   loading = true;
                                 });

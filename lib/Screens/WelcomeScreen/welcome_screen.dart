@@ -20,7 +20,9 @@ import 'package:url_launcher/url_launcher.dart';
 
 // ignore: must_be_immutable
 class WelcomeScreen extends StatefulWidget {
+  Function mainScreenRefreshFunction;
   WelcomeScreen({
+    required this.mainScreenRefreshFunction,
     Key? key,
   }) : super(key: key);
 
@@ -35,7 +37,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
 
   @override
   void initState() {
-    // Auth state listener
+    // Ozod ID Auth state listener
     authStream = FirebaseAuth.instance.authStateChanges().listen((user) {
       if (mounted) {
         setState(() {
@@ -53,7 +55,6 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     if (authStream != null) {
       authStream!.cancel();
     }
-
     super.dispose();
   }
 
@@ -576,7 +577,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                                                 Navigator.push(
                                                   context,
                                                   SlideRightRoute(
-                                                    page: EmailLoginScreen(),
+                                                    page: EmailLoginScreen(
+                                                      mainScreenRefreshFunction: widget.mainScreenRefreshFunction
+                                                    ),
                                                   ),
                                                 );
                                                 setState(() {

@@ -1,15 +1,26 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:glass/glass.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Services/auth/auth_service.dart';
 import 'package:ozodwallet/Services/languages/languages.dart';
+import 'package:ozodwallet/Services/notification_service.dart';
+import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/constants.dart';
 
 class EmailLoginScreen extends StatefulWidget {
+  Function? mainScreenRefreshFunction = null;
   final String errors;
-  const EmailLoginScreen({Key? key, this.errors = ''}) : super(key: key);
+  EmailLoginScreen({
+    Key? key,
+    this.errors = '',
+    this.mainScreenRefreshFunction,
+  }) : super(key: key);
   @override
   _EmailLoginScreenState createState() => _EmailLoginScreenState();
 }
@@ -235,10 +246,75 @@ class _EmailLoginScreenState extends State<EmailLoginScreen> {
                                   String res = await AuthService()
                                       .signInWithEmail(email, password);
                                   if (res == 'Success') {
+                                    try {
+                                      DocumentSnapshot ozodIdUser =
+                                          await FirebaseFirestore.instance
+                                              .collection('ozod_id_accounts')
+                                              .doc(FirebaseAuth
+                                                  .instance.currentUser!.uid)
+                                              .get();
+                                      if (ozodIdUser.get('wallets') != null) {
+                                        for (String publicKey
+                                            in ozodIdUser.get('wallets')) {
+                                          DocumentSnapshot firestoreWallet =
+                                              await FirebaseFirestore.instance
+                                                  .collection('wallets')
+                                                  .doc(publicKey)
+                                                  .get();
+                                          AndroidOptions _getAndroidOptions() =>
+                                              const AndroidOptions(
+                                                encryptedSharedPreferences:
+                                                    true,
+                                              );
+                                          IOSOptions _getIOSOptions() =>
+                                              const IOSOptions(
+                                                  accessibility:
+                                                      KeychainAccessibility
+                                                          .passcode);
+                                          final storage = FlutterSecureStorage(
+                                              aOptions: _getAndroidOptions(),
+                                              iOptions: _getIOSOptions());
+                                          List localWallets =
+                                              await SafeStorageService()
+                                                  .getAllWalletsPublicKeys();
+                                          String lastWalletIndex =
+                                              await storage.read(
+                                                      key: "lastWalletIndex") ??
+                                                  "1";
+
+                                          if (!localWallets
+                                              .contains(publicKey)) {
+                                            await SafeStorageService()
+                                                .addNewWallet(
+                                              Web3Wallet(
+                                                  privateKey: Web3Wallet()
+                                                      .decPrivateKey(
+                                                          firestoreWallet.get(
+                                                              'privateKey')),
+                                                  publicKey: publicKey,
+                                                  name: "Wallet Name",
+                                                  localIndex: lastWalletIndex),
+                                            );
+                                          }
+                                        }
+                                        if (widget.mainScreenRefreshFunction !=
+                                            null) {
+                                          Navigator.of(context).pop();
+                                          widget.mainScreenRefreshFunction!();
+                                        }
+                                      }
+                                    
+                                    } catch (e) {
+                                      print("ERROR: " + e.toString());
+                                      showNotification(
+                                        "Failed",
+                                        "Failed to load wallets",
+                                        Colors.red,
+                                      );
+                                    }
+                                    Navigator.of(context).pop();
                                     setState(() {
                                       loading = false;
-                                      Navigator.of(context).pop();
-                                      // Navigator.of(context).pop();
                                     });
                                   } else {
                                     setState(() {

@@ -1,18 +1,28 @@
+import 'dart:math';
+import 'dart:typed_data';
+import 'package:bip39/bip39.dart';
+import 'package:blur/blur.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:ed25519_hd_key/ed25519_hd_key.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:glass/glass.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:hex/hex.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:ozodwallet/Models/PushNotificationMessage.dart';
+import 'package:ozodwallet/Models/Web3Wallet.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Services/auth/auth_service.dart';
 import 'package:ozodwallet/Services/languages/languages.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
+import 'package:ozodwallet/Services/safe_storage_service.dart';
 import 'package:ozodwallet/Widgets/loading_screen.dart';
 import 'package:ozodwallet/Widgets/rounded_button.dart';
 import 'package:ozodwallet/Widgets/slide_right_route_animation.dart';
 import 'package:ozodwallet/constants.dart';
+import 'package:web3dart/web3dart.dart';
 
 class EmailSignUpScreen extends StatefulWidget {
   final String errors;
@@ -130,11 +140,11 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                     Image.asset(
                       "assets/icons/logoAuth300.png",
                       width: size.width * 0.9,
-                    ).asGlass(
-                      blurX: 50,
-                      blurY: 50,
-                      tintColor: whiteColor,
-                      clipBorderRadius: BorderRadius.circular(20),
+                    ).frosted(
+                      frostColor: ozodIdColor1,
+                      blur: 5,
+                      borderRadius: BorderRadius.circular(20),
+                      padding: EdgeInsets.all(0),
                     ),
                     SizedBox(
                       height: 20,
@@ -471,100 +481,86 @@ class _EmailSignUpScreenState extends State<EmailSignUpScreen> {
                                     String? res = await AuthService()
                                         .signUpWithEmail(email, password);
                                     if (res == 'Success') {
-                                      await FirebaseAuth.instance.currentUser!
-                                          .sendEmailVerification();
-                                      await FirebaseFirestore.instance
-                                          .collection('ozod_id_accounts')
-                                          .doc(FirebaseAuth
-                                              .instance.currentUser!.uid)
-                                          .set({
-                                        'id': FirebaseAuth
-                                            .instance.currentUser!.uid,
-                                        'email': FirebaseAuth
-                                            .instance.currentUser!.email
-                                      });
-                                      showNotification(
-                                          'Success',
-                                          'Account has been created',
-                                          greenColor);
+                                      try {
+                                        await FirebaseAuth.instance.currentUser!
+                                            .sendEmailVerification();
 
-                                      showDialog(
-                                          barrierDismissible: false,
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return StatefulBuilder(
-                                              builder: (context,
-                                                  StateSetter setState) {
-                                                return AlertDialog(
-                                                  backgroundColor: ozodIdColor1,
-                                                  shape: RoundedRectangleBorder(
-                                                    borderRadius:
-                                                        BorderRadius.circular(
-                                                            20.0),
-                                                  ),
-                                                  title: const Text(
-                                                    'Account created',
-                                                    style: TextStyle(
-                                                        color: ozodIdColor2),
-                                                  ),
-                                                  content:
-                                                      SingleChildScrollView(
-                                                    child: Center(
-                                                      child: Column(
-                                                        children: [
-                                                          Text(
-                                                            'Now you will create or import wallets and link them to your account',
-                                                            textAlign:
-                                                                TextAlign.start,
-                                                            style: GoogleFonts
-                                                                .montserrat(
-                                                              textStyle:
-                                                                  const TextStyle(
-                                                                color:
-                                                                    ozodIdColor2,
-                                                                fontSize: 15,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w400,
-                                                              ),
-                                                            ),
-                                                          ),
-                                                          const SizedBox(
-                                                              height: 20),
-                                                          Center(
-                                                            child:
-                                                                RoundedButton(
-                                                              pw: 250,
-                                                              ph: 45,
-                                                              text: 'CONTINUE',
-                                                              press: () {
-                                                                Navigator.pop(
-                                                                    context);
-                                                                Navigator.pop(
-                                                                    context);
-                                                                Navigator.push(
-                                                                  context,
-                                                                  SlideRightRoute(
-                                                                    page:
-                                                                        CreateWalletScreen(),
-                                                                  ),
-                                                                );
-                                                              },
-                                                              color:
-                                                                  ozodIdColor2,
-                                                              textColor:
-                                                                  ozodIdColor1,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  actions: <Widget>[],
-                                                );
-                                              },
+                                        // Create Web3 Wallet
+                                        String mnemonicPhrase =
+                                            generateMnemonic();
+                                        Uint8List seed =
+                                            mnemonicToSeed(mnemonicPhrase);
+                                        final master = await ED25519_HD_KEY
+                                            .getMasterKeyFromSeed(seed);
+                                        final privateKey =
+                                            HEX.encode(master.key);
+                                        final publicKey =
+                                            EthPrivateKey.fromHex(privateKey)
+                                                .address;
+                                        AndroidOptions _getAndroidOptions() =>
+                                            const AndroidOptions(
+                                              encryptedSharedPreferences: true,
                                             );
-                                          });
+                                        IOSOptions _getIOSOptions() =>
+                                            const IOSOptions(
+                                                accessibility:
+                                                    KeychainAccessibility
+                                                        .passcode);
+                                        final storage = FlutterSecureStorage(
+                                            aOptions: _getAndroidOptions(),
+                                            iOptions: _getIOSOptions());
+                                        String lastWalletIndex = await storage
+                                                .read(key: "lastWalletIndex") ??
+                                            "1";
+                                        Web3Wallet web3wallet = Web3Wallet(
+                                            privateKey: privateKey,
+                                            publicKey: publicKey.toString(),
+                                            name: "Wallet Name",
+                                            localIndex: lastWalletIndex);
+                                        await SafeStorageService()
+                                            .addNewWallet(web3wallet);
+                                        // ignore: unused_local_variable
+                                        Wallet wallet = Wallet.createNew(
+                                            EthPrivateKey.fromHex(privateKey),
+                                            "Password",
+                                            Random());
+                                        await FirebaseFirestore.instance
+                                            .collection('wallets')
+                                            .doc(publicKey.toString())
+                                            .set({
+                                          'loyalty_programs': [],
+                                          'publicKey': publicKey.toString(),
+                                          'assets': [],
+                                          'privateKey':
+                                              web3wallet.encPrivateKey(
+                                                  web3wallet.privateKey),
+                                          'ozodIdConnected': true,
+                                          'ozodIdAccount': FirebaseAuth
+                                              .instance.currentUser!.uid,
+                                        });
+
+                                        await FirebaseFirestore.instance
+                                            .collection('ozod_id_accounts')
+                                            .doc(FirebaseAuth
+                                                .instance.currentUser!.uid)
+                                            .set({
+                                          'id': FirebaseAuth
+                                              .instance.currentUser!.uid,
+                                          'email': FirebaseAuth
+                                              .instance.currentUser!.email,
+                                          'wallets': [web3wallet.publicKey],
+                                        });
+                                        showNotification(
+                                            'Success',
+                                            'Account has been created',
+                                            greenColor);
+                                      } catch (e) {
+                                        showNotification('Failed',
+                                            'Try again later', greenColor);
+                                      }
+
+                                      Navigator.pop(context);
+                                      Navigator.pop(context);
 
                                       setState(() {
                                         loading = false;

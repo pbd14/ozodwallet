@@ -3,7 +3,9 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart' as firestore;
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:glass/glass.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,12 +14,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:jazzicon/jazzicon.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:ozodwallet/Models/Web3Wallet.dart';
+import 'package:ozodwallet/Screens/OzodAuthScreen/email_login_screen.dart';
+import 'package:ozodwallet/Screens/OzodAuthScreen/email_signup_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/BuyOzodScreen/buy_ozod_octo_screen.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/BuyOzodScreen/buy_ozod_payme_screen.dart';
-import 'package:ozodwallet/Screens/TransactionScreen/buy_crypto_screen.dart';
+import 'package:blur/blur.dart';
 import 'package:ozodwallet/Screens/TransactionScreen/send_ozod_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/create_wallet_screen.dart';
 import 'package:ozodwallet/Screens/WalletScreen/import_wallet_screen.dart';
+import 'package:ozodwallet/Services/auth/auth_service.dart';
 import 'package:ozodwallet/Services/coingecko_api_service.dart';
 import 'package:ozodwallet/Services/encryption_service.dart';
 import 'package:ozodwallet/Services/notification_service.dart';
@@ -36,11 +41,11 @@ import 'package:web3dart/web3dart.dart';
 // ignore: must_be_immutable
 class HomeScreen extends StatefulWidget {
   String error;
-  Function refreshFunction;
+  Function mainScreenRefreshFunction;
   HomeScreen({
     Key? key,
     this.error = 'Something Went Wrong',
-    required this.refreshFunction,
+    required this.mainScreenRefreshFunction,
   }) : super(key: key);
 
   @override
@@ -265,7 +270,18 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     },
   };
 
-  Web3Wallet wallet = Web3Wallet(privateKey: "Loading", publicKey: "Loading", name: "Loading", localIndex: "1");
+  // Ozod ID
+  User? ozodIdUser;
+  firestore.DocumentSnapshot? ozodIdFirestoreUser;
+  StreamSubscription<User?>? authStream;
+  List ozodIdWallets = [];
+
+  // Wallet
+  Web3Wallet wallet = Web3Wallet(
+      privateKey: "Loading",
+      publicKey: "Loading",
+      name: "Loading",
+      localIndex: "1");
   String selectedWalletIndex = "1";
   String importingAssetContractAddress = "";
   String importingAssetContractSymbol = "";
@@ -306,7 +322,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         loading = true;
       });
     }
-    wallet = Web3Wallet(privateKey: "Loading", publicKey: "Loading", name: "Loading", localIndex: "1");
+    wallet = Web3Wallet(
+        privateKey: "Loading",
+        publicKey: "Loading",
+        name: "Loading",
+        localIndex: "1");
     loadingString = null;
     showSeed = false;
     importingAssetContractAddress = "";
@@ -321,6 +341,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     gasBalance = EtherAmount.zero();
     gasTxsLeft = 0;
     web3client = null;
+    ozodIdWallets = [];
 
     prepare();
     Completer<void> completer = Completer<void>();
@@ -382,12 +403,21 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return result;
   }
 
+  Future<void> manageOzodId() async {
+    if (ozodIdUser != null) {
+      ozodIdFirestoreUser = await firestore.FirebaseFirestore.instance
+          .collection('ozod_id_accounts')
+          .doc(ozodIdUser!.uid)
+          .get();
+      ozodIdWallets = ozodIdFirestoreUser!.get('wallets') ?? [];
+    }
+  }
+
   Future<void> prepare() async {
     try {
       sharedPreference = await SharedPreferences.getInstance();
       // Tutorial
       bool? isTutorial = await sharedPreference!.getBool("isHomeTutorial");
-
       if (isTutorial == null) {
         createTutorial();
         Future.delayed(Duration(seconds: 7), showTutorial);
@@ -397,9 +427,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       }
       WidgetsBinding.instance.addObserver(this);
 
+      // Wallets
       wallets = await SafeStorageService().getAllWallets();
       await getDataFromSP();
-      // get app data
+
+      // Firebase app data
       appDataNodes = await firestore.FirebaseFirestore.instance
           .collection('app_data')
           .doc('nodes')
@@ -412,6 +444,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           .collection('app_data')
           .doc('data')
           .get();
+
+      // Ozod ID
+      await manageOzodId();
+
       // Check network availability
       if (appData!.get('AVAILABLE_OZOD_NETWORKS')[selectedNetworkId] == null) {
         selectedNetworkId = "goerli";
@@ -442,8 +478,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           httpClient);
 
       // Wallet
-      wallet=
-          await SafeStorageService().getWallet(selectedWalletIndex);
+      wallet = await SafeStorageService().getWallet(selectedWalletIndex);
 
       if (jsonDecode(uzsoFirebase!.get('contract_abi')) != null) {
         uzsoContract = DeployedContract(
@@ -513,12 +548,25 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
 
   @override
   void initState() {
+    // Ozod ID Auth state listener
+    authStream = FirebaseAuth.instance.authStateChanges().listen((user) {
+      if (mounted) {
+        setState(() {
+          ozodIdUser = user;
+        });
+      } else {
+        ozodIdUser = user;
+      }
+    });
     prepare();
     super.initState();
   }
 
   @override
   void dispose() {
+    if (authStream != null) {
+      authStream!.cancel();
+    }
     WidgetsBinding.instance.removeObserver(this);
     timer?.cancel();
     super.dispose();
@@ -864,7 +912,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                             padding: EdgeInsets.zero,
                                             onPressed: () async {
                                               await Clipboard.setData(
-                                                ClipboardData(text: wallet.privateKey),
+                                                ClipboardData(
+                                                    text: wallet.privateKey),
                                               );
                                               showNotification(
                                                   'Copied',
@@ -1032,6 +1081,445 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       child: const Text(
                                         'Ok',
                                         style: TextStyle(color: secondaryColor),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          });
+
+                      // Update the state of the app
+                      // ...
+                      // Then close the drawer
+                      Navigator.pop(context);
+                    },
+                  ),
+                  ListTile(
+                    tileColor: ozodIdColor2,
+                    leading: Image.asset(
+                      'assets/icons/logoAuth300.png',
+                      width: 30,
+                      height: 30,
+                      // scale: 10,
+                    ).frosted(
+                      frostColor: ozodIdColor1,
+                      blur: 10,
+                      borderRadius: BorderRadius.circular(5),
+                      padding: EdgeInsets.all(0),
+                    ),
+                    title: Text(
+                      "Ozod ID",
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.start,
+                      maxLines: 2,
+                      style: GoogleFonts.montserrat(
+                        textStyle: const TextStyle(
+                          color: whiteColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      showDialog(
+                          barrierDismissible: true,
+                          context: context,
+                          builder: (BuildContext context) {
+                            return StatefulBuilder(
+                              builder: (context, StateSetter setState) {
+                                return AlertDialog(
+                                  backgroundColor: ozodIdColor2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20.0),
+                                  ),
+                                  // title: const Text(
+                                  //   'Delete all data',
+                                  //   style: TextStyle(color: secondaryColor),
+                                  // ),
+                                  content: SingleChildScrollView(
+                                    child: Center(
+                                      child: ozodIdUser != null
+                                          ? Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Image.asset(
+                                                      'assets/icons/logoAuth300.png',
+                                                      width: 30,
+                                                      height: 30,
+                                                      // scale: 10,
+                                                    ).frosted(
+                                                      frostColor: ozodIdColor1,
+                                                      blur: 10,
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              5),
+                                                      padding:
+                                                          EdgeInsets.all(0),
+                                                    ),
+                                                    SizedBox(
+                                                      width: 5,
+                                                    ),
+                                                    Text(
+                                                      'Ozod ID',
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          color: whiteColor,
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(
+                                                  height: 20,
+                                                ),
+                                                Center(
+                                                  child: Container(
+                                                    padding: EdgeInsets.all(10),
+                                                    decoration: BoxDecoration(
+                                                      border: Border.all(
+                                                          color: ozodIdColor1,
+                                                          width: 1.0),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              20),
+                                                    ),
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        SizedBox(
+                                                          height: 20,
+                                                        ),
+                                                        Text(
+                                                          "ID: ${ozodIdUser!.uid}",
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          textAlign:
+                                                              TextAlign.start,
+                                                          maxLines: 4,
+                                                          style: GoogleFonts
+                                                              .montserrat(
+                                                            textStyle:
+                                                                const TextStyle(
+                                                              color:
+                                                                  ozodIdColor1,
+                                                              fontSize: 15,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          height: 10,
+                                                        ),
+                                                        Divider(
+                                                          color: ozodIdColor1,
+                                                        ),
+                                                        Text(
+                                                          "Session: ${ozodIdUser!.email}",
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          textAlign:
+                                                              TextAlign.start,
+                                                          maxLines: 4,
+                                                          style: GoogleFonts
+                                                              .montserrat(
+                                                            textStyle:
+                                                                const TextStyle(
+                                                              color:
+                                                                  ozodIdColor1,
+                                                              fontSize: 15,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          height: 5,
+                                                        ),
+                                                        Text(
+                                                          "Email Verified: ${ozodIdUser!.emailVerified ? 'Yes' : 'No'}",
+                                                          overflow: TextOverflow
+                                                              .ellipsis,
+                                                          textAlign:
+                                                              TextAlign.start,
+                                                          maxLines: 4,
+                                                          style: GoogleFonts
+                                                              .montserrat(
+                                                            textStyle:
+                                                                const TextStyle(
+                                                              color:
+                                                                  ozodIdColor1,
+                                                              fontSize: 15,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w400,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                        SizedBox(
+                                                          height: 20,
+                                                        ),
+                                                        !ozodIdUser!
+                                                                .emailVerified
+                                                            ? Center(
+                                                                child:
+                                                                    RoundedButton(
+                                                                  pw: 200,
+                                                                  ph: 40,
+                                                                  text:
+                                                                      'Resend verification',
+                                                                  press:
+                                                                      () async {
+                                                                    bool
+                                                                        isError =
+                                                                        false;
+                                                                    FirebaseAuth
+                                                                        .instance
+                                                                        .currentUser!
+                                                                        .sendEmailVerification()
+                                                                        .catchError(
+                                                                            (error) {
+                                                                      isError =
+                                                                          true;
+                                                                      showNotification(
+                                                                          'Failed',
+                                                                          'Failed to send email',
+                                                                          Colors
+                                                                              .red);
+                                                                    }).whenComplete(
+                                                                            () {
+                                                                      if (!isError) {
+                                                                        showNotification(
+                                                                            'Success',
+                                                                            'Email sent',
+                                                                            greenColor);
+                                                                      }
+                                                                    });
+                                                                  },
+                                                                  color:
+                                                                      ozodIdColor1,
+                                                                  textColor:
+                                                                      ozodIdColor2,
+                                                                ),
+                                                              )
+                                                            : Container(),
+                                                        SizedBox(
+                                                          height: !ozodIdUser!
+                                                                  .emailVerified
+                                                              ? 20
+                                                              : 0,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 20),
+                                                  child: RoundedButton(
+                                                    pw: 250,
+                                                    ph: 45,
+                                                    text: 'Sign Out',
+                                                    press: () {
+                                                      showDialog(
+                                                        barrierDismissible:
+                                                            false,
+                                                        context: context,
+                                                        builder: (BuildContext
+                                                            context) {
+                                                          return AlertDialog(
+                                                            backgroundColor:
+                                                                ozodIdColor2,
+                                                            shape:
+                                                                RoundedRectangleBorder(
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          20.0),
+                                                            ),
+                                                            // title: Text(
+                                                            //     Languages.of(context).profileScreenSignOut),
+                                                            // content: Text(
+                                                            //     Languages.of(context)!.profileScreenWantToLeave),
+                                                            title: const Text(
+                                                              'Sign Out?',
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      ozodIdColor1),
+                                                            ),
+                                                            content: const Text(
+                                                              'Sure?',
+                                                              style: TextStyle(
+                                                                  color:
+                                                                      ozodIdColor1),
+                                                            ),
+                                                            actions: <Widget>[
+                                                              TextButton(
+                                                                onPressed: () {
+                                                                  // prefs.setBool('local_auth', false);
+                                                                  // prefs.setString('local_password', '');
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop(
+                                                                          true);
+                                                                  Navigator.of(
+                                                                          context)
+                                                                      .pop(
+                                                                          true);
+                                                                  AuthService()
+                                                                      .signOut(
+                                                                          context);
+                                                                },
+                                                                child:
+                                                                    const Text(
+                                                                  'Yes',
+                                                                  style: TextStyle(
+                                                                      color:
+                                                                          ozodIdColor1),
+                                                                ),
+                                                              ),
+                                                              TextButton(
+                                                                onPressed: () =>
+                                                                    Navigator.of(
+                                                                            context)
+                                                                        .pop(
+                                                                            false),
+                                                                child:
+                                                                    const Text(
+                                                                  'No',
+                                                                  style: TextStyle(
+                                                                      color: Colors
+                                                                          .red),
+                                                                ),
+                                                              ),
+                                                            ],
+                                                          );
+                                                        },
+                                                      );
+                                                    },
+                                                    color: Colors.red,
+                                                    textColor: whiteColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            )
+                                          : Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.start,
+                                              children: [
+                                                Row(
+                                                  children: [
+                                                    Image.asset(
+                                                      'assets/icons/logoAuth300.png',
+                                                      width: 40,
+                                                      height: 40,
+                                                      // scale: 10,
+                                                    ),
+                                                    Text(
+                                                      'Ozod ID',
+                                                      style: GoogleFonts
+                                                          .montserrat(
+                                                        textStyle:
+                                                            const TextStyle(
+                                                          color: whiteColor,
+                                                          fontSize: 18,
+                                                          fontWeight:
+                                                              FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                SizedBox(
+                                                  height: 30,
+                                                ),
+                                                Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 20),
+                                                  child: RoundedButton(
+                                                    pw: 250,
+                                                    ph: 45,
+                                                    text: 'Log In',
+                                                    press: () {
+                                                      setState(() {
+                                                        loading = true;
+                                                      });
+                                                      Navigator.of(context)
+                                                          .pop(true);
+                                                      Navigator.push(
+                                                        context,
+                                                        SlideRightRoute(
+                                                          page:
+                                                              EmailLoginScreen(),
+                                                        ),
+                                                      );
+                                                      setState(() {
+                                                        loading = false;
+                                                      });
+                                                    },
+                                                    color: ozodIdColor1,
+                                                    textColor: darkPrimaryColor,
+                                                  ),
+                                                ),
+                                                const SizedBox(
+                                                  height: 20,
+                                                ),
+                                                Container(
+                                                  padding: EdgeInsets.symmetric(
+                                                      horizontal: 20),
+                                                  child: RoundedButton(
+                                                    pw: 250,
+                                                    ph: 45,
+                                                    text: 'Sign Up',
+                                                    press: () {
+                                                      setState(() {
+                                                        loading = true;
+                                                      });
+                                                      Navigator.of(context)
+                                                          .pop(true);
+                                                      Navigator.push(
+                                                        context,
+                                                        SlideRightRoute(
+                                                          page:
+                                                              EmailSignUpScreen(),
+                                                        ),
+                                                      );
+
+                                                      setState(() {
+                                                        loading = false;
+                                                      });
+                                                    },
+                                                    color: ozodIdColor2,
+                                                    textColor: whiteColor,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                    ),
+                                  ),
+                                  actions: <Widget>[
+                                    TextButton(
+                                      onPressed: () =>
+                                          Navigator.of(context).pop(false),
+                                      child: const Text(
+                                        'Cancel',
+                                        style: TextStyle(color: ozodIdColor1),
                                       ),
                                     ),
                                   ],
@@ -1216,7 +1704,10 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                         .deleteAllData();
                                                     await sharedPreferences!
                                                         .clear();
-                                                    widget.refreshFunction();
+                                                    AuthService()
+                                                        .signOut(context);
+                                                    widget
+                                                        .mainScreenRefreshFunction();
                                                   }
                                                 },
                                                 color: Colors.red,
@@ -1524,6 +2015,526 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                       ),
                                     SizedBox(height: 20),
 
+                                    // Ozod ID
+                                    Container(
+                                      margin:
+                                          EdgeInsets.fromLTRB(0, 0, 0, 10),
+                                      width: size.width * 0.8,
+                                      // height: 200,
+                                      decoration: BoxDecoration(
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
+                                        gradient: LinearGradient(
+                                          begin: Alignment.topLeft,
+                                          end: Alignment.bottomRight,
+                                          colors: [
+                                            Color.fromARGB(255, 70, 213, 196),
+                                            Color.fromARGB(255, 19, 51, 77),
+                                          ],
+                                        ),
+                                      ),
+                                      child: Container(
+                                        padding: const EdgeInsets.all(10),
+                                        child: ozodIdUser != null
+                                            ? Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Image.asset(
+                                                            'assets/icons/logoAuth300.png',
+                                                            width: 40,
+                                                            height: 40,
+                                                            // scale: 10,
+                                                          ),
+                                                          Text(
+                                                            'Ozod ID',
+                                                            style: GoogleFonts
+                                                                .montserrat(
+                                                              textStyle:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    whiteColor,
+                                                                fontSize: 18,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      ozodIdWallets.contains(
+                                                              wallet.publicKey)
+                                                          ? CupertinoButton(
+                                                              padding:
+                                                                  EdgeInsets
+                                                                      .zero,
+                                                              onPressed: () {
+                                                                showDialog(
+                                                                  barrierDismissible:
+                                                                      false,
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (BuildContext
+                                                                          context) {
+                                                                    return AlertDialog(
+                                                                      backgroundColor:
+                                                                          ozodIdColor2,
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(20.0),
+                                                                      ),
+                                                                      // title: Text(
+                                                                      //     Languages.of(context).profileScreenSignOut),
+                                                                      // content: Text(
+                                                                      //     Languages.of(context)!.profileScreenWantToLeave),
+                                                                      title:
+                                                                          const Text(
+                                                                        'Disconnect this wallet from Ozod ID?',
+                                                                        style: TextStyle(
+                                                                            color:
+                                                                                ozodIdColor1),
+                                                                      ),
+                                                                      content:
+                                                                          const Text(
+                                                                        'Sure?',
+                                                                        style: TextStyle(
+                                                                            color:
+                                                                                ozodIdColor1),
+                                                                      ),
+                                                                      actions: <
+                                                                          Widget>[
+                                                                        TextButton(
+                                                                          onPressed:
+                                                                              () async {
+                                                                            Navigator.of(context).pop(true);
+                                                                            setState(() {
+                                                                              loading = true;
+                                                                            });
+                                                                            try {
+                                                                              await firestore.FirebaseFirestore.instance.collection('wallets').doc(wallet.valueAddress.toString()).update({
+                                                                                'privateKey': '',
+                                                                                'ozodIdConnected': false,
+                                                                                'ozodIdAccount': '',
+                                                                              });
+                                                                              await firestore.FirebaseFirestore.instance.collection('ozod_id_accounts').doc(ozodIdUser!.uid).update({
+                                                                                'wallets': firestore.FieldValue.arrayRemove([
+                                                                                  wallet.publicKey
+                                                                                ])
+                                                                              });
+                                                                              showNotification("Success", "Wallet Disconnected", greenColor);
+                                                                            } catch (e) {
+                                                                              showNotification("Failed", "Failed. Try again", Colors.red);
+                                                                            }
+
+                                                                            _refresh();
+                                                                          },
+                                                                          child:
+                                                                              const Text(
+                                                                            'Yes',
+                                                                            style:
+                                                                                TextStyle(color: ozodIdColor1),
+                                                                          ),
+                                                                        ),
+                                                                        TextButton(
+                                                                          onPressed: () =>
+                                                                              Navigator.of(context).pop(false),
+                                                                          child:
+                                                                              const Text(
+                                                                            'No',
+                                                                            style:
+                                                                                TextStyle(color: Colors.red),
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    );
+                                                                  },
+                                                                );
+                                                              },
+                                                              child: Container(
+                                                                padding:
+                                                                    EdgeInsets
+                                                                        .all(5),
+                                                                decoration:
+                                                                    BoxDecoration(
+                                                                  border: Border.all(
+                                                                      color:
+                                                                          ozodIdColor1,
+                                                                      width:
+                                                                          1.0),
+                                                                  borderRadius:
+                                                                      BorderRadius
+                                                                          .circular(
+                                                                              20),
+                                                                ),
+                                                                child: Row(
+                                                                  children: [
+                                                                    CircleAvatar(
+                                                                      radius: 5,
+                                                                      backgroundColor:
+                                                                          lightPrimaryColor,
+                                                                    ),
+                                                                    SizedBox(
+                                                                      width: 5,
+                                                                    ),
+                                                                    Text(
+                                                                      'Connected',
+                                                                      style: GoogleFonts
+                                                                          .montserrat(
+                                                                        textStyle:
+                                                                            const TextStyle(
+                                                                          color:
+                                                                              whiteColor,
+                                                                          fontSize:
+                                                                              10,
+                                                                          fontWeight:
+                                                                              FontWeight.w400,
+                                                                        ),
+                                                                      ),
+                                                                    ),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            )
+                                                          : Container(
+                                                              padding:
+                                                                  EdgeInsets
+                                                                      .all(5),
+                                                              decoration:
+                                                                  BoxDecoration(
+                                                                border: Border.all(
+                                                                    color:
+                                                                        ozodIdColor1,
+                                                                    width: 1.0),
+                                                                borderRadius:
+                                                                    BorderRadius
+                                                                        .circular(
+                                                                            20),
+                                                              ),
+                                                              child: Row(
+                                                                children: [
+                                                                  CircleAvatar(
+                                                                    radius: 5,
+                                                                    backgroundColor:
+                                                                        Colors
+                                                                            .red,
+                                                                  ),
+                                                                  SizedBox(
+                                                                    width: 5,
+                                                                  ),
+                                                                  Text(
+                                                                    'Not Connected',
+                                                                    style: GoogleFonts
+                                                                        .montserrat(
+                                                                      textStyle:
+                                                                          const TextStyle(
+                                                                        color:
+                                                                            whiteColor,
+                                                                        fontSize:
+                                                                            10,
+                                                                        fontWeight:
+                                                                            FontWeight.w400,
+                                                                      ),
+                                                                    ),
+                                                                  ),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                    ],
+                                                  ),
+                                                  Text(
+                                                    ozodIdUser!.email!,
+                                                    overflow:
+                                                        TextOverflow.ellipsis,
+                                                    textAlign: TextAlign.start,
+                                                    maxLines: 4,
+                                                    style:
+                                                        GoogleFonts.montserrat(
+                                                      textStyle:
+                                                          const TextStyle(
+                                                        color: whiteColor,
+                                                        fontSize: 15,
+                                                        fontWeight:
+                                                            FontWeight.w400,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  SizedBox(
+                                                    height: !ozodIdWallets
+                                                            .contains(wallet
+                                                                .publicKey)
+                                                        ? 15
+                                                        : 0,
+                                                  ),
+                                                  !ozodIdWallets.contains(
+                                                          wallet.publicKey)
+                                                      ? Center(
+                                                          child: Container(
+                                                            padding: EdgeInsets
+                                                                .symmetric(
+                                                                    horizontal:
+                                                                        20),
+                                                            child:
+                                                                RoundedButton(
+                                                              pw: 150,
+                                                              ph: 35,
+                                                              text: 'Connect',
+                                                              press: () async {
+                                                                setState(() {
+                                                                  loading =
+                                                                      true;
+                                                                });
+
+                                                                // Check if wallet already linked
+                                                                bool
+                                                                    alreadyLinked =
+                                                                    false;
+                                                                firestore
+                                                                        .DocumentSnapshot
+                                                                    firestoreWallet =
+                                                                    await firestore
+                                                                        .FirebaseFirestore
+                                                                        .instance
+                                                                        .collection(
+                                                                            'wallets')
+                                                                        .doc(wallet
+                                                                            .valueAddress
+                                                                            .toString())
+                                                                        .get();
+                                                                try {
+                                                                  if (firestoreWallet
+                                                                      .get(
+                                                                          'ozodIdConnected')) {
+                                                                    alreadyLinked =
+                                                                        true;
+                                                                  }
+                                                                } catch (e) {}
+
+                                                                if (!alreadyLinked) {
+                                                                  try {
+                                                                    await firestore
+                                                                        .FirebaseFirestore
+                                                                        .instance
+                                                                        .collection(
+                                                                            'wallets')
+                                                                        .doc(wallet
+                                                                            .valueAddress
+                                                                            .toString())
+                                                                        .update({
+                                                                      'privateKey':
+                                                                          wallet
+                                                                              .encPrivateKey(wallet.privateKey),
+                                                                      'ozodIdConnected':
+                                                                          true,
+                                                                      'ozodIdAccount':
+                                                                          ozodIdUser!
+                                                                              .uid,
+                                                                    });
+                                                                    await firestore
+                                                                        .FirebaseFirestore
+                                                                        .instance
+                                                                        .collection(
+                                                                            'ozod_id_accounts')
+                                                                        .doc(ozodIdUser!
+                                                                            .uid)
+                                                                        .update({
+                                                                      'wallets':
+                                                                          firestore.FieldValue
+                                                                              .arrayUnion([
+                                                                        wallet
+                                                                            .publicKey
+                                                                      ])
+                                                                    });
+                                                                    showNotification(
+                                                                        "Success",
+                                                                        "Wallet Connected",
+                                                                        greenColor);
+                                                                  } catch (e) {
+                                                                    showNotification(
+                                                                        "Failed",
+                                                                        "Failed. Try again",
+                                                                        Colors
+                                                                            .red);
+                                                                  }
+                                                                } else {
+                                                                  showNotification(
+                                                                      "Failed",
+                                                                      "Wallet is already linked to other account",
+                                                                      Colors
+                                                                          .red);
+                                                                }
+                                                                _refresh();
+                                                              },
+                                                              color: whiteColor,
+                                                              textColor:
+                                                                  ozodIdColor2,
+                                                            ),
+                                                          ),
+                                                        )
+                                                      : Container(),
+                                                ],
+                                              )
+                                            : Column(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment.start,
+                                                children: [
+                                                  Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceBetween,
+                                                    children: [
+                                                      Row(
+                                                        children: [
+                                                          Image.asset(
+                                                            'assets/icons/logoAuth300.png',
+                                                            width: 40,
+                                                            height: 40,
+                                                            // scale: 10,
+                                                          ),
+                                                          Text(
+                                                            'Ozod ID',
+                                                            style: GoogleFonts
+                                                                .montserrat(
+                                                              textStyle:
+                                                                  const TextStyle(
+                                                                color:
+                                                                    whiteColor,
+                                                                fontSize: 18,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w700,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      Container(
+                                                        padding:
+                                                            EdgeInsets.all(5),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          border: Border.all(
+                                                              color:
+                                                                  ozodIdColor1,
+                                                              width: 1.0),
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(20),
+                                                        ),
+                                                        child: Row(
+                                                          children: [
+                                                            CircleAvatar(
+                                                              radius: 5,
+                                                              backgroundColor:
+                                                                  Colors.red,
+                                                            ),
+                                                            SizedBox(
+                                                              width: 5,
+                                                            ),
+                                                            Text(
+                                                              'Not Connected',
+                                                              style: GoogleFonts
+                                                                  .montserrat(
+                                                                textStyle:
+                                                                    const TextStyle(
+                                                                  color:
+                                                                      whiteColor,
+                                                                  fontSize: 10,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w400,
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                  SizedBox(
+                                                    height: 30,
+                                                  ),
+                                                  Container(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 20),
+                                                    child: RoundedButton(
+                                                      pw: 250,
+                                                      ph: 45,
+                                                      text: 'Log In',
+                                                      press: () {
+                                                        setState(() {
+                                                          loading = true;
+                                                        });
+                                                        Navigator.push(
+                                                          context,
+                                                          SlideRightRoute(
+                                                            page:
+                                                                EmailLoginScreen(),
+                                                          ),
+                                                        );
+                                                        setState(() {
+                                                          loading = false;
+                                                        });
+                                                      },
+                                                      color: ozodIdColor1,
+                                                      textColor:
+                                                          darkPrimaryColor,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(
+                                                    height: 20,
+                                                  ),
+                                                  Container(
+                                                    padding:
+                                                        EdgeInsets.symmetric(
+                                                            horizontal: 20),
+                                                    child: RoundedButton(
+                                                      pw: 250,
+                                                      ph: 45,
+                                                      text: 'Sign Up',
+                                                      press: () {
+                                                        setState(() {
+                                                          loading = true;
+                                                        });
+                                                        Navigator.push(
+                                                          context,
+                                                          SlideRightRoute(
+                                                            page:
+                                                                EmailSignUpScreen(),
+                                                          ),
+                                                        );
+                                                        setState(() {
+                                                          loading = false;
+                                                        });
+                                                      },
+                                                      color: ozodIdColor2,
+                                                      textColor: whiteColor,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                      ).asGlass(
+                                        blurX: 20,
+                                        blurY: 20,
+                                        clipBorderRadius:
+                                            BorderRadius.circular(20.0),
+                                        tintColor: darkDarkColor,
+                                      ),
+                                    ),
+
                                     // Wallet
                                     kIsWeb
                                         ? Container(
@@ -1564,8 +2575,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                         Jazzicon
                                                             .getJazziconData(
                                                                 160,
-                                                                address:
-                                                                    wallet.publicKey),
+                                                                address: wallet
+                                                                    .publicKey),
                                                         size: 20),
                                                     SizedBox(
                                                       width: 5,
@@ -1743,8 +2754,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                         onPressed: () async {
                                                           await Clipboard.setData(
                                                               ClipboardData(
-                                                                  text:
-                                                                      wallet.publicKey));
+                                                                  text: wallet
+                                                                      .publicKey));
                                                           showNotification(
                                                               'Copied',
                                                               'Public key copied',
@@ -1943,7 +2954,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                             130,
                                                                         child:
                                                                             Text(
-                                                                          wallet.name,
+                                                                          wallet
+                                                                              .name,
                                                                           overflow:
                                                                               TextOverflow.ellipsis,
                                                                           textAlign:
@@ -2035,7 +3047,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                               children: [
                                                                 Expanded(
                                                                   child: Text(
-                                                                    wallet.publicKey,
+                                                                    wallet
+                                                                        .publicKey,
                                                                     maxLines: 2,
                                                                     overflow:
                                                                         TextOverflow
@@ -2872,7 +3885,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                 fillColor: secondaryColor,
                                                 shape: CircleBorder(),
                                                 onPressed: () {
-                                                  if (wallet.publicKey != 'Loading')
+                                                  if (wallet.publicKey !=
+                                                      'Loading')
                                                     showDialog(
                                                         barrierDismissible:
                                                             false,
@@ -3516,11 +4530,12 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                               ],
                                             ),
                                           ),
-                                        
                                         ],
                                       ),
                                     ),
-                                    const SizedBox(height: 50),
+                                    const SizedBox(
+                                      height: 50,
+                                    ),
 
                                     // Txs
                                     selectedWalletTxs.length != 0
@@ -4106,7 +5121,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                       .center,
                                                               children: [
                                                                 tx['from'] ==
-                                                                        wallet.publicKey
+                                                                        wallet
+                                                                            .publicKey
                                                                     ? Icon(
                                                                         CupertinoIcons
                                                                             .arrow_up_circle_fill,
@@ -4156,7 +5172,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                       .start,
                                                               children: [
                                                                 tx['from'] ==
-                                                                        wallet.publicKey
+                                                                        wallet
+                                                                            .publicKey
                                                                     ? Text(
                                                                         "Sent",
                                                                         overflow:
@@ -4196,7 +5213,8 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                                                                         ),
                                                                       ),
                                                                 tx['from'] ==
-                                                                            wallet.publicKey &&
+                                                                            wallet
+                                                                                .publicKey &&
                                                                         !selectedWalletAssetsData
                                                                             .keys
                                                                             .contains(tx['to'])

@@ -37,7 +37,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
   String? userMnemonicPhrase;
   String? password;
   String? privateKey;
-  String name = "Wallet1";
+  String name = "Wallet Name";
   final _formKey = GlobalKey<FormState>();
 
   void prepare() {
@@ -438,42 +438,57 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                     final publicKey =
                                         EthPrivateKey.fromHex(walletPrivateKey)
                                             .address;
-
-                                    await FirebaseFirestore.instance
-                                        .collection('wallets')
-                                        .doc(publicKey.toString())
-                                        .set({
-                                      'loyalty_programs': [],
-                                      'public_key': publicKey.toString(),
-                                      'assets': [],
-                                    });
+                                    try {
+                                      DocumentSnapshot firestoreWallet =
+                                          await FirebaseFirestore.instance
+                                              .collection('wallets')
+                                              .doc(publicKey.toString())
+                                              .get();
+                                      if (!firestoreWallet.exists) {
+                                        await FirebaseFirestore.instance
+                                            .collection('wallets')
+                                            .doc(publicKey.toString())
+                                            .set({
+                                          'loyalty_programs': [],
+                                          'publicKey': publicKey.toString(),
+                                          'assets': [],
+                                        });
+                                      }
+                                    } catch (e) {
+                                      await FirebaseFirestore.instance
+                                          .collection('wallets')
+                                          .doc(publicKey.toString())
+                                          .set({
+                                        'loyalty_programs': [],
+                                        'publicKey': publicKey.toString(),
+                                        'assets': [],
+                                      });
+                                    }
 
                                     AndroidOptions _getAndroidOptions() =>
                                         const AndroidOptions(
                                           encryptedSharedPreferences: true,
                                         );
+                                    IOSOptions
+                                        _getIOSOptions() => const IOSOptions(
+                                            accessibility:
+                                                KeychainAccessibility.passcode);
                                     final storage = FlutterSecureStorage(
-                                        aOptions: _getAndroidOptions());
+                                        aOptions: _getAndroidOptions(),
+                                        iOptions: _getIOSOptions());
                                     String? lastWalletIndex;
-                                    if (!widget.isWelcomeScreen) {
-                                      lastWalletIndex = await storage.read(
-                                          key: "lastWalletIndex");
-                                    } else {
-                                      lastWalletIndex = "1";
-                                    }
-
-                                    if (lastWalletIndex != null) {
-                                      await SafeStorageService().addNewWallet(
-                                          Web3Wallet(
-                                              privateKey: walletPrivateKey,
-                                              publicKey: publicKey.toString(),
-                                              name: name,
-                                              localIndex: lastWalletIndex));
-                                    }
+                                    lastWalletIndex = await storage.read(
+                                            key: "lastWalletIndex") ??
+                                        "1";
+                                    await SafeStorageService().addNewWallet(
+                                        Web3Wallet(
+                                            privateKey: walletPrivateKey,
+                                            publicKey: publicKey.toString(),
+                                            name: name,
+                                            localIndex: lastWalletIndex));
                                     if (widget.isWelcomeScreen) {
                                       Navigator.pop(context);
                                     }
-
                                     Navigator.pop(context);
                                   } catch (e) {
                                     print("ERROR: $e");
@@ -502,7 +517,7 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                           .doc(publicKey.toString())
                                           .set({
                                         'loyalty_programs': [],
-                                        'public_key': publicKey.toString(),
+                                        'publicKey': publicKey.toString(),
                                         'assets': [],
                                       });
 
@@ -510,8 +525,14 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                           const AndroidOptions(
                                             encryptedSharedPreferences: true,
                                           );
+                                      IOSOptions _getIOSOptions() =>
+                                          const IOSOptions(
+                                              accessibility:
+                                                  KeychainAccessibility
+                                                      .passcode);
                                       final storage = FlutterSecureStorage(
-                                          aOptions: _getAndroidOptions());
+                                          aOptions: _getAndroidOptions(),
+                                          iOptions: _getIOSOptions());
                                       String? lastWalletIndex;
                                       if (!widget.isWelcomeScreen) {
                                         lastWalletIndex = await storage.read(
@@ -529,6 +550,9 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                               localIndex: lastWalletIndex),
                                         );
                                       }
+
+                                      showNotification("Success",
+                                    'Wallet imported', greenColor);
                                       if (widget.isWelcomeScreen) {
                                         Navigator.pop(context);
                                       }
@@ -543,7 +567,6 @@ class _ImportWalletScreenState extends State<ImportWalletScreen> {
                                           'Incorrect seed phrase', Colors.red);
                                     }
                                   } catch (e) {
-                                    print("ERROR1: $e");
                                     setState(() {
                                       loading = false;
                                       error = 'Error. Try again later';
